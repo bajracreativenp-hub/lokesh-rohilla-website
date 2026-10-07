@@ -6,9 +6,26 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "clean": "node scripts/clean.mjs",
+    "verify:build": "npm run clean && npm run build",
+    "verify:widths": "node scripts/verify-widths.mjs",
+    "verify:hero": "node scripts/probe-hero.mjs",
+    "verify:contrast": "node scripts/probe-contrast.mjs",
+    "verify:paths": "node scripts/probe-paths.mjs && node scripts/probe-paths-mobile.mjs",
+    "verify:marquee": "node scripts/probe-marquee.mjs",
+    "verify:timeline": "node scripts/probe-timeline.mjs",
+    "verify:routes": "node scripts/audit-routes.mjs",
+    "verify:rhythm": "node scripts/audit-rhythm.mjs",
+    "verify:visibility": "node scripts/audit-visibility.mjs",
+    "verify:nav": "node scripts/probe-nav.mjs && node scripts/probe-nav-a11y.mjs",
+    "verify:redirects": "node scripts/probe-redirects.mjs",
+    "verify:health-checker": "node scripts/probe-health-checker.mjs"
   },
   "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
+    "motion": "^14.0.0",
     "next": "16.3.8",
     "react": "19.2.8",
     "react-dom": "19.2.8"
@@ -20,6 +37,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
+    "puppeteer-core": "^25.12.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

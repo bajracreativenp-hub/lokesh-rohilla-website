@@ -1,26 +1,806 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   LOKESH ROHILLA - BRAND DESIGN SYSTEM
+   --------------------------------------------------------------------------
+   Tokens below were chosen and measured rather than defaulted. Where a value is
+   non-obvious, the comment beside it says why it is that number:
+
+     ink        #0B1730   navy
+     body       #6B7690   slate, darkened to #5D6679 to clear WCAG AA on tints
+     accent     #3B5FCC   royal blue, hue 225
+     tints      #F7F9FD / #EEF2FA
+     radii      pills 999px, cards 18px, panels 24px, inputs 12px
+     shadows    navy tinted, rgba(11,23,48,.28) 0 20px 40px -20px
+
+   Brand architecture is unchanged and still non negotiable:
+
+     LOKESH ROHILLA  ->  philosophy / experience  ->  his work
+
+   Business Doctor and The Bookwishes Club are the work Lokesh has built.
+   They never outrank the personal brand.
+
+   Theme model: a light base with deliberate full bleed dark bands. The bands are
+   a compositional device, not a theme flip.
+   ========================================================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+
+  /* Surfaces ------------------------------------------------------------- */
+  --canvas: #ffffff;
+  --surface: #f7f9fd;
+  --surface-sunk: #eef2fa;
+
+  /* Ink ------------------------------------------------------------------ */
+  --ink: #0b1730;
+  --ink-muted: #5d6679;
+
+  /* Accent: one only, used identically across every section ---------------
+     ROYAL BLUE, AND NOT THE LITERAL CSS `royalblue`.
+
+     `#4169E1` is the textbook royal blue and it was the first choice here. It
+     fails WCAG AA at 4.32:1 against `--surface-sunk`, which is where accent text
+     sits on the card icon plates, and dropping below 4.5 on one surface is not a
+     trade worth making for a hex value that happens to be canonical.
+
+     `#3B5FCC` is the same hue at 225 degrees, one step deeper, and it clears every
+     light surface:
+
+       on --canvas    5.68:1
+       on --surface   5.16:1
+       on --surface-sunk 5.07:1   <- the pair that failed at #4169E1
+
+     It is darker than the previous #1D5CFF, which is inherent to royal blue: the
+     colour carries less luminance than an electric blue, so the whole palette sits
+     closer to its contrast floor. Everything else on the site was already clear of
+     the threshold with room to spare, so nothing else had to move. */
+  --accent: #3b5fcc;
+  --accent-ink: #ffffff;
+
+  /* Lines ---------------------------------------------------------------- */
+  --hairline: rgb(11 23 48 / 0.1);
+  --hairline-strong: rgb(11 23 48 / 0.22);
+
+  /* Image placeholder slots (no photography supplied yet) ---------------- */
+  --placeholder: #e7ebf3;
+  --placeholder-ink: #5d6679;
+
+  /* Vertical rhythm. One scale, every section, every page. --------------- */
+  /*
+    THE RHYTHM LIVES HERE BECAUSE IT WAS THE THIRD PLACE BEING INVENTED.
+
+    The site had three scales in play at once. `Section` and the content page
+    shell used py-16 / md:py-20 / lg:py-24. Most homepage sections used
+    py-20 / md:py-24 / lg:py-28. The two dark bands used py-20 / md:py-24 /
+    lg:py-32. Scrolling the homepage the gap between blocks visibly pulsed, because
+    a surface section was followed by a dark one on a larger step and the eye read
+    the change as a mistake rather than as pacing.
+
+    One scale now. Two numbers, not three, so the step between a light and a dark
+    band is invisible. The dark bands use the *same* value, not a larger one: a
+    dark band already reads as a change of weight, and giving it extra space as
+    well was doubling the emphasis.
+
+    Fluid rather than stepped, so there is no breakpoint at which the rhythm
+    jumps. These clamp to 88px on a small phone and 128px on a wide desktop, which
+    is roughly 2.2 line boxes at each end, so sections never read as cramped on a
+    phone nor as a gap on a desktop.
+  */
+  --space-section: clamp(3.5rem, 2rem + 5.5vw, 8rem);
+  --space-section-tight: clamp(2.5rem, 1.6rem + 3.2vw, 5.5rem);
+
+  /* Radii. One documented scale, applied everywhere. --------------------- */
+  --radius-pill: 999px;
+  --radius-input: 12px;
+  --radius-card: 18px;
+  --radius-panel: 24px;
+
+  /* Shadows, tinted to the navy ink rather than pure black. -------------- */
+  --shadow-card: 0 20px 40px -20px rgb(11 23 48 / 0.28);
+  --shadow-lift: 0 24px 48px -24px rgb(11 23 48 / 0.38);
+
+  /* Motion --------------------------------------------------------------- */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-quick: 180ms;
+  --dur-base: 320ms;
+
+  /* Z index scale. Do not invent values outside this list. ---------------- */
+  --z-base: 0;
+  --z-raised: 10;
+  /* Content sitting on top of a decorative layer, below the nav.
+     Added for the full bleed hero, where the scrim and the text are siblings and
+     both wanted `--z-raised`: a positioned element at 10 beats one at `auto`
+     regardless of document order, so the text cannot simply come later. */
+  --z-content: 20;
+  --z-nav: 40;
+  --z-skip: 60;
 }
+
+/*
+  Dark band.
+
+  Because every colour utility resolves through the semantic custom properties
+  (see @theme inline below), redefining those properties on a wrapper repaints
+  that whole subtree. Sections opt in with className="band-dark" and need no
+  per element dark variants.
+
+  The background-color and color declarations are essential, not decorative.
+  body sets `background-color` and `color` once from these same properties, and
+  a descendant with no explicit colour inherits the body's computed value rather
+  than re-resolving the custom property. Without these two lines the band
+  renders on a white background with navy text while its cards go dark.
+*/
+.band-dark {
+  background-color: var(--canvas);
+  color: var(--ink);
+
+  --canvas: #0a0a0c;
+  --surface: #14161c;
+  --surface-sunk: #1c1f27;
+  --ink: #f2f5fa;
+  --ink-muted: #a7b0c2;
+  /* Lightened royal blue, same 227 degree hue as the base accent. The base accent
+     measures 3.13:1 on this band's canvas and 4.06:1 on `.on-ink`'s navy, so it
+     cannot be used for accent text here at any size. */
+  --accent: #93a9f5;
+  --accent-ink: #0a0a0c;
+  --hairline: rgb(242 245 250 / 0.16);
+  --hairline-strong: rgb(242 245 250 / 0.34);
+  --placeholder: #1c1f27;
+  --placeholder-ink: #a7b0c2;
+  --shadow-card: 0 20px 40px -20px rgb(0 0 0 / 0.6);
+  --shadow-lift: 0 24px 48px -24px rgb(0 0 0 / 0.7);
+}
+
+/*
+  Accent and muted ink on a navy card. Declared in a layer further down the file,
+  after @theme, so it actually wins against the colour utilities.
+
+  `bg-ink` panels sit on the light canvas, so they do not inherit the band's
+  colour redefinitions. Without this, an accent eyebrow inside a navy card is
+  #3B5FCC on #0B1730, which measures 4.06:1 and fails WCAG AA for small text.
+  (It was worse before the switch to royal blue: the previous #1D5CFF measured
+  3.41:1 on the same pair.)
+*/
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /*
+    Font tokens are declared further down this block, beside the type scale they
+    belong to. They used to be here, with a comment insisting on a single family.
+
+    That comment is now wrong. Headings are set in a sans at weight 400 with single
+    letters swapped for a serif italic, and carrying that needs two families.
+    Instrument Serif is used for those letters and nothing else.
+  */
+
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-sunk: var(--surface-sunk);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
+  --color-placeholder: var(--placeholder);
+  --color-placeholder-ink: var(--placeholder-ink);
+
+  --radius-pill: var(--radius-pill);
+  --radius-input: var(--radius-input);
+  --radius-card: var(--radius-card);
+  --radius-panel: var(--radius-panel);
+
+  --shadow-card: var(--shadow-card);
+  --shadow-lift: var(--shadow-lift);
+
+  /* Typefaces. Instrument Sans replaces Plus Jakarta Sans; Instrument Serif
+     exists for the single letters dropped inside headings. See layout.tsx for why
+     a second family was added and what it costs. */
+  --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-instrument-serif), ui-serif, Georgia, serif;
+
+  /* Fluid scale. The target sizes these were measured against, at the top of the
+     range rather than extrapolated to it:
+
+       H1  60px / 67.2 line / -1.2px tracking / weight 400
+       H2  48px / 57.6      / -0.48px         / weight 400
+       H3  28px / 42        / -0.36px         / weight 500
+       small 20px / 30      / -0.32px         / weight 500
+       body 16px / 24       / -0.32px         / weight 400
+
+     Two things matter here and both are non-obvious.
+
+     THE H1 LANDS AT 60, NOT 64. 64 was the previous target and it is too large for
+     a two line headline in a 12ch measure: it forces a three line break and pushes
+     the CTA below the fold at 1280x720.
+
+     AND EVERY HEADING IS WEIGHT 400, NOT 700. That is the larger of the two
+     changes. Heavy display type reads as confident; light display type at this size
+     reads as expensive, and it is the clearest signal that a page was designed
+     rather than assembled. Both faces stay on the same family, so hierarchy is
+     carried by size and colour rather than by weight. */
+  --text-display-1: clamp(2.25rem, 1.35rem + 3vw, 3.75rem);
+  --text-display-2: clamp(1.75rem, 1.25rem + 1.9vw, 3rem);
+  --text-display-3: clamp(1.375rem, 1.15rem + 1.1vw, 2rem);
+  --text-display-4: clamp(1.125rem, 1.05rem + 0.5vw, 1.375rem);
+  --text-meta: 0.75rem;
+
+  /* Display leading is 1.12 (67.2 on 60), not the 1.04 this scale used to carry.
+     1.04 is tight enough for a setting at weight 700 and too tight at 400: without
+     the bold stem the descenders of one line reach the ascenders of the next, so
+     this value moves with the weight change rather than being independent of it. */
+  --leading-display: 1.12;
+  --leading-display-2: 1.2;
+  --leading-body: 1.65;
+
+  /* Tracking is -2% of font size: -1.2px on a 60px H1, -0.48px on a 48px H2. The
+     previous -0.035em was tuned for a weight 700 face and is too tight at 400,
+     where the same setting pulls the apertures closed and the words read cramped
+     rather than set. */
+  --tracking-display: -0.022em;
+  --tracking-meta: 0.14em;
+
+  --ease-brand: var(--ease-out-expo);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* --------------------------------------------------------------------------
+   Base
+   -------------------------------------------------------------------------- */
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: var(--leading-body);
+  /*
+    `font-synthesis-weight: none` stops the browser faking a bold that does not
+    exist. Instrument Sans is loaded at 400, 500, 600 and 700 so the real weights
+    are available and nothing needs faking. Setting this to none is what makes the
+    heading weight change below actually take effect rather than being synthesised
+    back up to 700.
+  */
+  font-synthesis-weight: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+::selection {
+  background-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/*
+  HEADINGS AT WEIGHT 400, NOT 700. THE BIGGEST VISUAL CHANGE ON THE SITE.
+
+  Every heading sits at 400 and hierarchy is carried by size and negative tracking
+  instead of by weight. On a heavy geometric sans, weight 700 reads as confident; at
+  400 and this size it reads as expensive, and it is the clearest single signal that
+  a page was designed rather than assembled.
+
+  `.text-display-*` classes applied over the top of an h1 to h3 used to carry the
+  size but not the weight, so they inherited this rule. They still do, which means
+  every heading on the site moves together and no component has to opt in.
+
+  `h3` stays at 500 because at card-heading sizes 400 disappears against `muted`
+  body copy. The size is the thing that fails here, not the weight, so 500 is the
+  smallest step up that still separates the two.
+*/
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: var(--tracking-display);
+  text-wrap: balance;
+}
+
+h3 {
+  font-weight: 500;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* --------------------------------------------------------------------------
+   Utilities
+   -------------------------------------------------------------------------- */
+
+@utility hairline-t {
+  border-top: 1px solid var(--hairline);
+}
+
+@utility hairline-b {
+  border-bottom: 1px solid var(--hairline);
+}
+
+/* Section label. Accent blue, uppercase, above the headline, so it reads as a
+   navigation cue rather than as decoration. */
+@utility eyebrow {
+  font-size: var(--text-meta);
+  letter-spacing: var(--tracking-meta);
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+@utility meta-label {
+  font-size: var(--text-meta);
+  letter-spacing: var(--tracking-meta);
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-muted);
+}
+
+/*
+  THE SERIF LETTER.
+
+  A single letter inside a heading is set in a serif italic, so "Collaborate" gets a
+  serif "a", "Hire" a serif "r", "one" a serif "n". Read at a glance the heading
+  looks like one consistent sans face. Look closely and the wordforms disagree with
+  each other, which is what makes it feel considered rather than defaulted.
+
+  It costs one utility and no extra weight, because only the letters differ and the
+  letters are already in the document.
+
+  USAGE IS DELIBERATE AND LIMITED
+  Individual letters only, never whole words. A serif word in a sans heading reads
+  as a mistake; a serif letter reads as a decision. That is the entire distinction
+  and it is why this is a utility applied by hand rather than something automatic.
+
+  `font-style: italic` on the span, and the size is nudged down very slightly
+  because a serif at the same optical size as a sans reads larger. Without the
+  correction the substituted letter looks like it is shouting, which undoes the
+  whole effect.
+*/
+@utility serif-letter {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  /* Optical size correction, not a design flourish. */
+  font-size: 0.94em;
+  /* The serif's own side bearings are looser, so it needs pulling in to sit
+     optically flush with the sans around it. */
+  margin-inline: -0.01em;
+  /* Keeps the swap from being announced as a separate word by some screen readers
+     when the letter is not the first in a word. */
+  padding-inline: 0;
+}
+
+@utility measure {
+  max-width: 62ch;
+}
+
+/*
+  Section vertical padding. This is the ONLY sanctioned way to space a section
+  vertically, and every section uses it.
+
+  It exists because Tailwind's `py-*` scale cannot express a fluid clamp, and
+  because the alternative was three hand written breakpoint triples that quietly
+  drifted apart. Written as a plain utility rather than a component so it composes
+  with any element without adding a wrapper.
+
+  `tight` is for a section that follows another section on the same page and would
+  otherwise read as two separate bands, such as a heading block and its own
+  content. It is not a smaller version of the main rhythm; it is a different,
+  deliberate relationship.
+*/
+@utility section-y {
+  padding-block: var(--space-section);
+}
+
+@utility section-y-tight {
+  padding-block: var(--space-section-tight);
+}
+
+@utility measure-tight {
+  max-width: 48ch;
+}
+
+/* Placeholder slot for photography that has not been supplied yet. Reserves
+   the exact aspect ratio so a real asset drops in with zero layout shift, and
+   exposes its own art direction as data attributes for the asset manifest. */
+@utility slot {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--placeholder);
+  border-radius: var(--radius-panel);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 1.5rem;
+}
+
+@utility slot-label {
+  font-size: var(--text-meta);
+  letter-spacing: var(--tracking-meta);
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--placeholder-ink);
+  max-width: 26ch;
+  line-height: 1.9;
+}
+
+/* --------------------------------------------------------------------------
+   THE TEXTURE LAYERS ARE GONE. BOTH OF THEM.
+
+   A 72px engineering grid and an accent bloom were added to the dark bands a
+   couple of rounds ago, to stop those bands reading as flat rectangles. They were a
+   mistake. For a B2B service profile the register is minimal and Swiss: the bands
+   are meant to be flat, quiet interruptions in a light page, and decorative noise
+   is the thing that reads as cheap in exactly this genre. A grid laid behind a
+   manifesto is decoration pretending to be structure.
+
+   They also cost real engineering. Both are full-bleed absolute layers, so both
+   had to declare an explicit z-index or they landed on top of the text they were
+   meant to sit behind, and both needed a "strip-gradients" contrast opt out because
+   axe refuses to compute a ratio for text over a gradient. A band is better off
+   with neither.
+
+   If a dark band ever needs depth, it gets it from a photograph or from the
+   content, not from a pattern laid over it.
+   -------------------------------------------------------------------------- */
+
+/* Icon plate. The small rounded square an icon sits in on a card. */
+@utility icon-plate {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-input);
+  background-color: var(--surface-sunk);
+  color: var(--accent);
+}
+
+/* On ink, the plate inverts. Declared here so it re-scopes with the band. */
+@utility icon-plate-on-ink {
+  background-color: rgb(242 245 250 / 0.1);
+  color: var(--accent);
+}
+
+/* --------------------------------------------------------------------------
+   Reduced motion. Every animated behaviour collapses to a static, fully
+   readable state.
+   -------------------------------------------------------------------------- */
+
+/*
+  Wire order matters.
+
+  This block must come AFTER the @theme inline block below, because @theme
+  emits the colour utilities into the utilities layer, and layer order beats
+  source order. Declaring .on-ink before the theme block meant the utilities
+  won, so the card rendered light ink on a light canvas: measured 1.63:1.
+
+  Two layers are used deliberately:
+    @layer components  beats the utilities layer, so the semantic property
+                        repoints take effect inside the card
+    (unlayered)        beats @layer components, so an explicit override such
+                        as `className="text-canvas"` on one element still wins
+*/
+@layer components {
+  .on-ink {
+    --ink: #f2f5fa;
+    --ink-muted: #a7b0c2;
+    /* Same lightened royal blue as `.band-dark`. `.on-ink` panels sit on #0B1730,
+       where the base accent measures 4.06:1 and fails AA for small text. */
+    --accent: #93a9f5;
+    --accent-ink: #0b1730;
+    --hairline: rgb(242 245 250 / 0.18);
+    --hairline-strong: rgb(242 245 250 / 0.36);
+
+    background-color: #0b1730;
+    color: #f2f5fa;
+  }
+}
+
+/* ==========================================================================
+   LOGO MARQUEE
+
+   A continuously scrolling row of logos for the "Worked with" section.
+
+   WHY CSS AND NOT A LOOP IN JAVASCRIPT
+   A marquee is one translateX on one element. Doing it in CSS means no
+   requestAnimationFrame, no layout thrash, nothing to clean up, and it keeps
+   working if hydration is delayed. JavaScript is still used for the one thing
+   CSS cannot do: the user controlled pause.
+
+   THE LOOP IS SEAMLESS BECAUSE THE TRACK IS EXACTLY TWO ROWS
+   `translateX(-50%)` of a track holding two identical rows moves by precisely
+   one row width, so the moment it reaches the end it is indistinguishable from
+   the moment it started. The track must be `width: max-content` for that to be
+   true; with a percentage width the translation would be wrong.
+
+   PAUSE IS NOT OPTIONAL
+   WCAG 2.2.2: content that moves for more than five seconds needs a mechanism
+   to pause it. Three ways to pause, all present:
+     - hovering the row
+     - focusing anything inside it
+     - the explicit Pause button, which is a real toggle with aria-pressed
+   ======================================================================= */
+
+@keyframes logo-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/*
+  THE COUNTER-SCROLLING ROW.
+
+  Two rows run at once, one left and one right, so the eye reads a weave rather than
+  a conveyor belt. Both use one keyframe with a `reverse` variant rather than a
+  second keyframe, which is the cheaper and better way: two identical animations in
+  opposite directions cannot drift apart over time, because there is only one thing
+  that can drift.
+
+  Applied with `.marquee-track-reverse`, which sets `animation-direction: reverse`
+  on the same keyframes. Nothing else changes.
+*/
+@utility marquee-track-reverse {
+  animation-direction: reverse;
+}
+
+/*
+  THE SLOW FLOAT.
+
+  Cards sit still in a screenshot but drift in the page, which is what stops a flat
+  photograph with two boxes on it reading as a diagram. This is the cheapest honest
+  version: a 9 second vertical drift of 6px, offset so two cards never move in step.
+  6px is deliberately below the threshold of being noticed directly. The point is
+  that the page is not quite still, not that something is moving.
+
+  `float-card` and `float-card-late` differ only in `animation-delay`. A negative
+  delay puts the second card partway through its cycle at load, so the pair is
+  permanently out of phase instead of drifting together.
+
+  Duration is deliberately long. Anything under about 6 seconds reads as a glitch
+  rather than as drift, and anything faster competes with the reveal the visitor is
+  still reading.
+
+  Transform only, so it stays on the compositor and cannot trigger layout. The
+  global reduced-motion block collapses it to a static position, which is why there
+  is no separate handling here.
+*/
+@keyframes float-card {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@utility float-card {
+  animation: float-card 9s ease-in-out infinite;
+}
+
+@utility float-card-late {
+  animation: float-card 9s ease-in-out infinite;
+  animation-delay: -4.5s;
+}
+
+/*
+  THE HERO WASH.
+
+  A linear gradient behind the hero, built entirely from `--canvas`, `--surface`
+  and `--surface-sunk`. Those are the three tints the whole site is already made
+  of, so this is the brand system used as a gradient rather than four new colours
+  introduced beside it.
+
+  165 DEGREES, NOT 180. A vertical gradient on a full width hero reads as a band
+  with a seam where it meets the next section. Tilting it puts the darkest corner
+  under the portrait and the lightest under the headline, so the two halves of the
+  split sit at different values and the composition has some depth without a single
+  decorative element.
+
+  `--canvas` AT ZERO, NOT AT 100. The gradient fades to plain canvas at the top,
+  which is the edge the sticky nav sits against. Fading to it at the bottom would
+  draw a visible line where the hero met the next section. Fading it out at the top
+  means the join with the nav is invisible and the join with the section below is
+  the only one left, and that one is a hairline anyway.
+
+  IT IS DELIBERATELY FAINT. Three tints that are 2 to 6 percent apart is about as
+  far as this can go before it stops being a wash and starts being a coloured
+  panel, at which point the hero stops reading as paper. `verify:contrast` is what
+  decides whether it is still faint enough, not my eye.
+
+  No token is added because none is needed. If this ever needs to be stronger the
+  right move is a new surface token, not a hex value in a gradient.
+*/
+@utility hero-wash {
+  background-image: linear-gradient(
+    165deg,
+    var(--canvas) 0%,
+    var(--surface) 54%,
+    var(--surface-sunk) 100%
+  );
+}
+
+/*
+  THE SPLIT SCRIM. WHY A UNIFORM OVERLAY CANNOT WORK.
+
+  A full bleed photograph with text on it needs a scrim, and the contrast maths
+  rules out every uniform value. Measured against the worst case photograph, a
+  pure white one:
+
+    navy text, navy scrim   0.50 -> 5.21:1   the strongest scrim navy text survives
+                           0.60 -> 3.80:1   fail
+                           0.80 -> 1.85:1   fail
+
+    light text, navy scrim  0.72 -> 6.54:1   headline clears
+                           0.80 -> 4.40:1   the SECONDARY text still fails
+
+  Light text needs about 0.85 before the subheading clears, and at 0.85 a mid
+  tone photograph pixel composites to almost solid navy. The image is gone. So a
+  uniform scrim is not a strong scrim or a weak scrim, it is a bad trade either
+  way.
+
+  THE SPLIT IS THE ONLY VERSION THAT WORKS.
+
+  Solid behind the text column, transparent by 72% across, so the right hand third
+  of the hero carries the photograph almost untouched.
+
+  AND THE TEXT MUST BE LIGHT, NOT NAVY. This was got wrong first and the mistake is
+  worth recording. A navy scrim was used at 0.55 on the reasoning that navy text
+  needs less scrim. It needs a LIGHT scrim, because contrast depends on how far
+  apart the two colours are, and a navy scrim moves the background toward the navy
+  text rather than away from it. Measured on the 0.55 navy scrim:
+
+    --ink          5.21:1   clears
+    --ink-muted    2.69:1   invisible in practice
+    --accent       2.69:1   invisible in practice
+
+  The headline survived and the body copy did not, which is why the first full
+  bleed build rendered with readable text over an unreadable paragraph.
+
+  Light ink at 0.81 clears properly, so the hero text is now `.on-ink`:
+
+    --ink (light)  6.54:1   on the 0.72 scrim, more at 0.82
+    --ink-muted    4.56:1   at 0.82, the tightest pair on this hero
+    --accent       5.13:1   the band dark accent, not the royal blue
+
+  --ink-muted is the constraint. It is the first thing to fail as the scrim
+  lightens, so it sets the floor and the headline has a lot of headroom above it.
+
+  100 DEGREES, NOT 180. A vertical split would darken the whole top of the hero and
+  leave the bottom clear, which reads as a band. Angled, the clear area opens up
+  from the right, which is where the photograph is.
+
+  THE PHOTOGRAPH CAN CHANGE THIS NUMBER. 0.82 is derived against a pure white
+  photograph, which is the worst case. A darker photograph needs less scrim and
+  more of the image shows. Recompute it once the hero image exists rather than
+  assuming this stays right, because it is currently the safest possible value
+  rather than the correct one for the actual asset.
+*/
+@utility hero-scrim {
+  background-image: linear-gradient(
+    100deg,
+    rgb(11 23 48 / 0.82) 0%,
+    rgb(11 23 48 / 0.82) 44%,
+    rgb(11 23 48 / 0) 72%
+  );
+}
+
+@layer components {
+  .marquee {
+    position: relative;
+    overflow: hidden;
+    /* Fades the row at both edges so logos enter and leave rather than being
+       cut off. Mask rather than a gradient overlay, so it does not sit above
+       the logos and intercept the pointer. */
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 6%,
+      black 94%,
+      transparent
+    );
+  }
+
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: logo-marquee var(--marquee-duration, 44s) linear infinite;
+  }
+
+  /*
+    Hover and keyboard focus both pause. `focus-within` rather than `focus` so
+    that tabbing into the row stops it rather than letting it slide out from
+    under the thing being read.
+  */
+  .marquee:hover .marquee-track,
+  .marquee:focus-within .marquee-track {
+    animation-play-state: paused;
+  }
+
+  /* The explicit toggle. Higher specificity than the rule above so it wins
+     whichever order the cascade resolves in. */
+  .marquee[data-paused="true"] .marquee-track {
+    animation-play-state: paused;
+  }
+
+  /*
+    With two counter-scrolling rows, the toggle lives on a wrapper above both, so
+    this descendant selector is what makes one control stop the pair. Without it the
+    Pause button would only reach the first row and half the section would keep
+    moving, which is the classic half-implemented marquee bug.
+  */
+  [data-paused="true"] .marquee-track {
+    animation-play-state: paused;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  /*
+    The marquee is switched off outright rather than merely slowed.
+
+    The global override below sets animation-iteration-count to 1, which would
+    leave the track parked at translateX(-50%), showing the duplicated row and
+    leaving a gap where the first row used to be. Resetting the transform to
+    none gives a static, scrollable row instead, which is the correct resting
+    state rather than a broken one.
+  */
+  .marquee-track {
+    animation: none !important;
+    transform: none !important;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  /* With the track wrapped, the duplicated row is redundant. */
+  .marquee-track [aria-hidden="true"] {
+    display: none;
+  }
+
+  /*
+    The edge fade exists to soften logos entering and leaving a moving row. On a
+    static row there is nothing entering or leaving, so the mask just dims the
+    first and last logo for no reason.
+  */
+  .marquee {
+    mask-image: none;
+  }
+
+  /*
+    The Pause button is removed, not just visually hidden.
+
+    A control for something that is not happening is worse than no control: it
+    promises a motion the visitor has switched off. `display: none` rather than
+    opacity or visibility so it also leaves the tab order, otherwise a keyboard
+    user would tab onto an invisible button with a label promising motion.
+  */
+  .marquee-toggle {
+    display: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

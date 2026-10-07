@@ -1,0 +1,31 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  /*
+    MCP servers, project scope.
+
+    This file is committed, so it holds NO credential values. The Landingfolio
+    bearer token lives in the `LANDINGFOLIO_API_KEY` environment variable and is
+    referenced with `{env:...}` substitution below, which is the documented
+    mechanism. A literal token here would be committed to git on the first push.
+
+    `oauth: false` is required, not optional. Remote servers enable OAuth by
+    default, and OpenCode would try a PKCE flow against an endpoint that only
+    accepts a static bearer header, leaving the server stuck on
+    `needs authentication` while the header was already correct.
+
+    See `.env.example` for the variable this expects to be set.
+  */
+  "mcp": {
+    "servers": {
+      "landingfolio": {
+        "type": "remote",
+        "url": "https://mcp.landingfolio.com/mcp",
+        "oauth": false,
+        "headers": {
+          "Authorization": "Bearer {env:LANDINGFOLIO_API_KEY}"
+        }
+      }
+    }
+  }
+}
