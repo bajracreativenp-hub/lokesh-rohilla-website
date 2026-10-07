@@ -59,6 +59,11 @@ export type ImageSlotProps = {
   alt?: string;
   /** Above the fold imagery only. Passes `preload` rather than the deprecated `priority`. */
   preload?: boolean;
+  /**
+   * Removes the rounded corners. REQUIRED for a slot that bleeds to the edges
+   * of its section, for the reason above.
+   */
+  bleed?: boolean;
 };
 
 export function ImageSlot({
@@ -71,6 +76,7 @@ export function ImageSlot({
   src,
   alt,
   preload = false,
+  bleed = false,
 }: ImageSlotProps) {
   /*
     THE DATA ATTRIBUTES SURVIVE BOTH STATES.
@@ -91,7 +97,7 @@ export function ImageSlot({
   if (src) {
     return (
       <div
-        className={`slot relative overflow-hidden ${elevated ? "shadow-card" : ""} ${className}`}
+        className={`slot relative overflow-hidden ${bleed ? "!rounded-none" : ""} ${elevated ? "shadow-card" : ""} ${className}`}
         style={ratio ? { aspectRatio: ratio } : undefined}
         {...manifest}
       >
@@ -119,7 +125,7 @@ export function ImageSlot({
 
   return (
     <div
-      className={`slot ${elevated ? "shadow-card" : ""} ${className}`}
+      className={`slot ${bleed ? "!rounded-none" : ""} ${elevated ? "shadow-card" : ""} ${className}`}
       style={ratio ? { aspectRatio: ratio } : undefined}
       role="img"
       aria-label={`${label}. Photography pending.`}

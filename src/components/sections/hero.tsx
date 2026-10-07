@@ -105,9 +105,18 @@ export function Hero() {
             it should. Recompute when the real portrait arrives rather than
             trusting the number to carry across.
 
+            `bleed` because this is the only full bleed slot on the site.
+            `.slot` rounds its corners at `--radius-panel`, which is right for a
+            card sitting in a page and wrong for a layer that touches all four edges
+            of the section: the clipped corners let the white body show through, and
+            that reads as a white line around the hero. Measured rather than
+            eyeballed: section, slot and image were all exactly 1920x642 with a
+            zero gap on every side, and the radius was the only difference.
+
             `preload` because this is the largest contentful paint on every page.
             The `priority` prop it replaces is deprecated in Next 16.
           */
+          bleed
           src={hero.portrait.src}
           alt={hero.portrait.alt}
           preload
