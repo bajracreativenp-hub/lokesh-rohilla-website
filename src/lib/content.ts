@@ -16,6 +16,25 @@
  * an unconfirmed claim for approved copy.
  */
 
+
+/*
+  DEMO PHOTOGRAPHY. NOT LOKESH.
+
+  Real Unsplash photo IDs, resolved and verified rather than guessed. Every
+  `src` below is another person's photograph standing in for content that has
+  not been supplied. They exist so the layout can be judged with pictures in it.
+
+  `alt` is written as a description of what the photograph shows rather than as
+  a claim about the business. "A mentor listening across a table" describes the
+  image and asserts nothing; "Lokesh mentoring a client" would assert something
+  false, and an alt attribute is read aloud by screen readers as though it were
+  true.
+
+  Curated to editorial rather than stock-corporate: no glass atriums, no staged
+  handshakes, no smiling teams pointing at laptops.
+*/
+export const UNSPLASH = "https://images.unsplash.com/photo-";
+
 export const PENDING = {
   vision: "[FINAL VISION STATEMENT TO BE PROVIDED]",
   mission: "[FINAL MISSION STATEMENT TO BE PROVIDED]",
@@ -65,6 +84,18 @@ export const hero = {
     spec: "Editorial portrait, vertical 4:5, 1600x2000",
     direction:
       "Natural light, calm neutral backdrop, subject off centre with generous negative space. No studio strobe look.",
+    /*
+      DEMO ONLY. Not Lokesh. Delete both lines to go live.
+
+      Framed so the subject sits right of centre, which is what the full bleed
+      art direction in `hero.tsx` asks for: the headline occupies the left of the
+      hero, so a subject placed centrally would end up behind the text.
+
+      `portrait-of-a-man` is a real Unsplash photo ID and resolves, it is not a
+      constructed URL.
+    */
+    src: `${UNSPLASH}1519085360753-af0119f7cbe7?auto=format&fit=crop&w=1600&q=80`,
+    alt: "Studio portrait of a man in a dark jacket against a plain backdrop",
   },
   /*
     Floating cards flanking the portrait.
@@ -246,7 +277,10 @@ export const transformPaths = {
         ratio: "4 / 3",
         direction:
           "A working session around a table, mid discussion rather than posed. Documents and a whiteboard in frame. Natural light, no staged smiles.",
-      },
+        // DEMO ONLY, not Lokesh. Delete to go live.
+        src: `${UNSPLASH}1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1600&q=80`,
+        alt: "Two people in conversation across a table with papers between them",
+},
       cta: { label: "Explore Business Consultation", href: "/services/business-consultation" },
     },
     {
@@ -258,7 +292,10 @@ export const transformPaths = {
         ratio: "4 / 3",
         direction:
           "One person in the frame, mid sentence, in a training room. Side or three quarter view, not head on. Warm light, some depth behind.",
-      },
+        // DEMO ONLY, not Lokesh. Delete to go live.
+        src: `${UNSPLASH}1573497620053-ea5300f94f21?auto=format&fit=crop&w=1600&q=80`,
+        alt: "A woman listening attentively across a table in a bright room",
+},
       cta: { label: "Explore Self-Development", href: "/services/self-development" },
     },
     {
@@ -270,7 +307,10 @@ export const transformPaths = {
         ratio: "4 / 3",
         direction:
           "A group at a whiteboard or flipchart, standing, mid workshop. Show the backs and profiles as well as faces. Corporate but not corporate stock.",
-      },
+        // DEMO ONLY, not Lokesh. Delete to go live.
+        src: `${UNSPLASH}1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80`,
+        alt: "A group standing at a whiteboard mid workshop, backs and profiles to camera",
+},
       cta: { label: "Explore Leaders & Teams", href: "/services/leaders-teams" },
     },
   ],
@@ -354,10 +394,39 @@ export const testimonials = {
   eyebrow: "In their words",
   headline: "Words From People I've Worked With",
   lede: "Video testimonials lead here, with written Google Reviews underneath. Both are being collected and will appear as they are confirmed.",
+  /*
+    VIDEO POSTER FRAMES. DEMO ONLY, DELETE TO GO LIVE.
+
+    Rooms, stages and workshop floors. No faces, deliberately.
+
+    The heading directly above these frames is "Words From People I've Worked
+    With". A photograph of a person sitting in one of them reads as that person
+    about to give a testimonial, and no such person has given one. A conference
+    room says "footage of this kind is coming" without asserting who is in it.
+
+    These fill the frame only. The play glyph and the "Video pending" label both
+    stay, because the video genuinely has not arrived and hiding that would make a
+    play control that plays nothing look broken rather than pending.
+  */
   videoSlots: [
-    { label: "Video testimonial", spec: "16:9, 1920x1080" },
-    { label: "Video testimonial", spec: "16:9, 1920x1080" },
-    { label: "Video testimonial", spec: "16:9, 1920x1080" },
+    {
+      label: "Video testimonial",
+      spec: "16:9, 1920x1080",
+      src: `${UNSPLASH}1524178232363-1fb2b075b655?auto=format&fit=crop&w=1600&q=80`,
+      alt: "An empty lecture theatre with rows of seats facing a screen",
+    },
+    {
+      label: "Video testimonial",
+      spec: "16:9, 1920x1080",
+      src: `${UNSPLASH}1531421693921-03e5aa6ee863?auto=format&fit=crop&w=1600&q=80`,
+      alt: "A workshop room with chairs arranged facing the front",
+    },
+    {
+      label: "Video testimonial",
+      spec: "16:9, 1920x1080",
+      src: `${UNSPLASH}1540575467063-178a50c2df87?auto=format&fit=crop&w=1600&q=80`,
+      alt: "A lit stage with a microphone stand and a dark auditorium",
+    },
   ],
   pending: PENDING.testimonials,
 } as const;

@@ -435,6 +435,37 @@ p {
   line-height: 1.9;
 }
 
+/*
+  THE LABEL CARRIES ITS OWN BACKDROP WHEN IT SATES ON A PHOTOGRAPH.
+
+  `slot-label` is text sitting directly on whatever is behind the slot. While a
+  slot is a flat `--placeholder` that is a fixed relationship and it can be
+  measured once. Put a poster photograph behind a video frame and the background
+  becomes whatever the photograph happens to be, which is not a value that can be
+  stated in advance.
+
+  Measured across the range, at the 0.45 opacity the poster renders at, over
+  `--surface`:
+
+    white photo   -> #fbfcfe   muted 5.62:1  clears
+    mid grey      -> #e2e3e5   muted 4.49:1  marginal
+    black photo   -> #88898b   muted 1.65:1  unreadable
+
+  No opacity value fixes this. Dimming further makes the photograph pointless;
+  removing it returns the grey rectangle. So the label gets an opaque panel of its
+  own and stops depending on the photograph entirely, which also means it stays
+  readable when a real video replaces the poster tomorrow.
+
+  Applied only when a poster is present. A pending slot with no image keeps the
+  bare label, because a panel behind text on a flat surface is a box for no reason.
+*/
+@utility slot-label-panel {
+  background-color: var(--surface);
+  border-radius: var(--radius-input);
+  padding: 0.75rem 1rem;
+  box-shadow: var(--shadow-lift);
+}
+
 /* --------------------------------------------------------------------------
    THE TEXTURE LAYERS ARE GONE. BOTH OF THEM.
 

@@ -258,7 +258,14 @@ export function BlockView({ block, dark }: { block: Block; dark: boolean }) {
                   Duplicating that markup here meant two places to forget those
                   attributes.
                 */}
-                <ImageSlot label={item.label} ratio={item.ratio} spec={item.spec} />
+                <ImageSlot
+                        label={item.label}
+                        ratio={item.ratio}
+                        spec={item.spec}
+                        /* Demo only. Absent means the pending slot renders. */
+                        src={item.src}
+                        alt={item.alt}
+                      />
                 <figcaption className="flex flex-col gap-1 p-5">
                   <p className="text-sm font-bold text-ink">{item.label}</p>
                   {item.meta ? <p className="text-xs text-ink-muted">{item.meta}</p> : null}

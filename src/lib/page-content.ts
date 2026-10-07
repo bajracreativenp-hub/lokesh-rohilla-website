@@ -52,12 +52,25 @@
  * recorded so the reserved box matches the delivered file and a real image drops in
  * with no reflow. `ratio` is the CSS value, `spec` is for the client.
  */
+import { UNSPLASH } from "@/lib/content";
+
 export type Photo = {
   label: string;
   spec: string;
   ratio: string;
   /** Art direction, surfaced as a data attribute for the asset manifest. */
   direction: string;
+  /**
+   * DEMO ONLY. Unsplash CDN URL. Absent means the slot renders "Photography
+   * pending", which is the correct live state: a stock photograph of a stranger
+   * would assert that the stranger is Lokesh.
+   *
+   * `spec` and `direction` stay either way, because they remain the art
+   * direction whoever supplies the real file. Delete this field to go live.
+   */
+  src?: string;
+  /** Alt text. Required in practice whenever `src` is present. */
+  alt?: string;
   caption?: string;
   /**
    * How much room the photograph gets beside the copy.
@@ -80,7 +93,7 @@ export type TimelinePhase = {
   label: string;
   body: string;
   /** Circular image on the far side. */
-  image: { label: string; spec: string; direction: string };
+  image: { label: string; spec: string; direction: string; src?: string; alt?: string };
 };
 
 export type Block =
@@ -112,7 +125,16 @@ export type Block =
       kind: "frames";
       title: string;
       lede?: string;
-      items: { label: string; spec: string; ratio: string; meta?: string }[];
+      items: {
+        label: string;
+        spec: string;
+        ratio: string;
+        meta?: string;
+        /** DEMO ONLY, same contract as `Photo.src`. */
+        src?: string;
+        /** Alt text for the demo photograph. */
+        alt?: string;
+      }[];
     };
 
 export type PageSection = {
@@ -198,6 +220,9 @@ const aboutPage: PageDef = {
                 spec: "1200x1200",
                 direction:
                   "A hotel or airline interior at work, staff in frame rather than an empty corridor. Natural light, candid, not a stock handshake.",
+                // DEMO ONLY. Delete to go live.
+                src: `${UNSPLASH}1621293954908-907159247fc8?auto=format&fit=crop&w=1200&q=80`,
+                alt: "A hotel interior with staff working in the background",
               },
             },
             {
@@ -209,6 +234,9 @@ const aboutPage: PageDef = {
                 spec: "1200x1200",
                 direction:
                   "Lokesh with a client in their own setting, a notebook or printed process visible. Real premises, not a meeting room.",
+                // DEMO ONLY. Delete to go live.
+                src: `${UNSPLASH}1600880292203-757bb62b4baf?auto=format&fit=crop&w=1200&q=80`,
+                alt: "Two people reviewing printed documents across a table",
               },
             },
             {
@@ -220,6 +248,9 @@ const aboutPage: PageDef = {
                 spec: "1200x1200",
                 direction:
                   "Exterior or atrium of a large hospitality or retail project. Wide, architectural, daylight. No people posing.",
+                // DEMO ONLY. Delete to go live.
+                src: `${UNSPLASH}1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=80`,
+                alt: "A large modern building interior with an atrium",
               },
             },
             {
@@ -231,6 +262,9 @@ const aboutPage: PageDef = {
                 spec: "1200x1200",
                 direction:
                   "A first session or an empty room set up for one. Warm light, a small number of people, the start of something.",
+                // DEMO ONLY. Delete to go live.
+                src: `${UNSPLASH}1512820790803-83ca734da794?auto=format&fit=crop&w=1200&q=80`,
+                alt: "Books stacked on a table ready for a reading session",
               },
             },
             {
@@ -242,6 +276,9 @@ const aboutPage: PageDef = {
                 spec: "1200x1200",
                 direction:
                   "A mentoring conversation, two or three people, mid discussion. Ordinary room, natural light.",
+                // DEMO ONLY. Delete to go live.
+                src: `${UNSPLASH}1573497491208-6b1acb260507?auto=format&fit=crop&w=1200&q=80`,
+                alt: "Two people in a mentoring conversation across a table",
               },
             },
           ],
@@ -405,6 +442,9 @@ const businessConsultationPage: PageDef = {
               "Lokesh with a client team in their own premises, a printed process or a whiteboard visible. Natural light, people mid discussion rather than posed. Not a handshake, not a stock boardroom.",
             caption:
               "Every engagement runs in the client's own setting. What is left behind is a process they own, not a deck they were shown.",
+            // DEMO ONLY. Delete to go live.
+            src: `${UNSPLASH}1460925895917-afdab827c52f?auto=format&fit=crop&w=1920&q=80`,
+            alt: "A person working at a laptop in a bright office",
           },
         },
       ],
@@ -497,9 +537,9 @@ const businessConsultationPage: PageDef = {
           title: "Awaiting real footage",
           lede: "16:9 frames are reserved for each video. No placeholder names, quotes or stock footage are used here.",
           items: [
-            { label: "Client one", spec: "1920x1080", ratio: "16 / 9" },
-            { label: "Client two", spec: "1920x1080", ratio: "16 / 9" },
-            { label: "Client three", spec: "1920x1080", ratio: "16 / 9" },
+            { label: "Client one", spec: "1920x1080", ratio: "16 / 9", /* DEMO ONLY */ src: `${UNSPLASH}1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1920&q=80`, alt: "Two people at a table reviewing printed material" },
+            { label: "Client two", spec: "1920x1080", ratio: "16 / 9", /* DEMO ONLY */ src: `${UNSPLASH}1517048676732-d65bc937f952?auto=format&fit=crop&w=1920&q=80`, alt: "A team standing around a whiteboard in a meeting room" },
+            { label: "Client three", spec: "1920x1080", ratio: "16 / 9", /* DEMO ONLY */ src: `${UNSPLASH}1573164574572-cb89e39749b4?auto=format&fit=crop&w=1920&q=80`, alt: "A meeting room set up with chairs around a table" },
           ],
         },
         {
@@ -625,6 +665,9 @@ const selfDevelopmentPage: PageDef = {
               "A small workshop group mid session, seated in a circle or at tables rather than in rows facing a screen. Lokesh speaking or listening, not posing at the front. Warm daylight, ordinary room, people engaged with their own work.",
             caption:
               "The room after the session matters as much as the session. This is where a training day either holds or quietly does not.",
+            // DEMO ONLY. Delete to go live.
+            src: `${UNSPLASH}1524178232363-1fb2b075b655?auto=format&fit=crop&w=1920&q=80`,
+            alt: "A trainer speaking to a seated group",
           },
         },
       ],
@@ -845,6 +888,9 @@ const leadersTeamsPage: PageDef = {
               "Two people in a genuine conversation across a table, not a workshop and not a posed handshake. Lokesh listening more than speaking. Ordinary room, daylight from a window, notebooks on the table.",
             caption:
               "Most of this work happens in single conversations. The outcome is a leader who can hold the decision without being asked.",
+            // DEMO ONLY. Delete to go live.
+            src: `${UNSPLASH}1573497620053-ea5300f94f21?auto=format&fit=crop&w=1920&q=80`,
+            alt: "Two people in conversation across a table",
           },
         },
       ],
@@ -1103,10 +1149,10 @@ const eventsPage: PageDef = {
           title: "Awaiting photography",
           lede: "4:3 frames reserved. Real rooms and real people, never conference stock imagery.",
           items: [
-            { label: "Event one", spec: "1600x1200", ratio: "4 / 3" },
-            { label: "Event two", spec: "1600x1200", ratio: "4 / 3" },
-            { label: "Event three", spec: "1600x1200", ratio: "4 / 3" },
-            { label: "Event four", spec: "1600x1200", ratio: "4 / 3" },
+            { label: "Event one", spec: "1600x1200", ratio: "4 / 3", /* DEMO ONLY */ src: `${UNSPLASH}1540575467063-178a50c2df87?auto=format&fit=crop&w=1600&q=80`, alt: "A speaker on a lit stage facing a seated audience" },
+            { label: "Event two", spec: "1600x1200", ratio: "4 / 3", /* DEMO ONLY */ src: `${UNSPLASH}1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=1600&q=80`, alt: "A large audience seated in rows facing a stage" },
+            { label: "Event three", spec: "1600x1200", ratio: "4 / 3", /* DEMO ONLY */ src: `${UNSPLASH}1621293954908-907159247fc8?auto=format&fit=crop&w=1600&q=80`, alt: "A bright modern hotel lobby with seating and plants" },
+            { label: "Event four", spec: "1600x1200", ratio: "4 / 3", /* DEMO ONLY */ src: `${UNSPLASH}1531421693921-03e5aa6ee863?auto=format&fit=crop&w=1600&q=80`, alt: "People gathered around a table in a workshop room" },
           ],
         },
       ],
@@ -1185,10 +1231,10 @@ const shopPage: PageDef = {
           title: "Awaiting catalogue",
           lede: "A shop full of invented products is worse than an honest empty one.",
           items: [
-            { label: "Books", spec: "1200x1800", ratio: "2 / 3" },
-            { label: "Workbooks", spec: "1200x1800", ratio: "2 / 3" },
-            { label: "Recorded Programs", spec: "1920x1080", ratio: "16 / 9" },
-            { label: "Templates", spec: "1200x1200", ratio: "1 / 1" },
+            { label: "Books", spec: "1200x1800", ratio: "2 / 3", /* DEMO ONLY */ src: `${UNSPLASH}1512820790803-83ca734da794?auto=format&fit=crop&w=1600&q=80`, alt: "A stack of hardcover books on a wooden surface" },
+            { label: "Workbooks", spec: "1200x1800", ratio: "2 / 3", /* DEMO ONLY */ src: `${UNSPLASH}1618365908648-e71bd5716cba?auto=format&fit=crop&w=1600&q=80`, alt: "An open notebook with a pen laid across the page" },
+            { label: "Recorded Programs", spec: "1920x1080", ratio: "16 / 9", /* DEMO ONLY */ src: `${UNSPLASH}1484480974693-6ca0a78fb36b?auto=format&fit=crop&w=1600&q=80`, alt: "A laptop on a desk beside a notebook" },
+            { label: "Templates", spec: "1200x1200", ratio: "1 / 1", /* DEMO ONLY */ src: `${UNSPLASH}1506784881475-0e408bbca849?auto=format&fit=crop&w=1600&q=80`, alt: "A printed planner page with sections and notes" },
           ],
         },
         {
@@ -1408,9 +1454,9 @@ const blogPage: PageDef = {
           title: "Awaiting articles",
           lede: "Three frames reserved for the first three pieces, so the index layout is already correct.",
           items: [
-            { label: "Article one", spec: "1600x900", ratio: "16 / 9" },
-            { label: "Article two", spec: "1600x900", ratio: "16 / 9" },
-            { label: "Article three", spec: "1600x900", ratio: "16 / 9" },
+            { label: "Article one", spec: "1600x900", ratio: "16 / 9", /* DEMO ONLY */ src: `${UNSPLASH}1501618669935-18b6ecb13d6d?auto=format&fit=crop&w=1600&q=80`, alt: "A desk with a laptop, notebook and morning light" },
+            { label: "Article two", spec: "1600x900", ratio: "16 / 9", /* DEMO ONLY */ src: `${UNSPLASH}1524178232363-1fb2b075b655?auto=format&fit=crop&w=1600&q=80`, alt: "An audience seated in a lecture room" },
+            { label: "Article three", spec: "1600x900", ratio: "16 / 9", /* DEMO ONLY */ src: `${UNSPLASH}1497366811353-6870744d04b2?auto=format&fit=crop&w=1600&q=80`, alt: "A quiet modern office with desks and daylight" },
           ],
         },
         {
@@ -1439,8 +1485,8 @@ const blogPage: PageDef = {
           title: "Awaiting footage",
           lede: "16:9 frames reserved. Captions are required on every upload, not optional.",
           items: [
-            { label: "Video one", spec: "1920x1080", ratio: "16 / 9" },
-            { label: "Video two", spec: "1920x1080", ratio: "16 / 9" },
+            { label: "Video one", spec: "1920x1080", ratio: "16 / 9", /* DEMO ONLY */ src: `${UNSPLASH}1497366754035-f200968a6e72?auto=format&fit=crop&w=1600&q=80`, alt: "A modern workspace interior with warm daylight" },
+            { label: "Video two", spec: "1920x1080", ratio: "16 / 9", /* DEMO ONLY */ src: `${UNSPLASH}1505373877841-8d25f7d46678?auto=format&fit=crop&w=1600&q=80`, alt: "A speaker presenting to a room from the front" },
           ],
         },
       ],
@@ -1470,12 +1516,12 @@ const galleryPage: PageDef = {
           title: "Awaiting photography",
           lede: "4:3 frames reserved at full width. These drop in with no layout shift.",
           items: [
-            { label: "Session one", spec: "1600x1200", ratio: "4 / 3" },
-            { label: "Session two", spec: "1600x1200", ratio: "4 / 3" },
-            { label: "Session three", spec: "1600x1200", ratio: "4 / 3" },
-            { label: "Session four", spec: "1600x1200", ratio: "4 / 3" },
-            { label: "Stage one", spec: "1600x1200", ratio: "4 / 3" },
-            { label: "The room before", spec: "1600x1200", ratio: "4 / 3" },
+            { label: "Session one", spec: "1600x1200", ratio: "4 / 3", /* DEMO ONLY */ src: `${UNSPLASH}1524178232363-1fb2b075b655?auto=format&fit=crop&w=1600&q=80`, alt: "A trainer speaking to a seated group in a workshop" },
+            { label: "Session two", spec: "1600x1200", ratio: "4 / 3", /* DEMO ONLY */ src: `${UNSPLASH}1664382953481-141e97ad9825?auto=format&fit=crop&w=1600&q=80`, alt: "Attendees at tables working through a session" },
+            { label: "Session three", spec: "1600x1200", ratio: "4 / 3", /* DEMO ONLY */ src: `${UNSPLASH}1573164574572-cb89e39749b4?auto=format&fit=crop&w=1600&q=80`, alt: "A small group in conversation around a table" },
+            { label: "Session four", spec: "1600x1200", ratio: "4 / 3", /* DEMO ONLY */ src: `${UNSPLASH}1517048676732-d65bc937f952?auto=format&fit=crop&w=1600&q=80`, alt: "A team collaborating around a whiteboard" },
+            { label: "Stage one", spec: "1600x1200", ratio: "4 / 3", /* DEMO ONLY */ src: `${UNSPLASH}1582192730841-2a682d7375f9?auto=format&fit=crop&w=1600&q=80`, alt: "An empty stage set for a talk before the audience arrives" },
+            { label: "The room before", spec: "1600x1200", ratio: "4 / 3", /* DEMO ONLY */ src: `${UNSPLASH}1574848296471-28f79a036f79?auto=format&fit=crop&w=1600&q=80`, alt: "A building exterior in daylight" },
           ],
         },
       ],

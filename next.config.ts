@@ -46,6 +46,38 @@ const nextConfig: NextConfig = {
   },
 
   trailingSlash: false,
+
+  images: {
+    /*
+      DEMO PHOTOGRAPHY, FROM UNSPLASH.
+
+      Every `ImageSlot` currently reserves its box and renders a visible
+      "Photography pending" label, because no photography of Lokesh has been
+      supplied and none may be invented. That is the correct state for a live
+      site and it stays the fallback: a slot with no `src` renders exactly as
+      before.
+
+      For the demo, real images are served from Unsplash so the layout can be
+      judged with pictures in it. The CDN is allowlisted here rather than
+      wildcarded, because `next/image` refuses any remote host that is not
+      declared and an open pattern would let any URL through.
+
+      `photo-*` is Unsplash's own filename prefix on its CDN. `w` and `q` are
+      already supplied per-image by the loader, so they are not restated here.
+
+      TO GO LIVE: delete every `src` in the content layer, then remove this
+      block. Unsplash images are placeholders for other people's photographs and
+      must not survive into a real personal brand site. `ImageSlot` will render
+      its pending state again with no other change.
+    */
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        pathname: "/photo-**",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

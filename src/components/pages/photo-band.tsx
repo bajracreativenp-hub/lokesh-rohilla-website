@@ -62,6 +62,9 @@ export function PhotoBand({
         ratio={photo.ratio}
         elevated={false}
         className="!rounded-panel"
+        /* Demo only. Both absent means the pending slot renders, which is live. */
+        src={photo.src}
+        alt={photo.alt}
       />
 
       {/*

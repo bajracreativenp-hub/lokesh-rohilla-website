@@ -193,6 +193,9 @@ export function Timeline({ items }: { items: readonly TimelinePhase[] }) {
                         spec={current.image.spec}
                         direction={current.image.direction}
                         className="h-full w-full"
+                        /* Demo only. Absent means the pending slot renders. */
+                        src={current.image.src}
+                        alt={current.image.alt}
                       />
                     </div>
                   </motion.div>

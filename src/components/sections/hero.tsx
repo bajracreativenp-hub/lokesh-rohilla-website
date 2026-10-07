@@ -92,6 +92,25 @@ export function Hero() {
           direction={`${hero.portrait.direction} Full bleed: the subject must sit in the RIGHT half of the frame with clear space on the left, because the headline sits there. Landscape or square crop, not 4:5, and it needs to hold up at 1920 wide.`}
           className="h-full w-full"
           elevated={false}
+          /*
+            DEMO ONLY, AND THE ONE PLACE IT MATTERS MOST.
+
+            `hero.portrait.src` is a photograph of a man who is not Lokesh. On a
+            live site this line must be deleted: a face in the hero of a personal
+            brand site asserts that the person is the subject.
+
+            The scrim's 0.82 alpha was derived against a pure white photograph,
+            which is the worst case. This image is darker than that, so the scrim
+            is doing more work than it needs to and the picture reads dimmer than
+            it should. Recompute when the real portrait arrives rather than
+            trusting the number to carry across.
+
+            `preload` because this is the largest contentful paint on every page.
+            The `priority` prop it replaces is deprecated in Next 16.
+          */
+          src={hero.portrait.src}
+          alt={hero.portrait.alt}
+          preload
         />
       </div>
 

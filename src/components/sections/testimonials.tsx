@@ -57,6 +57,9 @@ export function Testimonials() {
                 spec={slot.spec}
                 label={slot.label}
                 index={index + 1}
+                /* DEMO ONLY, a poster frame. Absent means the plain pending slot. */
+                src={slot.src}
+                alt={slot.alt}
               />
             </Reveal>
           ))}

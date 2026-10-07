@@ -18,6 +18,10 @@ export type TransformPath = {
     spec: string;
     ratio: string;
     direction: string;
+    /** DEMO ONLY, same contract as `Photo.src`. */
+    src?: string;
+    /** Alt text for the demo photograph. */
+    alt?: string;
   };
   cta: { label: string; href: string };
 };
@@ -136,6 +140,8 @@ export function PathSelector({ paths }: { paths: readonly TransformPath[] }) {
                     ratio={path.image.ratio}
                     spec={path.image.spec}
                     direction={path.image.direction}
+                    src={path.image.src}
+                    alt={path.image.alt}
                   />
                 </div>
                 <p className="mt-3 text-sm font-bold text-accent lg:hidden">
@@ -177,6 +183,8 @@ export function PathSelector({ paths }: { paths: readonly TransformPath[] }) {
               ratio={current.image.ratio}
               spec={current.image.spec}
               direction={current.image.direction}
+              src={current.image.src}
+              alt={current.image.alt}
             />
           </motion.div>
         </AnimatePresence>
