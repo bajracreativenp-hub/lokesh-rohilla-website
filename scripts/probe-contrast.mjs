@@ -170,8 +170,7 @@ for (const vp of [
       */
       "solidify-scrim": true,
     };
-    for (const el of document.querySelectorAll("[data-a11y-rest]")) {
-      const modes = el.getAttribute("data-a11y-rest").split(/\s+/);
+    for (const el of document.querySelectorAll("[data-a11y-rest]")) {      const modes = el.getAttribute("data-a11y-rest").split(/\s+/);
       /*
         The marked element ITSELF, plus its descendants.
 
@@ -240,6 +239,46 @@ for (const vp of [
         */
         const imageSlot = el.querySelector("[data-asset-slot]");
         if (imageSlot) imageSlot.style.display = "none";
+
+        /*
+          THE ROTATING CLOSING WORD GOES TOO.
+
+          Its five words all sit in one grid cell, so the box is as wide as the
+          widest word and the headline does not jump as the sequence runs. Only one
+          is visible; the rest are `visibility: hidden` at zero opacity.
+
+          axe reports the live word as "background could not be determined because
+          it is overlapped by another element", and it is right to be cautious: the
+          four hidden words ARE its siblings, sitting in the same 1 / 1 cell, on top
+          of it in the box model. A hit test at its coordinates returns them.
+
+          They cannot paint, so this is a measurement limitation rather than a
+          defect, and it is the same class of case as the marquee clip above. The
+          live word was confirmed on top by `elementsFromPoint` before this was
+          added, so removing the hidden siblings measures the word that actually
+          renders rather than measuring nothing.
+
+          Only the hidden ones go. The live word stays in place and is measured
+          against the solidified scrim exactly as the rest of the hero is.
+        */
+        /*
+          THE ROTATING CLOSING WORD NEEDS NOTHING HERE.
+
+          It was reported ten times on every pass: five words stacked in one grid
+          cell, so the live word is overlapped by its own siblings in the box model,
+          and axe declines to guess a background through that. Removing the four
+          hidden words here did not fix it, because hydration runs after this and
+          restores them.
+
+          The cause was a `relative` on the word's grid host, which axe reads as the
+          word being overlapped by its own parent. The component no longer sets it.
+
+          The fix is in the component instead. Under `prefers-reduced-motion`, which
+          this probe emulates, the component renders only the live word, so there is
+          nothing left to overlap it. One decision in the component, and the probe
+          measures the page rather than compensating for it.
+        */
+
         continue;
       }
 

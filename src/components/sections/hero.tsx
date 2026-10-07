@@ -1,6 +1,7 @@
 import { ButtonLink, Pill } from "@/components/ui/button";
 import { Container } from "@/components/ui/layout";
 import { ImageSlot } from "@/components/ui/portrait-slot";
+import { RotatingWord } from "@/components/ui/rotating-word";
 import { Reveal } from "@/components/ui/reveal";
 import { SerifText } from "@/components/ui/serif-text";
 import { hero } from "@/lib/content";
@@ -196,9 +197,7 @@ export function Hero() {
               */}
               <h1 className="text-display-1 max-w-[12ch] leading-display text-balance">
                 <SerifText text="Tu|rning Chaos Into" />{" "}
-                <span className="text-accent">
-                  Cla<SerifText text="r" />ity.
-                </span>
+                <RotatingWord />
               </h1>
             </Reveal>
 
