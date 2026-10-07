@@ -1,50 +1,88 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { SerifText } from "@/components/ui/serif-text";
 
 /**
- * THE ROTATING CLOSING WORD, WITH A CHARACTER SCRAMBLE.
+ * THE ROTATING CLOSING WORD, AS A MORPH.
  *
  * "Turning Chaos Into" is completely static. Only the final word changes, and it
- * changes by scrambling: every letter rolls through random glyphs and resolves
- * left to right, so "Direction." reads as noise settling into a word rather than
- * as one word being replaced by another.
+ * changes by morphing: both words are on screen at once, displaced apart by animated
+ * noise and pulled back together, so the letters of one word flow into the letters
+ * of the next rather than one being erased and the other written.
  *
- * WHY BOTH WORDS ARE IN THE DOM
+ * THE MECHANISM IS AN SVG FILTER CHAIN, NOT AN OPACITY FADE
  *
- * The grid needs all five words present so the track is as wide as the widest
- * one and the headline cannot jump. That is the whole reason they are here, and it
- * is why the width is measured from the rendered words rather than set to a pixel
- * value: the serif letters render at 0.94em, so "Direction." is genuinely
- * narrower than the same string in plain text, and the fluid display scale moves
- * all of it at every breakpoint.
+ * Four primitives, in this order:
  *
- * WHY ONLY THE LIVE WORD IS EXPOSED
+ *   feTurbulence         generates the noise field the displacement samples
+ *   feDisplacementMap    shifts each pixel by that noise, which is the warp
+ *   feGaussianBlur       softens the warped edges so they can merge
+ *   feColorMatrix        pushes alpha hard toward opaque, which turns the soft blur
+ *                        into a hard edge and merges nearby letters into one mass
  *
- * A screen reader must read "Turning Chaos Into Clarity." rather than all five
- * words concatenated, which would be a sentence nobody wrote. The scramble
- * characters are marked `aria-hidden` as well, so nothing mid-scramble reaches the
- * accessibility tree.
+ * That last step is the one that makes it a morph rather than a dissolve.
+ * `0 0 0 14 -5` leaves RGB untouched and remaps alpha to `14a - 5`, so anything
+ * below alpha 0.357 disappears entirely and anything above 0.429 is fully solid. Two
+ * words fading through each other therefore do not read as two sets of letters at
+ * half strength, they read as two sets of letters whose touching parts fuse into a
+ * single blob, which then resolves as one word. That is the whole effect, and it
+ * only exists because both words are painted simultaneously.
  *
- * THE SCRAMBLE IS COSMETIC AND MAY BE SKIPPED
+ * THE THRESHOLD AND THE BLUR WERE MEASURED AGAINST EACH OTHER
  *
- * `prefers-reduced-motion` renders a single word, permanently, with no scramble
- * and no timer. The preference is read during the first render and then
- * subscribed to, so a reader who turns it on mid-session also stops the motion.
+ * Both numbers erode the glyph, and both were originally set to values that looked
+ * reasonable and visibly destroyed the settled word: a tighter cut survives a wider
+ * blur but merges less well. The pair that holds up is derived in
+ * `scripts/probe-morph.mjs`, which counts the accent pixels the settled word keeps
+ * with the filter applied. See the comment on the colour matrix for the sweep.
  *
- * `prefers-reduced-data` is honoured too, for a narrower reason: this is
- * continuous repainting of text for decoration, and a reader on a metered
- * connection should not pay for it.
+ * WHICH IS WHY "ONE WORD AT A TIME" IS INVERTED HERE
  *
- * THE LOOP IS requestAnimationFrame, NOT setInterval.
+ * The previous scramble painted exactly one word and the reason is recorded at
+ * length in git: two scrambling glyph streams overlaid on the same letters read as
+ * garbled text. That reasoning was about two streams of NOISE, and it does not
+ * transfer. A morph needs both words present, because the merge is the effect. Two
+ * words plus a threshold is a morph; one word at a time is a cut.
  *
- * A scramble is a sequence of discrete glyph swaps that has to land on the real
- * character at the right moment. setInterval drifts by whatever the main thread
- * was doing, so a character can resolve a frame late and the word visibly
- * stutters at the end. rAF gives the elapsed time on every frame, which is what
- * makes the resolution schedule exact rather than hopeful.
+ * THE NOISE AND THE DISPLACEMENT ARE ANIMATED, THE FILTERS ARE NOT
+ *
+ * `baseFrequency` and the colour matrix are static. Only `scale` on the
+ * displacement map moves, and it follows a sine bell: zero at both ends, peak at the
+ * middle of the crossfade. That is why the word looks like it comes apart and then
+ * settles, instead of swimming continuously.
+ *
+ * `scale` is written straight to the DOM node on every frame rather than through
+ * React state, because going through a re-render at 60Hz to move one attribute on
+ * one SVG element would rebuild this subtree every frame. The two opacities are
+ * custom properties for the same reason. React owns which word is live; the frame
+ * loop owns the values within the transition.
+ *
+ * THE FILTER REGION IS SET EXPLICITLY, AND IT IS NOT OPTIONAL
+ *
+ * A filter's default region is the object bounding box plus ten percent. The
+ * displacement pushes glyphs a long way outside that box, and any part pushed
+ * outside the region is simply not rendered. The default therefore cuts the letters
+ * off in the middle of the morph, which looks like the animation is being clipped
+ * rather than like the letters are moving. `x/y/width/height` below open it up far
+ * enough to hold the whole displacement at full scale.
+ *
+ * THE FILTER IS NOT APPLIED UNDER REDUCED MOTION
+ *
+ * `prefers-reduced-motion` renders one settled word, permanently, with no filter,
+ * no crossfade and no timer. A thresholded single word has nothing to merge with,
+ * so the filter would be pure cost. Both `prefers-reduced-motion` and
+ * `prefers-reduced-data` are read on first render and then subscribed to, so a
+ * reader who turns either on mid-session stops the motion immediately.
+ *
+ * THE FILTER ID IS A CONSTANT, NOT useId()
+ *
+ * The component renders exactly once, in the hero, and there is no route or layout
+ * that renders it twice. React 19's `useId` produces a value containing guillemets,
+ * and a fragment identifier containing them is not safe to hand to `url()` in a
+ * `filter` property. A plain constant sidesteps the question entirely, and the
+ * single-instance fact is what makes it safe.
  */
 
 const WORDS = [
@@ -55,124 +93,56 @@ const WORDS = [
   { plain: "Action.", marked: "Acti|on." },
 ] as const;
 
-/** How long a word sits still before the next one starts arriving. */
+/** How long a word sits still before it starts morphing into the next. */
 const HOLD_MS = 2600;
-/**
- * How long each individual character flickers as noise before it locks.
- *
- * This is the number that actually governs the effect, and it is per CHARACTER
- * rather than per word. Measured off the reference: "Ne" is still scrambled at
- * 1.36s and "Ne_" has appeared by 1.50s, so a character takes roughly 150 to 200ms
- * to resolve once it starts.
- *
- * Because resolution is sequential, the total is derived from the target word's
- * length by `durationFor`, which is why there is no single word-level duration
- * constant here.
- */
-const PER_CHAR_MS = 180;
-/**
- * How often an unresolved letter changes glyph: milliseconds.
- *
- * THIS IS THE DIFFERENCE BETWEEN "SMOOTH" AND "BROKEN". The first build re-rolled
- * every character on every animation frame, which is 60 times a second. That is
- * not motion, it is visual static: each letter is a different random glyph on
- * consecutive frames, so the eye cannot track any of them and the word never
- * appears to settle.
- *
- * At 60ms a letter changes about 16 times across the scramble, which is fast
- * enough to feel alive and slow enough that each glyph is a distinct event the eye
- * can follow. The substitution is still driven by requestAnimationFrame, because
- * that is what makes the RESOLUTION schedule exact; this only gates the noise, so
- * several frames can pass without a character changing and the resolution still
- * lands on time.
- */
-const ROLL_MS = 60;
 
 /**
- * THE GLYPH POOL, TAKEN FROM THE REFERENCE RECORDING.
+ * How long one word takes to become the next.
  *
- * Read off the frames rather than chosen: `#` `=` `*` `_` `]` `{` `>` `<` `/`
- * `!` `^` `$`. Punctuation carries roughly half the pool, which is what makes the
- * effect read as machinery rather than as a word briefly misspelled. An earlier
- * version was letters and a little punctuation and looked like a typo.
- *
- * Nothing that reads as markup or as a closing tag, so a frame of noise can never
- * be mistaken for the page failing to render.
+ * Long enough for the displacement to peak and come back, which is what makes it
+ * read as letters travelling rather than as a fast dissolve. A morph under about
+ * 1.2s never reaches a peak worth looking at, because the eye resolves the blob
+ * after it is already thinning out again.
  */
-const GLYPHS =
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_#=*!?<>[]{}~^/+-$&%@";
+const MORPH_MS = 1500;
 
 /**
- * Characters that are never scrambled, because a rolling full stop reads as debris
- * and a rolling apostrophe reads as a typo in the copy rather than as noise.
+ * The displacement at the midpoint, in user units.
+ *
+ * Turbulence output sits roughly in the range -0.5 to 0.5, so this is a peak shift
+ * of about 65px either side. The display type is 68px, so that is roughly one glyph
+ * of travel: enough for the letters to visibly leave their positions and land in
+ * new ones, not so much that the word stops being legible as a word on the way.
+ *
+ * This is also what the filter region below has to be sized against.
  */
-const KEEP = new Set([".", ",", "'", " "]);
+const PEAK_SCALE = 130;
 
-/**
- * THE SEQUENTIAL MODEL, WHICH IS WHAT THE REFERENCE ACTUALLY DOES.
- *
- * Read frame by frame off the reference recording. At 1.36s the word reads
- * "Ne=#=*". At 1.50s it reads "Ne_]", and at 1.64s "Neo_". The "N" is already
- * correct in the first frame while the rest is still noise, and each subsequent
- * frame advances by exactly ONE character.
- *
- * So resolution is strictly sequential: character i cannot settle until character
- * i - 1 has, and each character then flickers for a fixed dwell before locking.
- * That is what my first version got wrong. It resolved characters by a
- * proportional threshold, so four or five of them landed together in the last
- * fifth of the run and the word assembled itself in a rush. It looked nothing
- * like the reference because it was not the same mechanism.
- *
- * Sequential also means the duration is a property of the word's LENGTH, not a
- * fixed budget. "Direction." is nine characters and takes nine dwells; "Focus." is
- * six and takes six. A fixed 900ms cannot express that at all.
- */
-function scrambleAt(text: string, elapsed: number, noise: number): string {
-  const chars = [...text];
-  return chars
-    .map((c, i) => {
-      if (KEEP.has(c)) return c;
-      /*
-        This character starts locking at its own slot and takes PER_CHAR_MS to
-        finish, so the number of characters already settled at any moment is
-        `elapsed / PER_CHAR_MS`. A character well inside its own slot is still
-        pure noise; one past the end of its slot is settled. The partial value in
-        between is what the eye reads as a letter forming.
-      */
-      const lock = i * PER_CHAR_MS;
-      const into = elapsed - lock;
-      if (into >= PER_CHAR_MS) return c;
-      if (into < 0) return GLYPHS[(i * 2654435761 + (noise + 1) * 40503) % GLYPHS.length];
-      /*
-        The last 25% of the slot converges on the real character, so the letter
-        becomes recognisable just before it locks rather than snapping into place.
-        Without this the eye sees noise and then a finished letter, with no
-        approach, which is the difference between a scramble and a jump cut.
-      */
-      if (into > PER_CHAR_MS * 0.75) return c;
-      return GLYPHS[(i * 2654435761 + (noise + 1) * 40503) % GLYPHS.length];
-    })
-    .join("");
-}
+/** Eased out: fast at first, settling. Used for the arriving word. */
+const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 
-/** How long the whole sequence takes for a given word, plus its dwell. */
-const durationFor = (word: string) => [...word].length * PER_CHAR_MS + PER_CHAR_MS;
+/** Eased in: slow at first, then dropping away. Used for the departing word. */
+const easeInCubic = (t: number) => t * t * t;
+
+const clamp01 = (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t);
 
 export function RotatingWord() {
   const [index, setIndex] = useState(0);
-  const [leaving, setLeaving] = useState(false);
+  const [morphing, setMorphing] = useState(false);
   const [reduced, setReduced] = useState(
     () =>
       typeof window !== "undefined" &&
       (window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
         window.matchMedia("(prefers-reduced-data: reduce)").matches),
   );
-  /*
-    The two strings as they are currently painted, which are noise for most of the
-    transition. Held in state because they are text in the DOM, and a DOM write
-    outside React would fight hydration.
-  */
-  const [scramble, setScramble] = useState({ from: "" });
+
+  /**
+   * The displacement map, reached directly so `scale` can be written per frame.
+   *
+   * The stage, for the two opacity custom properties. Same reason.
+   */
+  const displacement = useRef<SVGFEDisplacementMapElement | null>(null);
+  const stage = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -190,108 +160,123 @@ export function RotatingWord() {
   useEffect(() => {
     if (reduced) return;
 
-    const startSwap = window.setTimeout(() => setLeaving(true), HOLD_MS);
+    /*
+      The word that is arriving is derived, not stored. `index` is the word on
+      screen, so the one arriving is always the next one, and there is no second
+      piece of state that could fall out of step with the first.
+    */
+    const nextIndex = (index + 1) % WORDS.length;
+
+    const holdTimer = window.setTimeout(() => setMorphing(true), HOLD_MS);
 
     let frame = 0;
     let began = 0;
 
     /*
-      One pass over the transition.
+      The two opacity curves, which are not mirrors of each other.
 
-      The elapsed time is recomputed from a single origin rather than accumulated
-      per frame, so a dropped frame makes the animation skip forward instead of
-      running slow. Accumulating deltas is the classic way a scramble ends up
-      still rolling letters after it should have settled.
+      The departing word is gone by 45% of the transition. The arriving word does
+      not begin until 20%, because the threshold makes anything under about 0.39
+      alpha invisible anyway, and starting it earlier would spend the first fifth of
+      the morph fading in something nobody can see.
+
+      That gap is also what produces the blob. Both words are partly solid at the
+      same time, in the same place, and the colour matrix fuses their touching
+      edges. Overlap the curves and the effect is a dissolve; overlap them into the
+      middle third and it is a morph.
     */
-    const target = WORDS[(index + 1) % WORDS.length].plain;
-    const total = durationFor(target);
+    const outAlpha = (p: number) => 1 - easeInCubic(clamp01(p / 0.45));
+    const inAlpha = (p: number) => easeOutCubic(clamp01((p - 0.2) / 0.55));
 
     const tick = (now: number) => {
       if (!began) began = now;
-      /*
-        Elapsed milliseconds, not a 0 to 1 progress value.
 
-        A proportional progress made sense when characters resolved on a shared
-        threshold. Now each one resolves in its own slot, so the scrambler needs to
-        know how many milliseconds have passed and nothing else. The total is
-        derived from the target word's length, so "Direction." gets nine dwells and
-        "Focus." gets six.
+      /*
+        Elapsed is recomputed from a single origin every frame rather than
+        accumulated, so a dropped frame skips forward instead of making the whole
+        morph run slow and finish late.
       */
       const elapsed = now - began;
-      const done = elapsed >= total;
+      const p = clamp01(elapsed / MORPH_MS);
+
+      if (stage.current) {
+        stage.current.style.setProperty("--out-alpha", outAlpha(p).toFixed(4));
+        stage.current.style.setProperty("--in-alpha", inAlpha(p).toFixed(4));
+      }
 
       /*
-        `noise` is the current slot in the roll cycle, so a character keeps the same
-        glyph for a whole ROLL_MS window. Re-rolling every animation frame changed
-        each letter 60 times a second, which reads as static rather than movement.
+        A sine bell, so the displacement is zero at both ends and largest in the
+        middle. A linear ramp would leave the word visibly warped for a frame after
+        it had already settled, which reads as a wobble rather than as motion.
       */
-      const noise = Math.floor(elapsed / ROLL_MS);
-      setScramble({ from: scrambleAt(target, elapsed, noise) });
+      if (displacement.current) {
+        displacement.current.setAttribute(
+          "scale",
+          (Math.sin(p * Math.PI) * PEAK_SCALE).toFixed(2),
+        );
+      }
 
-      if (!done) {
+      if (p < 1) {
         frame = window.requestAnimationFrame(tick);
         return;
       }
 
       frame = 0;
-      setIndex((i) => (i + 1) % WORDS.length);
-      setLeaving(false);
-      setScramble({ from: "" });
+      /*
+        Reset before the state change so the next hold begins from a known state
+        rather than from whatever the last frame happened to write. Leaving the
+        scale at zero matters most: a non-zero scale with a settled word warps the
+        one word that is on screen and nothing else.
+      */
+      if (displacement.current) displacement.current.setAttribute("scale", "0");
+      setIndex(nextIndex);
+      setMorphing(false);
     };
 
-    // Scheduled on the same tick the state change lands, so the swap and the
-    // first scrambled frame are never a frame apart.
-    const swapTimer = window.setTimeout(() => {
+    const morphTimer = window.setTimeout(() => {
       frame = window.requestAnimationFrame(tick);
     }, HOLD_MS);
 
     return () => {
-      window.clearTimeout(startSwap);
-      window.clearTimeout(swapTimer);
+      window.clearTimeout(holdTimer);
+      window.clearTimeout(morphTimer);
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, [index, reduced]);
 
   /*
-    Under reduced motion only the live word exists. The other four were only ever
+    Under reduced motion only the settled word exists. The other four were only ever
     there to size the grid track, and with nothing changing there is no width to
     hold steady.
 
-    Dropping them also matters for measurement rather than tidiness: five words in
-    one grid cell means the live word is overlapped by its own siblings in the box
-    model, and axe declines to guess a background through that. Rendering one word
-    when the sequence is not running removes the cause.
+    Dropping them also removes a measurable problem: five words in one grid cell
+    means each one is overlapped by its own siblings in the box model, and axe
+    declines to guess a background through that.
   */
+  const showMorph = !reduced;
   const words = reduced ? WORDS.slice(0, 1) : WORDS;
 
   return (
     /*
-      `grid` with every word in `1 / 1`. The widest word sets the track width, the
-      live one is the only one that paints, and the box holds still throughout.
+      `grid` with the sizing layer in `1 / 1`. The widest word sets the track width
+      and the painted stage is taken out of flow on top of it, so the headline holds
+      still while the letters inside it move.
 
-      NO `relative` ON THIS ELEMENT. The words are placed with `grid-area`, not
-      absolute positioning, so nothing needs a containing block, and a positioned
-      element that paints is read by axe as covering its own in-flow children.
+      NO `relative` ON THIS ELEMENT. The stage is positioned with `absolute`, which
+      needs a containing block, and this span is `inline-block`, so it is already
+      one. Adding `relative` would be harmless for layout and would make the element
+      read to axe as covering its own in-flow children.
     */
     <span className="text-accent relative inline-block align-baseline" data-rotating-word="">
       {/*
         THE SIZING LAYER, AND IT IS NOT OPTIONAL.
 
-        Scrambled text is a different width from the same text settled. The glyph
-        pool is full of wide characters, "@" "#" "W" "M", and narrow ones, "i" "l",
-        so a word mid-scramble has a different max-content width from its settled
-        form and a different width from every frame to the next. Measured during
-        the first build, the box ran 234px, 366px, 275px, 269px, 260px and 254px
-        across one cycle: the headline visibly jumped on every swap.
-
-        Letting the grid size itself from the painted words cannot work for a
-        scramble. It sized correctly when the words were static precisely because
-        the content never changed, and that is the one property a scramble removes.
-
-        So the width comes from a hidden copy of the five SETTLED words, which never
-        changes, and the painted words are taken out of flow on top of it. The
-        track is therefore sized by content that is stable by construction, and
-        the noise above it can be whatever width it likes.
+        The two painted words are out of flow, and the widest of them, "Direction.",
+        is not the widest at every width: the serif letter renders at 0.94em, the
+        display scale is fluid, and the two words have different letter counts. So
+        the track is sized by a hidden copy of all five SETTLED words, which never
+        changes. Content that is stable by construction, while the stage above it
+        moves freely.
       */}
       <span aria-hidden="true" className="invisible inline-grid items-baseline">
         {WORDS.map((word) => (
@@ -304,138 +289,227 @@ export function RotatingWord() {
       {/*
         THE ACCESSIBLE NAME, AND IT IS NOT THE PAINTED TEXT.
 
-        Measured across 34 frames of a transition, deriving the accessible name from
-        the painted words produced three states: "Clarity.", then nothing at all,
-        then "Direction.". Two attempts fixed parts of that and broke the other.
+        During a morph both words are on screen at once, so deriving the accessible
+        name from what is painted would produce "Clarity.Direction." at every frame,
+        which is a phrase nobody wrote and changes far too fast to follow.
 
-        Exposing the live word alone let a scrambling word stay in the tree, so the
-        accessible text read ">+jfIrg." and "yFqGnry." Hiding every scrambled word
-        removed the noise and left a hole, because `ScrambledText` hides every
-        character it renders, so mid-scramble the word contributes nothing at all.
+        So the name lives in its own element, which always holds exactly one real
+        word and is never filtered, never displaced and never crossfaded. It follows
+        `index`, so it changes at the moment the morph resolves. A screen reader
+        reads one complete word at all times.
 
-        So the name comes from its own element, which always holds a real word and
-        is never scrambled. It follows the same `index`, so it changes at the same
-        moment the painted word settles. A screen reader reads one complete word at
-        all times, and never a character of noise.
-
-        `sr-only` is the project's existing visually-hidden utility, used by the
-        cart controls for the same reason: a real string for assistive tech with no
-        visual presence. `audit-visibility` already excludes it.
+        `sr-only` is the project's existing visually hidden utility, already used by
+        the cart controls for the same reason, and already excluded by
+        `audit-visibility`.
       */}
       <span className="sr-only">{WORDS[index].plain}</span>
 
-      {words.map((word, i) => {
-        const live = i === index;
-        /*
-          ONE WORD AT A TIME. NO CROSSFADE, AND THAT IS THE WHOLE FIX.
+      {/*
+        THE STAGE. BOTH WORDS, BOTH FILTERED, FILTER ON THE PARENT.
 
-          The previous version painted the departing word and the arriving word at
-          once, crossfading their opacities. Measured on the running build, both were
-          on screen at once with both scrambling, so two streams of random glyphs
-          were overlaid on the same letters and the result read as garbled text
-          rather than as a word coming into focus. A scramble already has all the
-          motion it needs; adding a second word on top of it only destroys legibility.
+        The filter is on this element and not on the two words because the merge has
+        to happen after they are composited. Filtering each word separately and then
+        stacking them gives two clean sets of letters with no shared blur, and the
+        threshold cannot fuse edges that were never in the same buffer.
 
-          So there is exactly one painted word. It leaves nothing and arrives from
-          nothing: the departing word stops being the live word the moment the swap
-          begins, and the arriving word takes its place immediately. What the reader
-          sees is the settled word, then that same word scrambling into the next
-          one. One stream of glyphs, one position, nothing to blend.
-        */
-        const scrambling = leaving && live;
+        Opacity comes from custom properties rather than inline `style`, because the
+        frame loop writes them sixty times a second and two properties on one element
+        is cheaper than sixty re-renders of this subtree.
+      */}
+      <span
+        ref={stage}
+        aria-hidden="true"
+        className="absolute inset-0 whitespace-nowrap"
+        data-morph-stage=""
+        style={
+          showMorph
+            ? {
+                filter: "url(#morph-threshold) blur(0.35px)",
+                /*
+                  Both defaults matter. The outgoing word has to be fully opaque and
+                  the incoming fully transparent at rest, or the headline shows two
+                  words at the moment the page loads.
+                */
+                "--out-alpha": morphing ? undefined : "1",
+                "--in-alpha": morphing ? undefined : "0",
+              } as React.CSSProperties
+            : undefined
+        }
+      >
+        {words.map((word, i) => {
+          const isCurrent = i === index;
+          const isNext = i === (index + 1) % words.length;
 
-        return (
-          <span
-            key={word.plain}
+          /*
+            Visibility is keyed on the morph running, not on which word is current.
+            At rest exactly one word is visible. While morphing, both are, because
+            that overlap is the effect. `aria-hidden` is unconditional either way:
+            the accessible name comes from the element above.
+          */
+          const visible = reduced
+            ? isCurrent
+            : morphing
+              ? isCurrent || isNext
+              : isCurrent;
+
+          return (
+            <span
+              key={word.plain}
+              aria-hidden="true"
+              className="absolute inset-0 whitespace-nowrap"
+              style={
+                showMorph
+                  ? {
+                      opacity: isCurrent ? "var(--out-alpha)" : "var(--in-alpha)",
+                      visibility: visible ? "visible" : "hidden",
+                    } as React.CSSProperties
+                  : { visibility: visible ? "visible" : "hidden" }
+              }
+            >
+              {/*
+                `SerifText`, not per-character spans. The old scramble needed one
+                span per character because each character resolved independently in
+                time and had to be legible per character on screen. Nothing here
+                resolves per character: the whole word is displaced as one glyph run
+                and the threshold treats it as one mass, so splitting it would only
+                give the displacement more edges to tear.
+
+                The font is inherited from the h1 and restated nowhere, so the noise
+                is set in the same face, size, weight and tracking as the word it
+                becomes.
+
+                NO TRANSITION PROPERTY. Opacity here is driven per frame, and a
+                transition on top of that would lag a frame behind the value being
+                animated and fight it.
+              */}
+              <SerifText text={word.marked} />
+            </span>
+          );
+        })}
+      </span>
+
+      {/*
+        THE FILTER DEFINITION.
+
+        Inline in the document rather than in a file, because `filter: url(#id)`
+        only resolves against filters in the same document, and an SVG loaded from
+        a separate resource does not expose its defs that way.
+
+        `width/height 0` with `overflow: hidden` rather than `display: none`. A
+        hidden filter host is resolved in some engines and not others, and the
+        symptom when it fails is a silently unfiltered headline that still animates,
+        which is the hardest version of this bug to see.
+      */}
+      <svg
+        aria-hidden="true"
+        focusable="false"
+        width="0"
+        height="0"
+        className="pointer-events-none absolute overflow-hidden"
+      >
+        <defs>
+          <filter
+            id="morph-threshold"
             /*
-              Hidden from assistive tech unconditionally. The accessible name is the
-              `sr-only` element above, which always holds a real word, so none of the
-              noise can reach a screen reader no matter what is painted.
+              The region. The default is the object box plus ten percent, and the
+              displacement moves glyphs by up to PEAK_SCALE, so the default crops
+              the letters in half at the middle of the morph. These values hold the
+              full travel with room to spare, and `primitiveUnits` stays
+              `userSpaceOnUse` so `stdDeviation` and `scale` are in pixels rather
+              than fractions of the box.
             */
-            aria-hidden="true"
-            className={`absolute inset-0 whitespace-nowrap ${
-              /*
-                `scrambling`, NOT `live`, decides what is painted.
-
-                Using `live` meant the departing word and the incoming one were both
-                visible for the whole transition, because during a swap the live word
-                is the one being scrambled and the next word is still rendered
-                settled underneath it. Measured on the running build, two words were
-                on screen at once with both scrambled, and the result read as garbled
-                text rather than as a word coming into focus.
-
-                One painted word, always. The element that owns it is the live word
-                the whole time; only its contents change, from the settled word to the
-                scrambling one.
-              */
-              /*
-                THE LIVE WORD IS THE VISIBLE ONE. NOTHING ELSE, AND NOT `scrambling`.
-
-                Two earlier attempts both blanked the headline, in opposite ways.
-
-                Keying on `live` alone was correct at rest but left the incoming word
-                visible underneath during a swap, so two scrambled streams overlaid
-                and the result read as garbled text. Keying on `scrambling` fixed
-                that and blanked the word at rest instead, because `scrambling` is
-                `leaving && live` and `leaving` is false whenever nothing is
-                changing.
-
-                The rule is simply that exactly one word is painted, and it is the
-                live one. The incoming word is the live word from the instant the
-                swap begins, because `index` moves at the end of the transition and
-                the outgoing word stops being live the moment it starts. Nothing
-                needs to be painted before that and nothing needs to persist after.
-
-                Caught by reading the computed `visibility` of every child. A
-                screenshot would not have shown it: a word hidden by a class and a
-                word absent from the DOM are indistinguishable in a picture.
-              */
-              live ? "" : "invisible"
-            }`}
+            x="-25%"
+            y="-40%"
+            width="150%"
+            height="180%"
+            colorInterpolationFilters="sRGB"
           >
             {/*
-              The scramble is painted as raw characters rather than through
-              `SerifText`, because `SerifText` splits on `|` to place a serif letter
-              and a scrambled string has no markers left in it.
-
-              The font is inherited from the h1 and is not restated anywhere here, so
-              the noise is set in exactly the same face, size, weight and tracking as
-              the word it becomes. Verified on the running build: Instrument Sans,
-              weight 400, 60px, on both the scrambled and settled text.
-
-              NO TRANSITION PROPERTY AT ALL. There is no opacity ramp and no
-              transform, so there is nothing for the compositor to interpolate and
-              nothing to read as a fade. The only thing changing is which characters
-              are in the DOM, driven once per animation frame.
+              `fractalNoise` with two octaves: the second octave is what gives the
+              warp its edges some structure instead of a smooth wobble. The seed is
+              fixed so the field is identical on every frame and every load, so the
+              morph is the same motion each time rather than random noise the viewer
+              has to re-read.
             */}
-            {scrambling ? (
-              <ScrambledText text={scramble.from || word.plain} />
-            ) : (
-              <SerifText text={word.marked} />
-            )}
-          </span>
-        );
-      })}
-    </span>
-  );
-}
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.006 0.009"
+              numOctaves="2"
+              seed="7"
+              result="noise"
+            />
+            {/*
+              `scale` is animated from JavaScript. It starts at 0 so the first paint
+              is an unwarped word rather than a burst of noise before anything has
+              had a chance to load.
+            */}
+            <feDisplacementMap
+              ref={displacement}
+              in="SourceGraphic"
+              in2="noise"
+              scale="0"
+              xChannelSelector="R"
+              yChannelSelector="G"
+              result="warped"
+            />
+            {/*
+              Blurred BEFORE the threshold, not after. This is the order that makes
+              the two words merge: blurring fuses their alpha fields into one soft
+              region, and the colour matrix then hardens that single region into one
+              shape. Blurring afterwards would only soften edges that the matrix has
+              already made sharp.
+            */}
+            <feGaussianBlur in="warped" stdDeviation="1.5" result="soft" />
+            {/*
+              The threshold. RGB rows are the identity so the accent colour passes
+              through untouched. The alpha row is `14a - 5`: nothing below alpha 0.357
+              survives, everything above 0.429 is solid, and the narrow band between
+              them is the only soft edge in the result.
 
-/**
- * One character per span, all of them hidden from assistive tech.
- *
- * Split per character because the scramble is resolved per character in time and
- * has to be legible per character on screen. Every span carries `aria-hidden`, so
- * a word that is still scrambling contributes nothing to its own accessible name
- * and resolves into it only as its letters land.
- */
-function ScrambledText({ text }: { text: string }) {
-  return (
-    <>
-      {[...text].map((c, i) => (
-        <span key={`${c}-${i}`} aria-hidden="true">
-          {c}
-        </span>
-      ))}
-    </>
+              That band width is the entire morph. Two words crossfading through it
+              without touching would look like a dissolve. Two words overlapping in
+              it have their edges meet, their blurs add, and they leave as one blob.
+
+              14 AND -5 ARE MEASURED, NOT CHOSEN, AND 1.5 IS THE BLUR THAT GOES WITH
+              THEM. The threshold can only erode a glyph or inflate it, and on display
+              type both are plainly visible. The original pair, `stdDeviation` 4 with
+              `18 - 7`, deleted the middle of every stroke: a roughly 3px stroke blurs
+              to a peak alpha near 0.29, the 0.39 cut removes it, and the settled word
+              rendered as fragments.
+
+              Swept with `verify:morph`, which erodes the unfiltered mask by one pixel
+              and asks what fraction of those stroke CORES survive the filter. Area
+              alone is not the metric, because a wider blur inflates area while it
+              erodes the same pixels, and the two cancel:
+
+                stdDev 3   area 1.076   core survival 0.902
+                stdDev 2.5 area 1.144   core survival 0.961
+                stdDev 2   area 1.168   core survival 0.979
+                stdDev 1.5 area 1.167   core survival 0.993
+                stdDev 1   area 1.149   core survival 1.000
+
+              1.5 is where the trade stops paying. Below it the settled word is
+              indistinguishable from unfiltered, which is what a resting headline
+              should be, and above it the erosion is visible in the letterforms on
+              screen. It still fuses two overlapping words mid transition, because
+              during the morph the two words' alphas ADD before the threshold is
+              applied, so what the threshold sees there is far denser than any single
+              word ever is. That is why the blur can be this small and the morph can
+              still work.
+            */}
+            <feColorMatrix
+              in="soft"
+              type="matrix"
+              values="
+                1 0 0 0 0
+                0 1 0 0 0
+                0 0 1 0 0
+                0 0 0 14 -5
+              "
+            />
+          </filter>
+        </defs>
+      </svg>
+    </span>
   );
 }

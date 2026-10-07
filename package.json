@@ -12,6 +12,7 @@
     "verify:build": "npm run clean && npm run build",
     "verify:widths": "node scripts/verify-widths.mjs",
     "verify:hero": "node scripts/probe-hero.mjs",
+    "verify:morph": "node scripts/probe-morph.mjs",
     "verify:contrast": "node scripts/probe-contrast.mjs",
     "verify:paths": "node scripts/probe-paths.mjs && node scripts/probe-paths-mobile.mjs",
     "verify:marquee": "node scripts/probe-marquee.mjs",
