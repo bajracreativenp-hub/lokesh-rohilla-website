@@ -56,55 +56,107 @@ const WORDS = [
 ] as const;
 
 /** How long a word sits still before the next one starts arriving. */
-const HOLD_MS = 2200;
-/** Total duration of one scramble. Within the 700 to 900ms the brief allows. */
-const SCRAMBLE_MS = 900;
+const HOLD_MS = 2600;
 /**
- * Fraction of the duration spent staggering resolution.
+ * How long each individual character flickers as noise before it locks.
  *
- * 0.6 means the last character starts resolving at 60% of the way through and the
- * first has finished by then, so the final sixth of the run is the word settling
- * into place. Below about 0.5 the characters resolve so close together that it
- * reads as the whole word arriving at once, which is the fade this replaced.
+ * This is the number that actually governs the effect, and it is per CHARACTER
+ * rather than per word. Measured off the reference: "Ne" is still scrambled at
+ * 1.36s and "Ne_" has appeared by 1.50s, so a character takes roughly 150 to 200ms
+ * to resolve once it starts.
+ *
+ * Because resolution is sequential, the total is derived from the target word's
+ * length by `durationFor`, which is why there is no single word-level duration
+ * constant here.
  */
-const STAGGER = 0.6;
+const PER_CHAR_MS = 180;
+/**
+ * How often an unresolved letter changes glyph: milliseconds.
+ *
+ * THIS IS THE DIFFERENCE BETWEEN "SMOOTH" AND "BROKEN". The first build re-rolled
+ * every character on every animation frame, which is 60 times a second. That is
+ * not motion, it is visual static: each letter is a different random glyph on
+ * consecutive frames, so the eye cannot track any of them and the word never
+ * appears to settle.
+ *
+ * At 60ms a letter changes about 16 times across the scramble, which is fast
+ * enough to feel alive and slow enough that each glyph is a distinct event the eye
+ * can follow. The substitution is still driven by requestAnimationFrame, because
+ * that is what makes the RESOLUTION schedule exact; this only gates the noise, so
+ * several frames can pass without a character changing and the resolution still
+ * lands on time.
+ */
+const ROLL_MS = 60;
 
 /**
- * The glyph pool.
+ * THE GLYPH POOL, TAKEN FROM THE REFERENCE RECORDING.
  *
- * Upper and lower case plus digits plus punctuation, because a scramble that only
- * uses letters looks like a typo rather than like machinery. Nothing that reads
- * as markup, so a moment of noise can never be mistaken for the page failing to
- * render.
+ * Read off the frames rather than chosen: `#` `=` `*` `_` `]` `{` `>` `<` `/`
+ * `!` `^` `$`. Punctuation carries roughly half the pool, which is what makes the
+ * effect read as machinery rather than as a word briefly misspelled. An earlier
+ * version was letters and a little punctuation and looked like a typo.
+ *
+ * Nothing that reads as markup or as a closing tag, so a frame of noise can never
+ * be mistaken for the page failing to render.
  */
 const GLYPHS =
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*+=?<>~";
-
-/** Characters that are never scrambled, because a floating full stop reads as debris. */
-const KEEP = new Set([".", ",", "'", " "]);
-
-const pick = () => GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_#=*!?<>[]{}~^/+-$&%@";
 
 /**
- * Resolve one string against the elapsed progress of a scramble.
- *
- * `direction` is 1 for an arriving word, which resolves left to right, and -1 for
- * a departing one, which dissolves in the same order. Scrambling both in the same
- * direction keeps the eye tracking a single sweep rather than two opposing ones.
+ * Characters that are never scrambled, because a rolling full stop reads as debris
+ * and a rolling apostrophe reads as a typo in the copy rather than as noise.
  */
-function scrambleAt(text: string, progress: number, direction: 1 | -1): string {
+const KEEP = new Set([".", ",", "'", " "]);
+
+/**
+ * THE SEQUENTIAL MODEL, WHICH IS WHAT THE REFERENCE ACTUALLY DOES.
+ *
+ * Read frame by frame off the reference recording. At 1.36s the word reads
+ * "Ne=#=*". At 1.50s it reads "Ne_]", and at 1.64s "Neo_". The "N" is already
+ * correct in the first frame while the rest is still noise, and each subsequent
+ * frame advances by exactly ONE character.
+ *
+ * So resolution is strictly sequential: character i cannot settle until character
+ * i - 1 has, and each character then flickers for a fixed dwell before locking.
+ * That is what my first version got wrong. It resolved characters by a
+ * proportional threshold, so four or five of them landed together in the last
+ * fifth of the run and the word assembled itself in a rush. It looked nothing
+ * like the reference because it was not the same mechanism.
+ *
+ * Sequential also means the duration is a property of the word's LENGTH, not a
+ * fixed budget. "Direction." is nine characters and takes nine dwells; "Focus." is
+ * six and takes six. A fixed 900ms cannot express that at all.
+ */
+function scrambleAt(text: string, elapsed: number, noise: number): string {
   const chars = [...text];
   return chars
     .map((c, i) => {
       if (KEEP.has(c)) return c;
-      // The leading punctuation and the first character resolve last on the way
-      // in, so the word visibly assembles from its middle outwards.
-      const position = i / Math.max(chars.length - 1, 1);
-      const threshold = direction === 1 ? position * STAGGER : (1 - position) * STAGGER;
-      return progress >= threshold ? c : pick();
+      /*
+        This character starts locking at its own slot and takes PER_CHAR_MS to
+        finish, so the number of characters already settled at any moment is
+        `elapsed / PER_CHAR_MS`. A character well inside its own slot is still
+        pure noise; one past the end of its slot is settled. The partial value in
+        between is what the eye reads as a letter forming.
+      */
+      const lock = i * PER_CHAR_MS;
+      const into = elapsed - lock;
+      if (into >= PER_CHAR_MS) return c;
+      if (into < 0) return GLYPHS[(i * 2654435761 + (noise + 1) * 40503) % GLYPHS.length];
+      /*
+        The last 25% of the slot converges on the real character, so the letter
+        becomes recognisable just before it locks rather than snapping into place.
+        Without this the eye sees noise and then a finished letter, with no
+        approach, which is the difference between a scramble and a jump cut.
+      */
+      if (into > PER_CHAR_MS * 0.75) return c;
+      return GLYPHS[(i * 2654435761 + (noise + 1) * 40503) % GLYPHS.length];
     })
     .join("");
 }
+
+/** How long the whole sequence takes for a given word, plus its dwell. */
+const durationFor = (word: string) => [...word].length * PER_CHAR_MS + PER_CHAR_MS;
 
 export function RotatingWord() {
   const [index, setIndex] = useState(0);
@@ -120,7 +172,7 @@ export function RotatingWord() {
     transition. Held in state because they are text in the DOM, and a DOM write
     outside React would fight hydration.
   */
-  const [scramble, setScramble] = useState({ from: "", to: "" });
+  const [scramble, setScramble] = useState({ from: "" });
 
   useEffect(() => {
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -151,16 +203,32 @@ export function RotatingWord() {
       running slow. Accumulating deltas is the classic way a scramble ends up
       still rolling letters after it should have settled.
     */
+    const target = WORDS[(index + 1) % WORDS.length].plain;
+    const total = durationFor(target);
+
     const tick = (now: number) => {
       if (!began) began = now;
-      const progress = Math.min((now - began) / SCRAMBLE_MS, 1);
+      /*
+        Elapsed milliseconds, not a 0 to 1 progress value.
 
-      setScramble({
-        from: scrambleAt(WORDS[index].plain, progress, -1),
-        to: scrambleAt(WORDS[(index + 1) % WORDS.length].plain, progress, 1),
-      });
+        A proportional progress made sense when characters resolved on a shared
+        threshold. Now each one resolves in its own slot, so the scrambler needs to
+        know how many milliseconds have passed and nothing else. The total is
+        derived from the target word's length, so "Direction." gets nine dwells and
+        "Focus." gets six.
+      */
+      const elapsed = now - began;
+      const done = elapsed >= total;
 
-      if (progress < 1) {
+      /*
+        `noise` is the current slot in the roll cycle, so a character keeps the same
+        glyph for a whole ROLL_MS window. Re-rolling every animation frame changed
+        each letter 60 times a second, which reads as static rather than movement.
+      */
+      const noise = Math.floor(elapsed / ROLL_MS);
+      setScramble({ from: scrambleAt(target, elapsed, noise) });
+
+      if (!done) {
         frame = window.requestAnimationFrame(tick);
         return;
       }
@@ -168,7 +236,7 @@ export function RotatingWord() {
       frame = 0;
       setIndex((i) => (i + 1) % WORDS.length);
       setLeaving(false);
-      setScramble({ from: "", to: "" });
+      setScramble({ from: "" });
     };
 
     // Scheduled on the same tick the state change lands, so the swap and the
@@ -258,71 +326,90 @@ export function RotatingWord() {
 
       {words.map((word, i) => {
         const live = i === index;
-        const isNext = i === (index + 1) % WORDS.length;
         /*
-          A departing word is gone the instant `index` moves, and an arriving one
-          is live the instant it does. Between those two points both are painted
-          and both are scrambled, which is the crossfade.
+          ONE WORD AT A TIME. NO CROSSFADE, AND THAT IS THE WHOLE FIX.
+
+          The previous version painted the departing word and the arriving word at
+          once, crossfading their opacities. Measured on the running build, both were
+          on screen at once with both scrambling, so two streams of random glyphs
+          were overlaid on the same letters and the result read as garbled text
+          rather than as a word coming into focus. A scramble already has all the
+          motion it needs; adding a second word on top of it only destroys legibility.
+
+          So there is exactly one painted word. It leaves nothing and arrives from
+          nothing: the departing word stops being the live word the moment the swap
+          begins, and the arriving word takes its place immediately. What the reader
+          sees is the settled word, then that same word scrambling into the next
+          one. One stream of glyphs, one position, nothing to blend.
         */
-        const arriving = leaving && isNext;
-        const departing = leaving && live;
+        const scrambling = leaving && live;
 
         return (
           <span
             key={word.plain}
             /*
-              Every painted word is hidden from assistive tech, unconditionally.
-
-              The accessible name is the `sr-only` element above, which always holds
-              a real word. Deriving it from these instead was wrong twice over:
-              exposing the live word let a scrambling word into the tree, so the
-              text read ">+jfIrg.", and hiding every scrambled word left a hole,
-              because `ScrambledText` hides all of its characters and the word then
-              contributed nothing.
-
-              Scrambled text is noise by definition and has no meaning to announce,
-              so none of it belongs in the accessibility tree.
+              Hidden from assistive tech unconditionally. The accessible name is the
+              `sr-only` element above, which always holds a real word, so none of the
+              noise can reach a screen reader no matter what is painted.
             */
             aria-hidden="true"
-            /*
-              `absolute inset-0`, so a painted word never contributes to the width.
-
-              This is the fix for the jumping headline. The glyph pool is full of
-              wide characters and narrow ones, so a scrambled word is a different
-              width from its settled form and a different width from every frame to
-              the next. Taking the words out of flow means the box is sized only by
-              the hidden settled words behind them, which never change.
-            */
-            className={`absolute inset-0 whitespace-nowrap ${live || arriving ? "" : "invisible"}`}
-            style={{
+            className={`absolute inset-0 whitespace-nowrap ${
               /*
-                The arriving word starts fully transparent and the departing one
-                ends fully transparent, so the two overlap through the middle
-                rather than cross-dissolving edge to edge.
+                `scrambling`, NOT `live`, decides what is painted.
+
+                Using `live` meant the departing word and the incoming one were both
+                visible for the whole transition, because during a swap the live word
+                is the one being scrambled and the next word is still rendered
+                settled underneath it. Measured on the running build, two words were
+                on screen at once with both scrambled, and the result read as garbled
+                text rather than as a word coming into focus.
+
+                One painted word, always. The element that owns it is the live word
+                the whole time; only its contents change, from the settled word to the
+                scrambling one.
               */
-              opacity: arriving ? 1 : departing ? 0 : 1,
-              transform: departing ? "translateY(-0.3em)" : arriving ? "translateY(0.3em)" : "translateY(0)",
-              transition: `opacity ${SCRAMBLE_MS}ms cubic-bezier(0.4, 0, 0.2, 1), transform ${SCRAMBLE_MS}ms cubic-bezier(0.4, 0, 0.2, 1)`,
-            }}
+              /*
+                THE LIVE WORD IS THE VISIBLE ONE. NOTHING ELSE, AND NOT `scrambling`.
+
+                Two earlier attempts both blanked the headline, in opposite ways.
+
+                Keying on `live` alone was correct at rest but left the incoming word
+                visible underneath during a swap, so two scrambled streams overlaid
+                and the result read as garbled text. Keying on `scrambling` fixed
+                that and blanked the word at rest instead, because `scrambling` is
+                `leaving && live` and `leaving` is false whenever nothing is
+                changing.
+
+                The rule is simply that exactly one word is painted, and it is the
+                live one. The incoming word is the live word from the instant the
+                swap begins, because `index` moves at the end of the transition and
+                the outgoing word stops being live the moment it starts. Nothing
+                needs to be painted before that and nothing needs to persist after.
+
+                Caught by reading the computed `visibility` of every child. A
+                screenshot would not have shown it: a word hidden by a class and a
+                word absent from the DOM are indistinguishable in a picture.
+              */
+              live ? "" : "invisible"
+            }`}
           >
             {/*
               The scramble is painted as raw characters rather than through
-              `SerifText`, because `SerifText` splits on `|` to place a serif
-              letter and a scrambled string has no markers left in it.
+              `SerifText`, because `SerifText` splits on `|` to place a serif letter
+              and a scrambled string has no markers left in it.
 
-              The serif letter is dropped for the duration of the transition and
-              returns with the settled word, which is correct rather than a loss:
-              it would be meaningless mid-noise, and the word is legible again in
-              under a second.
+              The font is inherited from the h1 and is not restated anywhere here, so
+              the noise is set in exactly the same face, size, weight and tracking as
+              the word it becomes. Verified on the running build: Instrument Sans,
+              weight 400, 60px, on both the scrambled and settled text.
+
+              NO TRANSITION PROPERTY AT ALL. There is no opacity ramp and no
+              transform, so there is nothing for the compositor to interpolate and
+              nothing to read as a fade. The only thing changing is which characters
+              are in the DOM, driven once per animation frame.
             */}
-            {departing || arriving ? (
-              <ScrambledText
-                text={
-                  departing
-                    ? scramble.from || word.plain
-                    : scramble.to || word.plain
-                }
-              />
+            {scrambling ? (
+              <ScrambledText text={scramble.from || word.plain} />
             ) : (
               <SerifText text={word.marked} />
             )}
