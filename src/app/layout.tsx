@@ -5,6 +5,7 @@ import { CartProvider } from "@/components/commerce/cart-context";
 import { Footer } from "@/components/site/footer";
 import { Nav } from "@/components/site/nav";
 import { SITE_DESCRIPTION } from "@/lib/content";
+import { SITE_ORIGIN } from "@/lib/site";
 
 import "./globals.css";
 
@@ -51,10 +52,15 @@ const serif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  // metadataBase is intentionally omitted. The live domain has not been
-  // confirmed, and guessing one would put a fabricated URL into every Open Graph
-  // tag. Set it to the real origin once the domain is known, alongside an
-  // opengraph-image.
+  /*
+    metadataBase: makes every Open Graph URL and canonical absolute rather than
+    relative, which is required for social cards to resolve correctly.
+
+    The origin lives in `SITE_ORIGIN` and is shared with the sitemap and
+    robots.txt, so the three cannot drift apart. It is the custom domain, not
+    the Vercel deployment subdomain. See the comment there before changing it.
+  */
+  metadataBase: new URL(SITE_ORIGIN),
   title: {
     default: "Lokesh Rohilla | Business Consultant, Mentor, Transformation Leader",
     template: "%s | Lokesh Rohilla",
@@ -65,6 +71,20 @@ export const metadata: Metadata = {
     siteName: "Lokesh Rohilla",
     title: "Lokesh Rohilla | Business Consultant, Mentor, Transformation Leader",
     description: SITE_DESCRIPTION,
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Lokesh Rohilla — Business Consultant, Mentor, Transformation Leader",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Lokesh Rohilla | Business Consultant, Mentor, Transformation Leader",
+    description: SITE_DESCRIPTION,
+    images: ["/og-image.png"],
   },
   robots: {
     index: true,

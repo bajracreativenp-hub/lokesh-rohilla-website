@@ -64,6 +64,16 @@ export type ImageSlotProps = {
    * of its section, for the reason above.
    */
   bleed?: boolean;
+  /**
+   * Responsive sizes hint for next/image. Defaults to `"100vw"` which is
+   * correct for the full-bleed hero. Callers that sit inside a column
+   * (e.g. a 50% split or a card grid) should pass the real rendered width at
+   * each breakpoint so the browser fetches the right source descriptor.
+   *
+   * Example for a half-width portrait column:
+   *   sizes="(min-width: 1024px) 50vw, 100vw"
+   */
+  sizes?: string;
 };
 
 export function ImageSlot({
@@ -77,6 +87,7 @@ export function ImageSlot({
   alt,
   preload = false,
   bleed = false,
+  sizes = "100vw",
 }: ImageSlotProps) {
   /*
     THE DATA ATTRIBUTES SURVIVE BOTH STATES.
@@ -115,7 +126,11 @@ export function ImageSlot({
           src={src}
           alt={alt ?? label}
           fill
-          sizes="(min-width: 1024px) 50vw, 100vw"
+          /*
+            `sizes` defaults to `"100vw"` which is correct for the full-bleed
+            hero. Pass a custom value for any slot that renders inside a column.
+          */
+          sizes={sizes}
           className="object-cover"
           {...(preload ? { preload: true } : {})}
         />
@@ -223,8 +238,14 @@ export function VideoSlot({
           aria-hidden="true"
           className="relative z-[var(--z-raised)] grid size-14 place-items-center rounded-full border-2 border-hairline-strong text-placeholder-ink"
         >
+          {/*
+            Standard right-pointing play triangle. The previous path was a rotated
+            shape that pointed up-right rather than straight right. This is the
+            correct Phosphor `Play` fill path, matching the icon set used everywhere
+            else on the site.
+          */}
           <svg aria-hidden="true" className="size-5 translate-x-px" viewBox="0 0 256 256" fill="currentColor">
-            <path d="M136 44.6 240.4 179a12.7 12.7 0 0 1-8.5 21.8H120.8a12.7 12.7 0 0 1-8.5-21.8L216.7 44.6a12.7 12.7 0 0 1 17 0Z" />
+            <path d="M240 128a15.74 15.74 0 0 1-7.6 13.71L88.32 229.65a16 16 0 0 1-16.2.3A15.86 15.86 0 0 1 64 216.13V39.87a15.86 15.86 0 0 1 8.12-13.82 16 16 0 0 1 16.2.3l144.08 87.94A15.74 15.74 0 0 1 240 128Z" />
           </svg>
         </span>
 

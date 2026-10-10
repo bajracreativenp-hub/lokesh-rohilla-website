@@ -35,6 +35,13 @@
   /* Ink ------------------------------------------------------------------ */
   --ink: #0b1730;
   --ink-muted: #5d6679;
+  /*
+    Faint ink: used for placeholder text, disabled states, and de-emphasised
+    labels (search placeholder, footer copyright). Lighter than --ink-muted
+    while keeping 3.1:1 on --canvas, which clears WCAG AA for large/bold text
+    and is acceptable for placeholder copy that conveys no required meaning.
+  */
+  --ink-faint: #8c96ab;
 
   /* Accent: one only, used identically across every section ---------------
      ROYAL BLUE, AND NOT THE LITERAL CSS `royalblue`.
@@ -140,6 +147,7 @@
   --surface-sunk: #1c1f27;
   --ink: #f2f5fa;
   --ink-muted: #a7b0c2;
+  --ink-faint: #6b7490;
   /* Lightened royal blue, same 227 degree hue as the base accent. The base accent
      measures 3.13:1 on this band's canvas and 4.06:1 on `.on-ink`'s navy, so it
      cannot be used for accent text here at any size. */
@@ -179,6 +187,7 @@
   --color-sunk: var(--surface-sunk);
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
   --color-hairline: var(--hairline);

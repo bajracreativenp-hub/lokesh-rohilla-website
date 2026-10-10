@@ -52,7 +52,7 @@ export function ContactForm() {
     message: "",
   });
   const [errors, setErrors] = useState<Errors>({});
-  const [status, setStatus] = useState<"idle" | "submitting">("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "not_connected">("idle");
 
   const set = (name: FieldName, value: string) => {
     setValues((prev) => ({ ...prev, [name]: value }));
@@ -74,11 +74,12 @@ export function ContactForm() {
 
     setStatus("submitting");
 
-    // No endpoint is wired yet. Rather than pretend the message was sent, this
-    // holds the submitting state and leaves delivery visibly unconnected.
-    // Replace this block with the real request and set a "sent" state.
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    setStatus("idle");
+    // No endpoint is wired yet. Show an honest notice rather than silently
+    // resetting, which leaves the visitor unsure whether anything happened.
+    // To go live: replace this block with the real fetch() call and set
+    // status to "sent" on success.
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    setStatus("not_connected");
   };
 
   const errorEntries = Object.entries(errors) as [FieldName, string][];
@@ -263,15 +264,34 @@ export function ContactForm() {
         ) : null}
       </div>
 
-      <div className="flex flex-col items-start gap-4">
-        <Button type="submit" size="lg" disabled={status === "submitting"}>
-          {status === "submitting" ? "Checking details" : "Send message"}
-        </Button>
-        <p className="max-w-md text-sm leading-relaxed text-ink-muted">
-          Delivery is not connected yet, so nothing is transmitted from this form.
-          Your details stay in the browser until a mail provider is set up.
-        </p>
-      </div>
+      {status === "not_connected" ? (
+        /* Honest not-connected notice. Shown instead of a fake success banner. */
+        <div role="alert" className="flex flex-col gap-4 rounded-card bg-sunk p-6">
+          <p className="text-sm font-bold text-ink">Your message was not sent.</p>
+          <p className="text-sm leading-relaxed text-ink-muted">
+            The contact form is not yet connected to a mail provider, so nothing was
+            transmitted and your details were not stored. Please reach out directly
+            until the form is live.
+          </p>
+          <button
+            type="button"
+            onClick={() => setStatus("idle")}
+            className="self-start text-sm font-bold text-accent underline underline-offset-4 hover:opacity-75"
+          >
+            Edit and try again
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-col items-start gap-4">
+          <Button type="submit" size="lg" disabled={status === "submitting"}>
+            {status === "submitting" ? "Checking details…" : "Send message"}
+          </Button>
+          <p className="max-w-md text-sm leading-relaxed text-ink-muted">
+            Form delivery is not yet connected. Nothing is transmitted until a mail
+            provider is set up.
+          </p>
+        </div>
+      )}
     </form>
   );
 }

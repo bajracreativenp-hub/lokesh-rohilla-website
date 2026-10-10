@@ -35,7 +35,7 @@ export function FinalCta() {
             <h2 className="text-display-3 max-w-[20ch] leading-[1.12] text-balance">
               {finalCta.headline}
             </h2>
-            <p className="measure-tight text-base leading-relaxed  md:text-lg">
+            <p className="measure-tight text-base leading-relaxed md:text-lg">
               {finalCta.lede}
             </p>
             <ButtonLink href={finalCta.cta.href} size="lg" className="mt-2">

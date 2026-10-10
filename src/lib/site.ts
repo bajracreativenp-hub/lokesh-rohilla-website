@@ -80,5 +80,28 @@ export const footerGroups: { label: string; items: NavItem[] }[] = [
  */
 export const primaryNav = NAV;
 
+/**
+ * SITE ORIGIN, DEFINED ONCE.
+ *
+ * Three places need an absolute origin: the root layout's `metadataBase`, which
+ * builds every Open Graph and canonical URL, the sitemap, and robots.txt. They
+ * were each assembling the same ternary independently, which is exactly how
+ * they came to disagree. They now read this one constant.
+ *
+ * The live origin is the custom domain, NOT `VERCEL_PROJECT_PRODUCTION_URL`.
+ * That variable is the per-project deployment URL and resolves to the
+ * lokesh-rohilla-website.vercel.app subdomain. A canonical tag pointing there
+ * tells search engines the custom domain is a duplicate of the subdomain. The
+ * subdomain still serves the site; it is simply not the address to advertise.
+ *
+ * `NEXT_PUBLIC_SITE_URL` overrides it, and is meant for local development only,
+ * so `npm run dev` emits localhost Open Graph URLs instead of claiming to be
+ * production. It is not set on Vercel, so the constant below is what ships.
+ *
+ * The value is a bare origin: no trailing slash, no path.
+ */
+export const SITE_ORIGIN =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://lokeshrohilla.com";
+
 /** Shared page width. Used by the container primitive and every section. */
 export const pageMaxWidth = "max-w-[1400px]";
