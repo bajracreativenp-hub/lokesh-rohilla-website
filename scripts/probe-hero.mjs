@@ -24,11 +24,12 @@
  * Usage: node scripts/probe-hero.mjs
  */
 import puppeteer from "puppeteer-core";
+
+import { CHROME, probeOut } from "./browser.mjs";
 import { mkdir } from "node:fs/promises";
 
-const CHROME = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const URL = "http://localhost:3001";
-const OUT = "C:/Users/thapa/AppData/Local/Temp/lr-hero";
+const OUT = probeOut("lr-hero");
 
 await mkdir(OUT, { recursive: true });
 

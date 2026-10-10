@@ -1,4 +1,6 @@
-﻿import puppeteer from "puppeteer-core";
+import puppeteer from "puppeteer-core";
+
+import { CHROME } from "./browser.mjs";
 
 /*
  * PROBE: does the morph filter eat the letterforms?
@@ -73,7 +75,7 @@ const MIN_CORE = 0.97;
 const MAX_AREA = 1.35;
 
 const browser = await puppeteer.launch({
-  executablePath: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    executablePath: CHROME,
   headless: true,
   args: ["--hide-scrollbars"],
 });
@@ -82,17 +84,22 @@ await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 2 });
 await page.goto("http://localhost:3001/", { waitUntil: "networkidle0" });
 
 /*
- * Wait for a settled word rather than sleeping a fixed time.
+  Wait for a settled word rather than sleeping a fixed time.
  *
- * A fixed sleep races the loop: the morph starts at HOLD_MS, and a capture landing
- * inside it measures a warped mid transition word and reports the motion as if it were
- * erosion. Polling the displacement scale for zero twice in a row means the capture is
- * genuinely at rest.
+  A fixed sleep races the loop: the morph starts at HOLD_MS, and a capture landing
+  inside it measures a warped mid transition word and reports the motion as if it were
+  erosion. Polling the displacement scale for zero many times in a row means the word
+  is genuinely at rest.
+ *
+  This is a fast precondition only, NOT the guarantee. Two full screenshots can
+  outlast the settled hold, so a capture pair can still straddle a morph. The pair
+  is therefore re-checked after it is taken, and retaken if the word moved. See
+  `capturePairWhenStill` below.
  */
 const settled = await page.evaluate(async () => {
   const disp = () => document.querySelector("feDisplacementMap");
   let zeros = 0;
-  const deadline = performance.now() + 12000;
+  const deadline = performance.now() + 15000;
   while (performance.now() < deadline) {
     zeros = disp() && disp().getAttribute("scale") === "0" ? zeros + 1 : 0;
     if (zeros > 15) return true;
@@ -126,19 +133,85 @@ const clip = await page.evaluate(() => {
  * attribute outright, which left NO filter on the stage and made every parameter look
  * perfect.
  */
-const prior = await page.evaluate(() => {
-  const stage = document.querySelector("[data-morph-stage]");
-  const existing = stage.style.filter;
-  stage.style.filter = "none";
-  window.__priorFilter = existing;
-  return existing;
-});
-const plain = await page.screenshot({ encoding: "base64", clip });
-await page.evaluate((value) => {
-  document.querySelector("[data-morph-stage]").style.filter = value;
-}, prior);
+/**
+ * Capture the pair, and only keep it if the word never moved during the capture.
+ *
+ * THIS WAS THE FLAKE. Waiting for a settled word is not sufficient on its own.
+ * The two screenshots below are full page captures of the clip at
+ * deviceScaleFactor 2, and they are taken in sequence. The settled hold is
+ * HOLD_MS, 2600ms, and the capture pair can easily take longer than that on a
+ * cold cache or a busy machine. When the morph therefore began between the two
+ * shots, the filtered capture caught a displaced, mid-transition word rather
+ * than a settled one, and the probe reported the motion as erosion. The same
+ * build measured 96.6% of cores on one run and 99.3% on the next, with no code
+ * change in between.
+ *
+ * So the settle check is repeated after the fact. The displacement scale is
+ * read straight after each capture; if it is anything but "0", the word moved
+ * while the shutter was open, the pair is discarded, and the whole thing is
+ * retaken from a fresh hold. A capture is only trusted when the word provably
+ * did not move while it was being taken.
+ */
+async function capturePairWhenStill() {
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    // Re-settle, so each attempt starts from a known-at-rest word.
+    const still = await page.evaluate(async () => {
+      const disp = () => document.querySelector("feDisplacementMap");
+      let zeros = 0;
+      const deadline = performance.now() + 15000;
+      while (performance.now() < deadline) {
+        zeros = disp() && disp().getAttribute("scale") === "0" ? zeros + 1 : 0;
+        if (zeros > 15) return true;
+        await new Promise((r) => setTimeout(r, 50));
+      }
+      return false;
+    });
+    if (!still) continue;
 
-const filtered = await page.screenshot({ encoding: "base64", clip });
+    const scaleNow = () =>
+      page.evaluate(
+        () => document.querySelector("feDisplacementMap")?.getAttribute("scale") ?? "0",
+      );
+
+    const prior = await page.evaluate(() => {
+      const stage = document.querySelector("[data-morph-stage]");
+      const existing = stage.style.filter;
+      stage.style.filter = "none";
+      window.__priorFilter = existing;
+      return existing;
+    });
+
+    const plain = await page.screenshot({ encoding: "base64", clip });
+    const afterPlain = await scaleNow();
+
+    await page.evaluate((value) => {
+      document.querySelector("[data-morph-stage]").style.filter = value;
+    }, prior);
+
+    const filtered = await page.screenshot({ encoding: "base64", clip });
+    const afterFiltered = await scaleNow();
+
+    // Always leave the real filter in place, whatever the outcome.
+    await page.evaluate(() => {
+      const stage = document.querySelector("[data-morph-stage]");
+      if (window.__priorFilter !== undefined) stage.style.filter = window.__priorFilter;
+    });
+
+    if (afterPlain === "0" && afterFiltered === "0") {
+      return { plain, filtered, attempts: attempt };
+    }
+
+    console.error(
+      `  attempt ${attempt}: the word moved mid-capture (scale ${afterPlain} -> ${afterFiltered}), discarding and retaking`,
+    );
+  }
+  throw new Error(
+    "the word kept moving during capture; could not take a still pair in 4 attempts",
+  );
+}
+
+const { plain, filtered, attempts } = await capturePairWhenStill();
+if (attempts > 1) console.error(`  (captured on attempt ${attempts})`);
 
 const measured = await page.evaluate(
   async (plainData, filteredData) => {

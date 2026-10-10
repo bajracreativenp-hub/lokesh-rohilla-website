@@ -12,11 +12,12 @@
  * Usage: node scripts/probe-nav.mjs [outDir]
  */
 import puppeteer from "puppeteer-core";
+
+import { CHROME, probeOut } from "./browser.mjs";
 import { mkdir } from "node:fs/promises";
 
-const CHROME = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const URL = "http://localhost:3001";
-const OUT = process.argv[2] ?? "C:/Users/thapa/AppData/Local/Temp/lr-nav";
+const OUT = process.argv[2] ?? probeOut("lr-nav");
 
 /** The nine destinations from the architecture. All must be reachable. */
 const NINE = [

@@ -9,10 +9,11 @@
  * Usage: node scripts/probe-contrast.mjs
  */
 import puppeteer from "puppeteer-core";
+
+import { CHROME, AXE_PATH as AXE_FILE } from "./browser.mjs";
 import { writeFile, unlink } from "node:fs/promises";
 
-const CHROME = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
-const AXE_PATH = "C:/Users/thapa/AppData/Local/Temp/axe.min.js";
+const AXE_PATH = AXE_FILE;
 const URL = process.env.PROBE_URL ?? "http://localhost:3001";
 
 const res = await fetch("https://unpkg.com/axe-core@4.10.2/axe.min.js");

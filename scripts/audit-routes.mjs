@@ -16,12 +16,13 @@
  *   both report phantom failures against next dev.
  */
 import puppeteer from "puppeteer-core";
+
+import { CHROME, AXE_PATH as AXE_FILE } from "./browser.mjs";
 import { readdir, writeFile, unlink } from "node:fs/promises";
 import path from "node:path";
 
-const CHROME = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const BASE = process.argv[2] ?? "http://localhost:3001";
-const AXE_PATH = "C:/Users/thapa/AppData/Local/Temp/axe.min.js";
+const AXE_PATH = AXE_FILE;
 const APP_DIR = path.resolve(".next/server/app");
 
 /**

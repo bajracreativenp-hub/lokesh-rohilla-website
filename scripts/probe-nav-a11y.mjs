@@ -9,7 +9,8 @@
  */
 import puppeteer from "puppeteer-core";
 
-const CHROME = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+import { CHROME } from "./browser.mjs";
+
 
 const TRIGGER = "About";
 

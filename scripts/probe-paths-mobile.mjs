@@ -15,11 +15,12 @@
  * Usage: node scripts/probe-paths-mobile.mjs
  */
 import puppeteer from "puppeteer-core";
+
+import { CHROME, probeOut } from "./browser.mjs";
 import { mkdir } from "node:fs/promises";
 
-const CHROME = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const URL = "http://localhost:3001";
-const OUT = "C:/Users/thapa/AppData/Local/Temp/lr-paths";
+const OUT = probeOut("lr-paths-mobile");
 await mkdir(OUT, { recursive: true });
 
 const browser = await puppeteer.launch({

@@ -13,9 +13,10 @@
  */
 import puppeteer from "puppeteer-core";
 
-const CHROME = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+import { CHROME, probeOut } from "./browser.mjs";
+
 const URL = "http://localhost:3001/services/business-consultation#health-checker";
-const OUT = "C:/Users/thapa/AppData/Local/Temp/lr-hc";
+const OUT = probeOut("lr-hc");
 
 const { mkdir } = await import("node:fs/promises");
 await mkdir(OUT, { recursive: true });

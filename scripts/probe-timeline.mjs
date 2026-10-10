@@ -19,11 +19,12 @@
  * Usage: node scripts/probe-timeline.mjs
  */
 import puppeteer from "puppeteer-core";
+
+import { CHROME, probeOut } from "./browser.mjs";
 import { mkdir } from "node:fs/promises";
 
-const CHROME = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const URL = "http://localhost:3001/about";
-const OUT = "C:/Users/thapa/AppData/Local/Temp/lr-timeline";
+const OUT = probeOut("lr-timeline");
 
 await mkdir(OUT, { recursive: true });
 

@@ -4,11 +4,12 @@
  * Usage: node scripts/shoot-pages.mjs [route ...]
  */
 import puppeteer from "puppeteer-core";
+
+import { CHROME, probeOut } from "./browser.mjs";
 import { mkdir } from "node:fs/promises";
 
-const CHROME = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const URL = "http://localhost:3001";
-const OUT = "C:/Users/thapa/AppData/Local/Temp/lr-shots";
+const OUT = probeOut("lr-shots");
 await mkdir(OUT, { recursive: true });
 
 const routes = process.argv.slice(2).length

@@ -7,11 +7,12 @@
  * Usage: node scripts/probe-video-frames.mjs <url> <outDir> [count]
  */
 import puppeteer from "puppeteer-core";
+
+import { CHROME, probeOut } from "./browser.mjs";
 import { mkdir } from "node:fs/promises";
 
-const CHROME = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const URL = process.argv[2];
-const OUT = process.argv[3] ?? "C:/Users/thapa/AppData/Local/Temp/lr-frames";
+const OUT = process.argv[3] ?? probeOut("lr-frames");
 const COUNT = Number(process.argv[4] ?? 12);
 
 if (!URL) {
