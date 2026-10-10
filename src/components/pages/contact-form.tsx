@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { contactPage } from "@/lib/pages";
@@ -44,6 +44,19 @@ export function ContactForm() {
   const uid = useId();
   const fieldId = (name: string) => `${uid}-${name}`;
 
+  /*
+    The element a field's error link and focus target should point at.
+
+    `path` is a radio group, and a group has no element of its own to hang an id
+    on: each radio is `fieldId(option.value)` and the group name is
+    `fieldId("path")`. So an id built from the field name matches nothing, which
+    is what made the previous `getElementById(fieldId(firstKey))` return null
+    and leave focus stranded on the body. The group's first radio is a real
+    element, so that is what an anchor for `path` must resolve to.
+  */
+  const anchorId = (name: FieldName) =>
+    name === "path" ? fieldId(contactPage.form.path.options[0].value) : fieldId(name);
+
   const [values, setValues] = useState<Record<FieldName, string>>({
     path: "",
     name: "",
@@ -53,6 +66,29 @@ export function ContactForm() {
   });
   const [errors, setErrors] = useState<Errors>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "not_connected">("idle");
+
+  /*
+    The summary, and a counter of failed submits.
+
+    The summary is focused after the DOM updates rather than during submit,
+    because at the moment `onSubmit` runs the summary is not rendered yet: it
+    appears only once there are errors to put in it. Focusing synchronously
+    would therefore always be focusing an element that does not exist. An
+    effect keyed on the counter runs after the render that creates the summary,
+    and focusing it is the documented behaviour in the header comment above.
+
+    The counter rather than `errors` itself is deliberate. Errors are also
+    cleared one at a time as the visitor types, and focusing the summary on
+    every keystroke would drag focus away from whichever field they were
+    editing. A counter only advances on a failed submit.
+  */
+  const summaryRef = useRef<HTMLDivElement>(null);
+  const [failedSubmits, setFailedSubmits] = useState(0);
+
+  useEffect(() => {
+    if (failedSubmits === 0) return;
+    summaryRef.current?.focus();
+  }, [failedSubmits]);
 
   const set = (name: FieldName, value: string) => {
     setValues((prev) => ({ ...prev, [name]: value }));
@@ -67,8 +103,7 @@ export function ContactForm() {
     setErrors(found);
 
     if (Object.keys(found).length > 0) {
-      const first = document.getElementById(fieldId(Object.keys(found)[0]));
-      first?.focus();
+      setFailedSubmits((n) => n + 1);
       return;
     }
 
@@ -106,9 +141,10 @@ export function ContactForm() {
       {/* Error summary, focused on a failed submit */}
       {errorEntries.length > 0 ? (
         <div
+          ref={summaryRef}
           role="alert"
           tabIndex={-1}
-          className="flex flex-col gap-2 rounded-card bg-sunk p-5"
+          className="flex flex-col gap-2 rounded-card bg-sunk p-5 focus:outline-2 focus:outline-offset-2 focus:outline-accent"
         >
           <p className="text-sm font-bold text-ink">
             {errorEntries.length === 1
@@ -118,7 +154,7 @@ export function ContactForm() {
           <ul className="flex list-disc flex-col gap-1 pl-5 text-sm text-ink-muted">
             {errorEntries.map(([name, message]) => (
               <li key={name}>
-                <a href={`#${fieldId(name)}`} className="underline underline-offset-4">
+                <a href={`#${anchorId(name)}`} className="underline underline-offset-4">
                   {message}
                 </a>
               </li>
