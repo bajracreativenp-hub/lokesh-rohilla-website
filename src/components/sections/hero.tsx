@@ -1,5 +1,5 @@
-import { ButtonLink, Pill } from "@/components/ui/button";
-import { Container } from "@/components/ui/layout";
+import { ButtonLink } from "@/components/ui/button";
+import { Container, PendingNote } from "@/components/ui/layout";
 import { ImageSlot } from "@/components/ui/portrait-slot";
 import { RotatingWord } from "@/components/ui/rotating-word";
 import { Reveal } from "@/components/ui/reveal";
@@ -8,193 +8,110 @@ import { hero } from "@/lib/content";
 
 /**
  * HERO
- * Layout family: full bleed image, text over the left of it on a split scrim.
+ * Layout family: split. Copy in a left hand column, portrait in a right hand one,
+ * with an accent plate offset behind the photograph.
  *
- * Composition: pill badge, headline with the closing phrase in accent, supporting
- * line, two pill buttons. The photograph is the hero rather than a card inside it,
- * so it fills the section edge to edge and the text sits over it on a split scrim.
- * The scrim alpha is derived from the contrast maths recorded in `globals.css`
- * under `hero-scrim`, and it is the one number here that the incoming photograph
- * may force up or down.
+ * WHY THIS IS NO LONGER A FULL BLEED HERO
  *
- * Lokesh Rohilla is the subject. The two initiatives are deliberately absent
- * from this section so the first impression is a person, not a service list.
+ * The photograph used to be the hero: it ran edge to edge across the section and
+ * the text sat over it on a navy split scrim, which meant light text, a `hero-scrim`
+ * gradient, and an alpha derived in `globals.css` against a photograph that does
+ * not exist yet. The client asked for a split layout instead, which is the shape
+ * this now has.
  *
- * Exactly four text elements, per the hero stack rule:
- *   1. brand lockup
- *   2. headline
- *   3. subtext
- *   4. CTAs
+ * Two consequences worth knowing, because both are invisible in the markup:
  *
- * RESTORED, at the client's instruction, after being removed. Two things came
- * back with it and are load bearing rather than incidental:
+ * - There is no scrim and nothing to derive. Dark text on the canvas is the
+ *   highest contrast pair on the site and needs no photograph dependent maths.
+ * - The portrait is a CARD in a column again, so it goes back to a fixed `4 / 5`
+ *   with its own frame, and the text no longer depends on where in the frame the
+ *   subject happens to be standing.
  *
- * - **The page's h1.** The brand statement held it while the hero was gone. A
- *   page with no h1 is a real defect, so that handoff was a stopgap. The h1 is
- *   here again and the brand statement is an h2 once more.
- * - **The portrait slot.** The 4:5 editorial portrait had nowhere to live while
- *   the hero was missing. It has its frame back.
+ * THE OFFSET PLATE
  *
- * The verb rail and the platform grid were also removed at the same time and are
- * deliberately NOT restored. They were separate sections that happened to share a
- * file, and only the hero was asked for.
+ * A solid accent rounded rectangle, the same size as the portrait, translated
+ * down and to the right behind it so a band of accent shows along the bottom and
+ * right edges. It is `aria-hidden` and purely decorative.
+ *
+ * It is inset-0 rather than given explicit dimensions so it is always exactly the
+ * portrait's box, including when the photograph is still pending and the box is
+ * only a reserved `aspect-ratio`. Two separately sized rectangles would drift the
+ * moment either changed.
+ *
+ * IT IS `bg-accent`, NOT A HARD CODED COLOUR.
+ *
+ * The plate takes the live accent token, so it follows the palette in both colour
+ * schemes instead of being pinned to the blue it was designed in. It sits directly
+ * on the canvas at full saturation, which is the one place on this hero where the
+ * accent is used as a surface rather than as a mark on text.
+ *
+ * THE STAT ROW
+ *
+ * Three figures under the calls to action. Every value is `null` in the content
+ * layer, because every one of them would be an unverified claim about results, so
+ * the hero renders a pending mark instead of a number. The reasoning is recorded
+ * where the values live, in `hero.stats`.
+ *
+ * The `topic` under each one names a category of measure rather than making an
+ * assertion, which is why those three lines can be published today and only the
+ * figures above them cannot.
+ *
+ * DOM ORDER IS THE MOBILE ORDER
+ *
+ * The stat row sits inside the left column rather than being a third grid child,
+ * so on a phone it falls between the calls to action and the photograph. That is
+ * the order it reads in on a desktop too, and it keeps the primary CTA well above
+ * the fold on the narrowest viewport rather than pushing it under a portrait that
+ * used to be underneath everything.
+ *
+ * THE HEADLINE MEASURE IS UNCHANGED, AND THE WIDTH PROBE DEPENDS ON IT
+ *
+ * `max-w-[12ch]` puts "Turning Chaos" on the first line and "Into Clarity." on the
+ * second. `verify-widths` fails the build above three lines at any width from 320
+ * up, and a headline that filled its column instead would break that at the narrow
+ * end. Two lines is also where the break belongs in this sentence.
  */
-/*
-  `hero-wash` is a three stop linear gradient built from `--canvas`, `--surface`
-  and `--surface-sunk`.
-
-  `data-a11y-rest="solidify-scrim"` tells the contrast probe how to measure this
-  hero, and NOT to strip the scrim.
-
-  Stripping it was the first attempt and it was exactly backwards. Removing the
-  scrim measures light hero text against a white page, which reports 30 violations,
-  and every one of them is an artefact: the scrim is the thing making the text
-  legible. Deleting it to take a measurement destroys the thing being measured.
-
-  `solidify-scrim` replaces the gradient with the SOLID colour the scrim produces
-  in its worst case, `#374155`, which is navy at 0.82 over a pure white photograph.
-  That is the lightest composite a navy scrim can make, so it is the worst case for
-  light text, and against it:
-
-    light --ink         9.38:1
-    light --ink-muted   4.70:1   the tightest pair on this hero
-    light --accent      4.51:1
-
-  All clear AA. The value is derived from the scrim's own alpha, so it has to be
-  recomputed if `hero-scrim` ever changes.
-*/
 export function Hero() {
   return (
-    <section
-      className="relative isolate overflow-hidden"
-      data-a11y-rest="solidify-scrim"
-      data-hero-fullbleed=""
-    >
-      {/*
-        THE IMAGE IS NOW THE HERO, NOT A CARD IN IT.
-
-        This replaces the split layout: the photograph fills the section edge to
-        edge and the text sits over it on the left. The text block itself is
-        unchanged, which is what was asked for.
-
-        `absolute inset-0` rather than a grid cell, because a full bleed image has
-        to escape the container while the text stays inside it. `z-index: 0` is
-        required and not decoration: this is a positioned layer over a positioned
-        section, so without an explicit index it competes with the content beside
-        it and wins or loses on source order rather than intent.
-
-        `hero-wash` is NOT used any more. A gradient behind an image is invisible,
-        so it was carrying nothing.
-      */}
-      <div className="absolute inset-0 z-[var(--z-base)]">
-        <ImageSlot
-          label="Editorial portrait of Lokesh Rohilla, full bleed"
-          spec={hero.portrait.spec}
-          direction={`${hero.portrait.direction} Full bleed: the subject must sit in the RIGHT half of the frame with clear space on the left, because the headline sits there. Landscape or square crop, not 4:5, and it needs to hold up at 1920 wide.`}
-          className="h-full w-full"
-          elevated={false}
-          /*
-            DEMO ONLY, AND THE ONE PLACE IT MATTERS MOST.
-
-            `hero.portrait.src` is a photograph of a man who is not Lokesh. On a
-            live site this line must be deleted: a face in the hero of a personal
-            brand site asserts that the person is the subject.
-
-            The scrim's 0.82 alpha was derived against a pure white photograph,
-            which is the worst case. This image is darker than that, so the scrim
-            is doing more work than it needs to and the picture reads dimmer than
-            it should. Recompute when the real portrait arrives rather than
-            trusting the number to carry across.
-
-            `bleed` because this is the only full bleed slot on the site.
-            `.slot` rounds its corners at `--radius-panel`, which is right for a
-            card sitting in a page and wrong for a layer that touches all four edges
-            of the section: the clipped corners let the white body show through, and
-            that reads as a white line around the hero. Measured rather than
-            eyeballed: section, slot and image were all exactly 1920x642 with a
-            zero gap on every side, and the radius was the only difference.
-
-            `preload` because this is the largest contentful paint on every page.
-            The `priority` prop it replaces is deprecated in Next 16.
-          */
-          bleed
-          src={hero.portrait.src}
-          alt={hero.portrait.alt}
-          preload
-        />
-      </div>
-
-      {/* The split scrim. Solid behind the text, transparent by 72% across. */}
-      <div
-        aria-hidden="true"
-        className="hero-scrim pointer-events-none absolute inset-0 z-[var(--z-raised)]"
-      />
-
-      <Container data-hero-text className="section-y relative z-[var(--z-content)]">
+    /* `data-hero-split` replaced `data-hero-fullbleed`, which is what
+       `probe-hero.mjs` used to find this section. The marker moves with the
+       design rather than pinning the probe to a layout that no longer exists. */
+    <section className="relative isolate" data-hero-split="">
+      <Container className="section-y">
         {/*
-            `on-ink` FOR ITS COLOUR TOKENS ONLY, AND IT IS IMMEDIATELY OVERRIDDEN.
+          ASYMMETRIC COLUMNS, AND A PORTRAIT SMALLER THAN ITS COLUMN.
 
-            `.on-ink` is a background AND a token repoint: it sets
-            `background-color: #0B1730` alongside the light ink values. Using it
-            here painted an opaque navy rectangle over the photograph with a hard
-            right edge where the scrim had faded, which looked like a pasted panel
-            rather than a full bleed image.
+          An even `lg:grid-cols-2` gave the photograph half the 1400px container,
+          which at 4:5 is a 700x875 block and made the hero taller than the fold on
+          a laptop. The composition this follows puts roughly half the width to
+          copy and about a third to the portrait.
 
-            `bg-transparent` puts the background back while keeping the tokens, so
-            the hero text is light and the photograph still shows through.
-          */}
-          <div className="on-ink relative z-[var(--z-raised)] flex flex-col items-start gap-6 bg-transparent lg:max-w-[46%]">
+          So the copy column is the wider of the two, and the portrait is capped
+          and centred inside its own column rather than filling it. Both numbers
+          are here because the reference proportion is the whole point of the
+          change; the cap is what keeps the hero from growing with the viewport.
+        */}
+        <div className="grid items-center gap-x-16 gap-y-14 lg:grid-cols-[1.12fr_0.88fr]">
+          {/* ---------------------------------------------------------- copy */}
+          <div className="flex flex-col items-start gap-6">
             <Reveal trigger="mount" distance={14}>
               {/*
-                `bg-ink`, OPAQUE, not a translucent tint.
+                The role, set as an eyebrow.
 
-                This was `bg-ink/25` with a backdrop blur, which is the usual
-                glassy treatment over a photograph. It composites to about
-                `#666e7e` behind the role text, and `--ink-muted` on that measures
-                2.35:1. A translucent panel over an image produces a background that
-                depends entirely on what is behind it, so the contrast of the text
-                on it cannot be stated in advance and will drift with every
-                photograph that replaces the placeholder.
+                It was a filled badge with the name in a pill above it. A badge is
+                right when it is competing with a photograph for attention; this
+                hero has white space to spend and the eyebrow spends it without
+                adding a block to the stack.
 
-                Opaque navy is the same colour the whole brand already uses for
-                this, it measures 9.38:1 for the role text against the scrim, and it
-                will still be correct whatever image lands underneath.
-
-                `on-ink` rather than `bg-ink`, because the badge sits inside the
-                hero's light ink scope and its role text is `text-ink-muted`, which
-                resolves to the LIGHT muted ink there. On its own navy background
-                that measured 1.99:1. `on-ink` repoints the tokens to their dark band
-                values inside the badge, which is exactly what a navy chip sitting on
-                a navy hero needs, and it is the same mechanism `.band-dark` uses.
+                `eyebrow` is the existing utility: uppercase, meta size, and it
+                takes the accent, so the role reads in the same colour as the
+                rotating word rather than in a second accent of its own.
               */}
-              <p className="on-ink inline-flex items-center gap-2 rounded-pill border border-hairline-strong py-1 pl-1 pr-4">
-                <Pill>Lokesh Rohilla</Pill>
-                <span className="text-[0.8125rem] font-semibold text-ink-muted">
-                  {hero.role}
-                </span>
-              </p>
+              <p className="eyebrow">{hero.role}</p>
             </Reveal>
 
             <Reveal trigger="mount" delay={0.08} distance={20}>
-              {/*
-                Serif letters on the two "r"s: swapping a letter that already
-                carries shape, so the wordform disagreement is somewhere the eye
-                already is. The `|` markers are
-                stripped before render, so the visible string is unchanged and the
-                accessible name stays "Turning Chaos Into Clarity."
-              */}
-              {/*
-                `max-w-[12ch]`, down from 15.
-
-                At 15ch the headline fitted on a single 670px line once the display
-                scale changed, which is a regression in composition rather than in
-                legibility: a 60px line running the full column is a wall. 12ch puts
-                "Turning Chaos" on the first and "Into Clarity." on the second, which
-                is where the line break belongs in this headline.
-
-                It also keeps the line count stable across the scale, because `ch`
-                scales with the font size rather than being a fixed pixel width.
-              */}
+              {/* Serif letters on the two "r"s: see `SerifText`. */}
               <h1 className="text-display-1 max-w-[12ch] leading-display text-balance">
                 <SerifText text="Tu|rning Chaos Into" />{" "}
                 <RotatingWord />
@@ -202,7 +119,10 @@ export function Hero() {
             </Reveal>
 
             <Reveal trigger="mount" delay={0.16} distance={18}>
-              <p className="measure text-base leading-relaxed text-ink-muted md:text-lg">
+              {/* `measure` is 62ch, which is wider than this column and would let
+                  the supporting line run the full measure of a 700px column. It is
+                  capped against the column instead. */}
+              <p className="max-w-[46ch] text-base leading-relaxed text-ink-muted md:text-lg">
                 {hero.sub}
               </p>
             </Reveal>
@@ -217,6 +137,98 @@ export function Hero() {
                 </ButtonLink>
               </div>
             </Reveal>
+
+            <Reveal trigger="mount" delay={0.32} distance={14}>
+              {/*
+                A hairline above the row rather than below each figure. It reads as
+                one ruled measure with three columns in it, which is what the three
+                of them are, and it keeps the vertical rhythm of the hero to a
+                single rule instead of three.
+              */}
+              <dl className="grid w-full grid-cols-3 gap-6 border-t border-hairline pt-6">
+                {hero.stats.map((stat) => (
+                  <div key={stat.topic} className="flex flex-col gap-1.5">
+                    {/*
+                      `stat.value` is null for all three until the client confirms
+                      them, so this renders the pending mark rather than a figure.
+                      Supplying a value is the only edit needed to publish one: the
+                      pending state and the real one are the same markup path.
+                    */}
+                    <dd
+                      className="text-display-2 leading-none text-accent tabular-nums"
+                      data-asset-slot={`stat, ${stat.topic}`}
+                      data-asset-spec="Hero stat figure, one line, 3 characters or fewer"
+                    >
+                      {stat.value ?? <span className="text-placeholder-ink">—</span>}
+                    </dd>
+                    <dt className="text-sm leading-snug text-ink-muted">{stat.topic}</dt>
+                  </div>
+                ))}
+              </dl>
+            </Reveal>
+
+            <div className="max-w-2xl">
+              <PendingNote>
+                The three figures above are placeholders. No outcome has been
+                verified for publication, so no number is shown.
+              </PendingNote>
+            </div>
+          </div>
+
+          {/* ------------------------------------------------------ portrait */}
+          <Reveal trigger="mount" delay={0.1} distance={22}>
+            {/*
+              `max-w-[24rem]` caps and centres the portrait inside its column, and
+              `mx-auto` is what centres it. The offset plate is inside this box, so
+              it is capped and offset with the photograph rather than escaping its
+              column.
+            */}
+            <div className="relative isolate mx-auto w-full max-w-[24rem]">
+              {/*
+                The offset plate. `aria-hidden`, and behind the portrait because
+                `isolate` scopes this stacking context to the wrapper and the slot
+                below is `relative`, so paint order follows the markup rather than
+                whichever element happens to be positioned first.
+
+                Translated rather than offset with negative insets: a negative inset
+                would have to be cancelled against the parent's own padding, and
+                the two would disagree as soon as either changed. A translate moves
+                the box without changing its layout position, so the portrait
+                above still sits on the wrapper's box and the section height is
+                unaffected by the decoration.
+
+                Held to the same radius as `.slot`, which rounds at
+                `--radius-panel`. A plate with a smaller radius than the photograph
+                in front of it shows a sliver of accent at the corners.
+              */}
+              <div
+                aria-hidden="true"
+                data-hero-plate=""
+                className="absolute inset-0 translate-x-4 translate-y-4 rounded-panel bg-accent sm:translate-x-6 sm:translate-y-6"
+              />
+
+              {/*
+                `preload` because this is the largest contentful paint on the
+                landing page. The `priority` prop it replaces is deprecated in
+                Next 16.
+
+                `sizes` is the real rendered width: the capped portrait, not the
+                grid column it sits in and not the viewport. Without it the browser
+                fetches the 1600px source into a 384px box.
+              */}
+              <ImageSlot
+                label="Editorial portrait of Lokesh Rohilla"
+                ratio={hero.portrait.ratio}
+                spec={hero.portrait.spec}
+                direction={hero.portrait.direction}
+                className="relative"
+                src={hero.portrait.src}
+                alt={hero.portrait.alt}
+                preload
+                sizes="(min-width: 1024px) 24rem, 100vw"
+              />
+            </div>
+          </Reveal>
         </div>
       </Container>
     </section>

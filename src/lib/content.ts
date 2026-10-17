@@ -79,17 +79,66 @@ export const hero = {
   sub: SITE_DESCRIPTION,
   primary: { label: "Discover Lokesh", href: "/about" },
   secondary: { label: "Work With Lokesh", href: "/contact" },
+  /*
+    THE STAT ROW, AND WHY EVERY VALUE IS null.
+
+    Three figures sit under the hero's calls to action, in the position a proof
+    point usually occupies. Every one of them is a measurable claim about results,
+    and not one of them has been confirmed:
+
+      - "3x ROI" is a multiple of the client's investment, which depends entirely
+        on how the investment is counted.
+      - "hours saved" needs a baseline to be saved against.
+      - a savings total needs a currency and a period.
+
+    `null` is therefore the correct value for all three, and the hero renders a
+    pending mark rather than a number. A plausible figure invented to fill a
+    designed slot is the one error on this site that cannot be walked back: it is
+    a performance claim published under the client's own name, and "guaranteed"
+    beside it is a term with legal weight.
+
+    FILLING THESE IN: set `value` to the string the client has actually verified,
+    and the pending mark disappears with no other change. The `topic` is the
+    caption the figure will sit under, and each one names a CATEGORY of measure
+    rather than asserting anything, which is why they are safe to publish while
+    the numbers are not.
+
+    "18+ years" is the single quantified claim the client has confirmed, and it is
+    already published in `SITE_DESCRIPTION` and on /about. It can be the first of
+    these three the moment that is wanted in the hero.
+  */
+  stats: [
+    { value: null, topic: "Years in practice" },
+    { value: null, topic: "Leaders and teams coached" },
+    { value: null, topic: "Engagements delivered" },
+  ] as const,
   portrait: {
     ratio: "4 / 5",
     spec: "Editorial portrait, vertical 4:5, 1600x2000",
+    /*
+      REWRITTEN FOR THE SPLIT HERO.
+
+      This art direction described the full bleed hero, where the photograph ran
+      edge to edge behind the headline and the subject had to be pushed right of
+      centre to keep out from under the text.
+
+      The portrait is now a card in the hero's right hand column. No headline
+      overlaps it, so there is no reason to compose around one, and the negative
+      space that requirement demanded is exactly what makes a framed portrait look
+      accidental. Waist up, centred, filling the frame.
+    */
     direction:
-      "Natural light, calm neutral backdrop, subject off centre with generous negative space. No studio strobe look.",
+      "Natural light, calm neutral backdrop, subject centred and waist up, filling the frame. Sits inside a rounded card, so no negative space is being reserved for text and none should be composed in. No studio strobe look.",
     /*
       DEMO ONLY. Not Lokesh. Delete both lines to go live.
 
-      Framed so the subject sits right of centre, which is what the full bleed
-      art direction in `hero.tsx` asks for: the headline occupies the left of the
-      hero, so a subject placed centrally would end up behind the text.
+      This was framed so the subject sits right of centre, which the full bleed
+      hero asked for, because the headline ran across the left of the photograph.
+      The hero is a split layout now and the headline never crosses the image, so
+      the framing constraint is gone and a centred portrait is the better demo.
+
+      It still must not ship. A face in the hero of a personal brand site asserts
+      that the person is the subject.
 
       `portrait-of-a-man` is a real Unsplash photo ID and resolves, it is not a
       constructed URL.

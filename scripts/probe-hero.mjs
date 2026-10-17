@@ -81,15 +81,20 @@ for (const vp of VIEWPORTS) {
 
     const section = document.querySelector("main section");
     /*
-      Found by the section's own marker rather than by the slot's label.
+      The portrait, found by its ART DIRECTION SPEC rather than by being the first
+      element carrying a data attribute.
 
-      The slot's `data-asset-slot` changed when the hero became full bleed, it now
-      reads "Editorial portrait of Lokesh Rohilla, full bleed", and a lookup pinned
-      to the old string threw on a null parent instead of failing with a message
-      that says what moved. `data-hero-fullbleed` is the marker the component sets
-      on itself, so this keeps working if the label is reworded again.
+      `querySelector("[data-asset-slot]")` was good while the portrait was the only
+      slot in the hero. It is not any more: the stat row added three more, and they
+      come first in the DOM, so the bare attribute selector silently returned a
+      stat cell. Every measurement downstream then described a 300x80 box rather
+      than the portrait, and the probe failed on a hero that was correct.
+
+      Matching on the spec also survives the label being reworded, which is what
+      broke the previous version of this lookup, and it is the same selector
+      `verify-widths` uses for the same element.
     */
-    const slot = section.querySelector("[data-asset-slot]");
+    const slot = section.querySelector('[data-asset-spec*="1600x2000"]');
 
     /*
       `box` is viewport relative and `window.innerHeight` is too, so they compare
@@ -104,109 +109,97 @@ for (const vp of VIEWPORTS) {
     const headerH = document.querySelector("header")?.getBoundingClientRect().height ?? 0;
 
     /*
-      Re-read for the full bleed layout. Same reasoning as the assertions: a probe
-      that measures the geometry the component no longer has reports nothing
-      useful.
+      Re-read for the SPLIT layout.
+
+      Same reasoning as the assertions: a probe that measures the geometry the
+      component no longer has reports nothing useful. The scrim, the full bleed
+      layer and the "clear area" all described a photograph running edge to edge
+      behind the text, and none of that geometry exists here any more.
+
+      What replaces it is what can actually break on a split hero: the portrait
+      landing on top of the copy instead of beside it, the portrait losing the
+      ratio it reserves, the offset plate going missing, the stat row losing a
+      column, and the copy losing its contrast because it is no longer light ink
+      painted over a scrim.
     */
     const img = slot.getBoundingClientRect();
-    const imgSec = section.getBoundingClientRect();
-    const scrim = section.querySelector(".hero-scrim");
-    const textWrap = section.querySelector("h1")?.closest("div");
-    // The element that stacks against the scrim: the Container wrapping the whole
-    // text column, not the inner wrapper inside it. The wrapper's own index is
-    // irrelevant because it lives inside the Container's stacking context.
-    const textLayer = textWrap?.parentElement;
-    const textRect = textWrap?.getBoundingClientRect();
-    const textColour = textWrap
-      ? getComputedStyle(textWrap.querySelector("h1") ?? textWrap).color
-      : null;
-    // Light ink has a red channel above 140; navy sits near 11.
-    const light = textColour ? Number(/\d+/.exec(textColour)[0]) > 140 : null;
+    const plate = section.querySelector("[data-hero-plate]");
+    const h1 = section.querySelector("h1");
+    const copyWrap = h1?.closest("div");
+    const copyRect = copyWrap?.getBoundingClientRect();
+    const textColour = h1 ? getComputedStyle(h1).color : null;
+    // The copy sits on the canvas now, not on a photograph. Light ink has a red
+    // channel above 140; the navy this site paints with sits near 11.
+    const dark = textColour ? Number(/\d+/.exec(textColour)[0]) < 140 : null;
 
-    /*
-      The scrim is solid to 44% of its width and transparent by 72%, so the clear
-      area starts at 72% of the section. Text must not reach into it.
-    */
-    const clearAreaStart = Math.round(sec.right * 0.72);
     const twoCol = window.innerWidth >= 1024;
 
     /*
-      `z-index: auto` is not 0, it means "participate in source order". Both the
-      scrim and the text wrapper set an explicit index, but if either ever stops
-      doing so, reading it as 0 makes a correct layering look wrong. Falls back to
-      source order when both are auto, which is what the browser actually does.
+      The scrim is gone, and that is the correct state rather than a fault to
+      report: this hero has no photograph behind the text, so it needs no contrast
+      protection and derives no alpha from an asset that does not exist.
     */
-    /*
-      Asked of the browser rather than of the cascade. Two explicit z-indices fully
-      determine paint order, so reading them is enough; hitting the text's own
-      coordinates confirms it end to end and would catch a mistake in either.
-    */
-    const textOnTop = (() => {
-      if (!textLayer || !textWrap) return false;
-      const r = textWrap.getBoundingClientRect();
-      /*
-        Sampled at the CENTRE, not near a corner. The first attempt used the top
-        left of the wrapper, which lands on the badge pill's border rather than on
-        any text, so the sample was testing the wrapper's padding instead of what
-        is painted over the words. The centre of the wrapper is inside the
-        headline, so whatever comes back first is unambiguously on top of it.
-      */
-      const top = document.elementsFromPoint(r.left + r.width / 2, r.top + r.height / 2)[0];
-      if (!top) return false;
-      return textWrap.contains(top) || top.contains(textWrap);
-    })();
+    const scrim = section.querySelector(".hero-scrim");
 
     /*
-      Reported as a cross check, never as the assertion.
-
-      `z-index: auto` is not 0: it means "participate in source order". Reading it
-      as 0 made a correctly layered hero look wrong, which is what happened when
-      this comparison was the assertion. Two explicit indices fully determine paint
-      order, and `textOnTop` confirms it against what the browser actually drew.
+      Found by its label, the same way the other hero measurements are. It is the
+      one thing on this hero that has to be above the fold, so it is located by the
+      intent it serves rather than by being the first link in the section, which
+      would silently start measuring a different button if the copy order changed.
     */
-    const zOf = (el) => {
-      if (!el) return null;
-      const z = getComputedStyle(el).zIndex;
-      return z === "auto" ? null : Number(z);
-    };
-    const zText = zOf(textLayer);
-    const zScrim = zOf(scrim);
+    const cta = [...section.querySelectorAll("a")].find((a) =>
+      a.textContent.includes("Discover Lokesh"),
+    );
 
     return {
       heroHeight: sec.h,
       heroBottom: sec.bottom,
       viewportHeight: window.innerHeight,
-      // The slot is a full bleed layer, so it must match the SECTION box, not
-      // the text container. Comparing against the wrong box reported a
-      // perfectly full bleed hero as not covering at every single width.
-      imageCoversSection:
-        Math.abs(img.width - imgSec.width) <= 2 && Math.abs(img.height - imgSec.height) <= 2,
-      scrimPresent: Boolean(scrim),
       /*
-        THE PAINT TEST IS THE ANSWER. THE INDICES ARE ONLY A CROSS CHECK.
-
-        `textOnTop` asks the browser what is actually painted at the centre of the
-        hero text, which is the question worth asking and cannot be wrong about
-        stacking. The index comparison is reported separately rather than ANDed in,
-        because requiring both made the assertion fail on a hero that is provably
-        correct: `zOf` returns null for `z-index: auto`, and combining that with a
-        strict `>` meant any layer without an explicit index failed the check no
-        matter what the browser painted.
+        There is no photograph behind the copy, so the scrim assertions are gone
+        rather than inverted. `scrimPresent` is still reported: a hero that grew a
+        scrim back without also growing a photograph behind it would be painting
+        an opaque navy panel over a white page.
       */
-      textAboveScrim: textOnTop,
-      textAboveScrimByIndex: zText !== null && zScrim !== null && zText > zScrim,
-      textZ: zText,
-      scrimZ: zScrim,
+      scrimPresent: Boolean(scrim),
+      platePresent: Boolean(plate),
+      /*
+        The portrait is a card reserving 4 / 5. The ratio is the assertion because
+        the reservation is the whole point of it: it is what lets a real
+        photograph arrive with no layout shift.
+      */
+      portraitRatio: Number((img.width / img.height).toFixed(3)),
+      portraitWidth: Math.round(img.width),
       textColour,
-      textIsLight: light,
-      textRight: textRect ? Math.round(textRect.right) : null,
-      clearAreaStart,
-      textOverlapsClearArea: textRect ? textRect.right > clearAreaStart : false,
+      textIsDark: dark,
       twoColumn: twoCol,
+      /*
+        Beside the copy, not on it. Measured from the real boxes rather than from
+        the grid template, because a grid can report two columns while a `max-w`
+        inside one of them still lets the portrait drift left across the headline.
+      */
+      besideCopy: copyRect ? img.left >= copyRect.right - 2 : null,
+      copyRight: copyRect ? Math.round(copyRect.right) : null,
+      portraitLeft: Math.round(img.left),
+      statColumns: section.querySelectorAll('[data-asset-slot^="stat,"]').length,
+      /*
+        The copy that sells the hero has to be reachable without scrolling at every
+        width. This is what replaced "the whole hero fits the fold": a split hero is
+        a two row composition holding a 4:5 portrait, and on a short viewport the
+        portrait is meant to continue below the fold. Asserting the section ends
+        above the fold would be asserting that the portrait is smaller than it is
+        designed to be.
+      */
+      ctaVisible: cta ? cta.getBoundingClientRect().bottom <= window.innerHeight : null,
       headerHeight: Math.round(headerH),
+      // Reported, never asserted. See ctaVisible.
       heroFitsFold: sec.bottom - headerH <= window.innerHeight,
-      h1Width: section.querySelector("h1") ? Math.round(section.querySelector("h1").getBoundingClientRect().width) : null,
-      textWidth: textRect ? Math.round(textRect.width) : null,
+      h1Lines: h1
+        ? Math.round(
+            h1.getBoundingClientRect().height /
+              parseFloat(getComputedStyle(h1).lineHeight),
+          )
+        : null,
       clipped: [],
       clippedCount: 0,
       overflowX:
@@ -228,50 +221,73 @@ await browser.close();
 
 for (const [label, r] of Object.entries(report)) {
   /*
-    THE HERO IS FULL BLEED NOW, AND THIS PROBE FOLLOWS IT.
+    THE HERO IS A SPLIT NOW, AND THIS PROBE FOLLOWS IT.
 
-    The portrait card, its straddle offsets and the fold cap all described a
-    layout that no longer exists: the image is the hero, not a card inside it, so
-    there is nothing to centre, nothing to straddle and no ratio to hold.
+    Three previous assertions described a layout that no longer exists and were
+    removed rather than inverted:
 
-    What replaced them is the set of things that can actually break on a full
-    bleed hero, which are different from the things that broke on a card hero.
+      - the image filling its section  (it is a card in a column again)
+      - a scrim being present          (there is no photograph behind the copy)
+      - the text painting above it     (there is no such layer to paint above)
+      - the text stopping clear of it  (the "clear area" was a scrim gradient stop)
+
+    The fold assertion changed too. "The whole hero fits the fold" was correct for a
+    full bleed hero, where the section and the screen were more or less the same
+    shape. This hero is a two row composition holding a 4:5 portrait and a stat row,
+    so on a short viewport it is meant to continue below the fold, and asserting
+    otherwise would be asserting the portrait is smaller than it is designed to be.
+    What has to clear the fold is the copy that sells it.
   */
 
-  // The image must cover its section edge to edge.
-  if (!r.imageCoversSection) {
-    failures.push(`${label}: the hero image does not fill its section`);
-  }
-
-  // The scrim must be present, and must sit between the image and the text.
-  if (!r.scrimPresent) {
-    failures.push(`${label}: no scrim layer, the hero text will sit on the photograph with no contrast protection`);
-  }
-  if (!r.textAboveScrim) {
-    failures.push(`${label}: the hero text is not above the scrim layer, it will be hidden behind it`);
+  // The portrait must still hold the ratio it reserves, so a photograph can
+  // replace the placeholder without shifting the page.
+  if (Math.abs(r.portraitRatio - 0.8) > 0.02) {
+    failures.push(
+      `${label}: the hero portrait is ${r.portraitRatio}, expected the 4 / 5 it reserves`,
+    );
   }
 
   /*
-    The text must be LIGHT. A navy scrim moves the background toward navy text
-    rather than away from it, so navy hero text on a scrimed photograph is the
-    classic unreadable hero. This is asserted because it is invisible in a
-    screenshot when the placeholder is dark.
+    The copy must be DARK. It used to be light, painted over a navy scrim; that
+    combination inverted without the ink changing would leave light text on a white
+    page, which is the classic unreadable hero and is invisible in a screenshot.
+    Asserted for the same reason the old light assertion was.
   */
-  if (r.textIsLight !== true) {
-    failures.push(`${label}: hero text is ${r.textColour}, expected a light ink over the navy scrim`);
+  if (r.textIsDark !== true) {
+    failures.push(
+      `${label}: hero text is ${r.textColour}, expected a dark ink on the canvas`,
+    );
   }
 
-  // Text must not run under the part of the image left clear.
-  if (r.twoColumn && r.textOverlapsClearArea) {
-    failures.push(`${label}: hero text extends to ${r.textRight}px, past the scrim's clear area at ${r.clearAreaStart}px`);
+  // Beside the copy, not across it.
+  if (r.twoColumn && r.besideCopy !== true) {
+    failures.push(
+      `${label}: the hero portrait starts at ${r.portraitLeft}px, inside the copy which ends at ${r.copyRight}px`,
+    );
   }
 
-  if (!r.heroFitsFold) {
-    failures.push(`${label}: the hero runs to ${r.heroBottom}px, which is ${r.heroBottom - r.headerHeight}px below the ${r.headerHeight}px header, past the ${r.viewportHeight}px fold`);
+  // A scrim with no photograph behind it is an opaque navy panel on a white page.
+  if (r.scrimPresent) {
+    failures.push(
+      `${label}: a scrim layer is present but the hero has no photograph behind the copy`,
+    );
+  }
+
+  // The accent plate is the layout's one flourish and it is easy to lose.
+  if (!r.platePresent) {
+    failures.push(`${label}: the offset accent plate behind the portrait is missing`);
+  }
+
+  // The stat row is three columns wide by design.
+  if (r.statColumns !== 3) {
+    failures.push(`${label}: the hero stat row has ${r.statColumns} columns, expected 3`);
+  }
+
+  if (r.ctaVisible !== true) {
+    failures.push(`${label}: the hero call to action is below the ${r.viewportHeight}px fold`);
   }
 
   if (r.overflowX) failures.push(`${label}: the page scrolls horizontally`);
-
 }
 
 console.log(JSON.stringify(report, null, 1));
@@ -283,5 +299,5 @@ if (failures.length) {
 }
 
 console.log(
-  "\nHERO OK: the image fills the section edge to edge, a scrim is present, the text paints above it in light ink and stops clear of the photographs visible area, and the hero fits the fold at every viewport.",
+  "\nHERO OK: the portrait holds its 4:5 beside the copy, the copy is dark ink on the canvas with no scrim over a photograph that is not there, the accent plate is present, the stat row is three columns, and the call to action clears the fold at every viewport.",
 );

@@ -113,24 +113,40 @@ for (const width of WIDTHS) {
         ? heroCta.getBoundingClientRect().bottom <= window.innerHeight
         : null,
       /*
-        The hero image is now FULL BLEED, so a fixed 4:5 ratio is the wrong
-        assertion and it failed at five widths before this was changed.
+        THE HERO IS A SPLIT, AND THIS FOLLOWS IT.
 
-        What matters now is that the image actually COVERS the hero section edge to
-        edge, which is the whole point of a full bleed image. If the slot stops
-        filling its section the hero silently reverts to a card floating on a
-        background, which is a different design rather than a broken one, so it is
-        worth failing on.
+        The portrait is a card in the hero's right hand column. It is not full
+        bleed, so "does the image cover its section" describes a layout that no
+        longer exists and fails on a hero that is provably correct.
+
+        What can break on a split hero is a different set of things, and both are
+        checked here:
+
+        - the card losing the ratio it reserves, which is the whole reason it
+          reserves one, since it is what lets a real photograph arrive with no
+          layout shift
+        - the photograph landing on top of the copy instead of beside it, which a
+          screenshot catches and an assertion is the only way to catch at every
+          width at once
+
+        `besideCopy` is only meaningful once the grid is actually two columns.
+        Below lg the two are stacked by design, so the portrait sitting below the
+        headline is correct and comparing their lefts would report a fault that is
+        not one.
       */
-      fullBleed: portrait
+      split: portrait
         ? (() => {
             const img = portrait.getBoundingClientRect();
-            const section = portrait.closest("section");
-            if (!section) return null;
-            const sec = section.getBoundingClientRect();
-            const coversW = Math.abs(img.width - sec.width) <= 2;
-            const coversH = Math.abs(img.height - sec.height) <= 2;
-            return { coversWidth: coversW, coversHeight: coversH };
+            const head = q("main h1")?.getBoundingClientRect();
+            const columns = heroGrid
+              ? getComputedStyle(heroGrid).gridTemplateColumns
+              : "";
+            const twoColumn = columns.trim().split(/\s+/).length === 2;
+            return {
+              ratio: Number((img.width / img.height).toFixed(3)),
+              twoColumn,
+              besideCopy: head ? img.left >= head.right - 2 : null,
+            };
           })()
         : null,
       // A page with no h1, or more than one, is a real defect. This is the
@@ -201,17 +217,24 @@ for (const r of report) {
     failures.push(`${w}px: the hero CTA is below the fold`);
   }
   /*
-    The hero image must cover its section. This replaced a 4:5 ratio assertion,
-    which only made sense while the portrait was a card sitting in a grid column.
-    Full bleed means the ratio is whatever the section's shape makes it, and the
-    thing worth asserting is coverage.
+    The portrait must be a card in the hero's own column, not painted over the
+    copy. This replaced a "the image fills its section" assertion, which only held
+    while the portrait was full bleed.
   */
-  if (r.fullBleed === null) {
+  if (r.split === null) {
     failures.push(`${w}px: no hero image slot found, the hero may not have rendered`);
-  } else if (!r.fullBleed.coversWidth || !r.fullBleed.coversHeight) {
-    failures.push(
-      `${w}px: the hero image does not fill its section (width ${r.fullBleed.coversWidth}, height ${r.fullBleed.coversHeight})`,
-    );
+  } else {
+    // 4 / 5 = 0.8. The tolerance covers sub-pixel rounding at fractional widths.
+    if (Math.abs(r.split.ratio - 0.8) > 0.02) {
+      failures.push(
+        `${w}px: the hero portrait is ${r.split.ratio}, expected the 4 / 5 it reserves`,
+      );
+    }
+    if (r.split.twoColumn && r.split.besideCopy !== true) {
+      failures.push(
+        `${w}px: the hero portrait overlaps the headline, the two columns are colliding`,
+      );
+    }
   }
   if (r.videoFrameWidths !== null && r.videoFrameWidths.length > 1) {
     failures.push(
@@ -225,5 +248,5 @@ if (failures.length) {
   process.exit(1);
 }
 console.log(
-  "\nWIDTHS OK: no overflow, one h1, hero CTA above the fold, hero image fills its section, even video frames.",
+  "\nWIDTHS OK: no overflow, one h1, hero CTA above the fold, hero portrait holds its 4:5 beside the copy, even video frames.",
 );
