@@ -90,17 +90,17 @@ export const SITE_DESCRIPTION =
    site description in the metadata and the metadata description, so every string
    the old hero painted still appears somewhere on the site.
 
-   THE ARTWORK IS NOT SUPPLIED YET
+   THE ARTWORK IS A PHOTOGRAPH OF LOKESH, NOT A PLACEHOLDER
 
-   `artwork.src` is null, so the hero renders the labelled pending slot. That is the
-   correct state rather than a gap to paper over: this design is a photograph with
-   type standing on it, so with no photograph there is nothing to look at. Filling it
-   with a stock photograph would put someone else's image on a personal brand site,
-   which is the specific thing `next.config.ts` warns about in capitals.
+   `artwork.src` points at `public/hero-artwork.jpg`. That is the last thing this
+   page was waiting on: everything else it needed already existed, and until the
+   picture arrived the design could not be judged, only built.
 
-   TO SUPPLY IT: drop the file into `public/` and set `artwork.src` to its path.
-   Nothing else changes, and no config change is needed either, because a local path
-   does not go through the Unsplash allowlist that the demo imagery uses.
+   It matters beyond this hero. The rest of the site still reserves slots for
+   photography that has never been supplied, and this file is the proof that the
+   hold was temporary. It is the same pattern those slots use, minus the placeholder:
+   a photograph of the actual subject, in the site's own `public/`, served from its
+   own origin.
    ------------------------------------------------------------------------- */
 
 export const hero = {
@@ -159,11 +159,38 @@ export const hero = {
     covering it and cropping, so a ratio would describe nothing about the layout.
     The aspect the file should be is stated in `spec` instead.
   */
+  /*
+    THE ARTWORK, SUPPLIED.
+
+    This is a photograph of Lokesh, not a placeholder, which is the whole reason
+    the hero could be built this way. It replaces the pending slot that the design
+    shipped with, and with it the last thing standing between this page and being
+    a real personal brand site rather than a demo.
+
+    The file is in `public/`, so it is served from the site's own origin and does
+    not go through the Unsplash allowlist in `next.config.ts`. That block is still
+    there for the other slots; this one no longer depends on it.
+
+    THE ASPECT DOES NOT MATCH THE BRIEF, AND THE LAYOUT DOES NOT CARE.
+
+    The brief asked for 21:9 and this is 16:9. The hero is a fixed height with the
+    image covering it and cropping, so the file's ratio decides nothing about the
+    layout: at 1440x900 the frame is 1440x666, the image scales to 1440x810 and
+    loses 72px off the top and 72px off the bottom. Nothing is stretched and
+    nothing is letterboxed. The crop is centred, which keeps his face in the upper
+    third and puts the wordmark across the dark suit rather than across the bright
+    desk, so the veil has less work to do here than the worst case it is derived
+    against.
+
+    `alt` is empty on the hero, deliberately: the artwork is atmosphere standing
+    behind a wordmark and a sentence that already say what the page is. Describing
+    it again for a screen reader would be noise.
+  */
   artwork: {
-    spec: "Hero artwork, landscape 21:9, 2560x1170",
+    spec: "Hero artwork, landscape 16:9, 2048x1152",
     direction:
-      "Cinematic wide landscape or atmospheric scene with a clear uncluttered band across the lower third, where the wordmark and supporting copy stand. The top two thirds carry the image. Deep shadow or negative space along the bottom edge so the veil has something to sit on. No text, no logos, no recognisable faces.",
-    src: null as string | null,
+      "Supplied. Lokesh seated at a desk in his office, centred, bookshelves and plants behind him. Face in the upper third so the wordmark lands across the suit rather than across his face. The bright band along the bottom is the desk surface and is the worst case for light type, which the veil is sized for.",
+    src: "/hero-artwork.jpg" as string | null,
   },
 } as const;
 

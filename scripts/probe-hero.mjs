@@ -117,12 +117,17 @@ for (const vp of VIEWPORTS) {
       const section = document.querySelector("main section");
 
       /*
-        Found by its art direction spec rather than by being the first element with
-        a data attribute. This hero has exactly one slot today, so the plain
-        attribute selector would work, and would stop working silently the moment a
-        second one is added above it.
+        Found by its asset SLOT LABEL, which is what the component publishes and
+        what does not change when the artwork is replaced.
+
+        This was pinned to a dimension substring, which meant every time the file
+        changed so did the probe, and a stale pin does not fail loudly: it reports
+        "the hero may not have rendered" for a hero that is rendering perfectly.
+        The label is the contract. The spec still travels with it as a data
+        attribute, so the dimensions are recorded for anyone replacing the file.
       */
-      const slot = section?.querySelector('[data-asset-spec*="2560x1170"]') ?? null;
+      const slot =
+        section?.querySelector('[data-asset-slot="Hero artwork"]') ?? null;
 
       const sec = section ? box(section) : null;
       const art = slot ? box(slot) : null;
