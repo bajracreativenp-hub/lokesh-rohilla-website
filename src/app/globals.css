@@ -236,6 +236,26 @@
   --text-display-4: clamp(1.125rem, 1.05rem + 0.5vw, 1.375rem);
   --text-meta: 0.75rem;
 
+  /*
+    THE HERO WORDMARK. THE ONE HEADING ON THIS SITE THAT IS NOT WEIGHT 400.
+
+    Every other heading is set light, on the principle that size and colour carry
+    hierarchy. This one is a deliberate exception and it is worth being clear
+    about why, because it reads as contradicting the rule above.
+
+    It is not a headline. It is a logotype: one word, filling the lower left of a
+    photograph, standing in for the whole site. A weight 400 wordmark at this scale
+    over an image reads as thin and accidental rather than as confident, because
+    there is no paragraph next to it for the light weight to sit comfortably
+    against. The rule above assumes a heading has body copy in the same block; this
+    one does not, so it does not apply.
+
+    11vw puts "Lokesh" across roughly two thirds of a 1400px container. The 11rem
+    ceiling stops it becoming a billboard on an ultrawide, and the 3.25rem floor
+    keeps it a wordmark on a 320px phone, where 11vw alone would be 35px.
+  */
+  --text-display-hero: clamp(3.25rem, 1rem + 11vw, 11rem);
+
   /* Display leading is 1.12 (67.2 on 60), not the 1.04 this scale used to carry.
      1.04 is tight enough for a setting at weight 700 and too tight at 400: without
      the bold stem the descenders of one line reach the ascenders of the next, so
@@ -639,82 +659,6 @@ p {
 }
 
 /*
-  THE TYPEWRITER CARET AND THE PER CHARACTER GLOW.
-
-  Both belong to `RotatingWord`, and both run on CSS keyframes rather than on
-  JavaScript. That is the point of the rewrite rather than an accident: a
-  typewriter knows exactly when a character was typed, because that character did
-  not exist a moment earlier. So the glow is a one shot animation triggered by
-  the character mounting, and nothing has to re-render sixty times a second to
-  fade it, which is exactly what the SVG displacement filter it replaced had to do.
-
-  `currentColor` throughout, so both take their colour from the word rather than
-  naming a hue. The word is `text-accent`, so the caret and its glow are the same
-  colour as the word by construction and follow the palette in both schemes
-  instead of being pinned to the blue they were designed against.
-*/
-@keyframes type-caret-blink {
-  0%,
-  42% {
-    opacity: 1;
-  }
-  50%,
-  92% {
-    opacity: 0.18;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-@utility type-caret {
-  display: inline-block;
-  /* In em, so the caret scales with the fluid display type exactly as the glyphs
-     around it do. A pixel width would be a hairline on a phone and a fat bar on a
-     desktop. */
-  width: 0.075em;
-  height: 0.72em;
-  /* Its bottom edge sits a hair below the baseline, which is where a text
-     insertion point is drawn. `middle` would float it to the x-height. */
-  vertical-align: -0.04em;
-  margin-left: 0.05em;
-  border-radius: var(--radius-pill);
-  background-color: currentColor;
-  /* What makes the caret read as lit rather than as a dark bar dropped on the
-     word. Two radii: a tight core and a wide bloom. */
-  box-shadow: 0 0 6px currentColor, 0 0 16px currentColor;
-  animation: type-caret-blink 1.06s ease-in-out infinite;
-}
-
-/*
-  THE GLOW A CHARACTER IS BORN WITH, DECAYING TO NOTHING.
-
-  Three radii at decreasing opacity, so the character has a hard bright edge and a
-  wide soft bloom behind it. One radius reads as a blur filter rather than as
-  light coming off the letter.
-
-  `both` fill mode is load bearing. Without it the element snaps back to its own
-  inherited `text-shadow: none` in the frame between the animation ending and the
-  next one starting, which on a 110ms typist is a visible flicker on whichever
-  character finished glowing most recently.
-*/
-@keyframes char-glow {
-  from {
-    text-shadow:
-      0 0 4px currentColor,
-      0 0 11px currentColor,
-      0 0 24px currentColor;
-  }
-  to {
-    text-shadow: 0 0 0 transparent;
-  }
-}
-
-@utility char-glow {
-  animation: char-glow 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-/*
   THE HERO WASH.
 
   A linear gradient behind the hero, built entirely from `--canvas`, `--surface`
@@ -813,6 +757,41 @@ p {
     rgb(11 23 48 / 0.82) 0%,
     rgb(11 23 48 / 0.82) 44%,
     rgb(11 23 48 / 0) 72%
+  );
+}
+
+/*
+  THE HERO VEIL.
+
+  This is the scrim the current hero uses. It replaces `hero-scrim`, which is left
+  in place but unused, the same way `hero-wash` has been carried along since the
+  hero last stopped needing a gradient behind it.
+
+  BOTTOM WEIGHTED, NOT SIDE WEIGHTED. The old hero had its copy down the left
+  edge over a full bleed photograph and ramped the scrim horizontally. This hero
+  puts the wordmark and the supporting copy in the lower third and leaves the top of
+  the frame as open as the artwork allows, so the ramp runs the other way and the
+  top of the photograph stays clean.
+
+  FOUR STOPS. A two stop ramp either washes the middle of the frame, which is the
+  part of the artwork worth seeing, or leaves the text end unprotected. The ramp is
+  gone by 76%, before the middle of the image, so the veil is doing contrast work
+  at the bottom and nothing above it.
+
+  0.88 AT THE BOTTOM IS THE WORST CASE, DERIVED THE SAME WAY THE OLD 0.82 WAS. It
+  is computed against a photograph whose bottom row is pure white, the brightest an
+  artwork can be where the type sits. A darker artwork needs less veil and more
+  picture shows. `probe-contrast` measures the wordmark against this colour rather
+  than against whatever image happens to be behind it, and the value has to be
+  recomputed if this ever changes.
+*/
+@utility hero-veil {
+  background-image: linear-gradient(
+    to top,
+    rgb(11 23 48 / 0.88) 0%,
+    rgb(11 23 48 / 0.66) 24%,
+    rgb(11 23 48 / 0.22) 52%,
+    rgb(11 23 48 / 0) 76%
   );
 }
 

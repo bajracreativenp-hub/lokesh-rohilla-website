@@ -55,21 +55,43 @@ for (const width of WIDTHS) {
     );
 
     /*
-      THE HERO IS BACK.
+      THE HERO, MEASURED SPECIFICALLY RATHER THAN GENERICALLY.
 
-      It was removed, then restored, so this block has been rewritten twice. The
-      assertions that matter are about the hero specifically, not about whatever
-      happens to be the first section: the CTA must be reachable without
-      scrolling, the headline must not wrap deeply, and the portrait must hold its
-      4:5 ratio. Measuring "the first section" generically would pass even if the
-      hero stopped being a hero.
+      It has been removed, restored and rebuilt twice over, and this block has been
+      rewritten with it each time. What matters is that the assertions are about the
+      hero specifically and not about whatever happens to be the first section: the
+      calls to action must be reachable without scrolling, and the wordmark must not
+      wrap. Measuring "the first section" generically would pass even if the hero
+      stopped being a hero.
+
+      What it does NOT assert about the hero is the artwork filling the section.
+      That is a statement about the design rather than about widths, and it belongs
+      to `probe-hero`.
     */
     const firstSection = q("main section");
     const hero = q("main section");
     const heroGrid = hero?.querySelector("div.grid");
-    const portrait = q('main [data-asset-spec*="1600x2000"]');
-    const heroCta = [...document.querySelectorAll("main a")].find((a) =>
-      a.textContent.includes("Discover Lokesh"),
+
+    /*
+      THE HERO'S CALL TO ACTION, AND THE LABEL CHANGED WITH THE HERO.
+
+      This looked for "Discover Lokesh", which used to be the hero's primary
+      button. It is now the second intent, and it is an ICON ONLY circular
+      control, so it has no text content at all to match on.
+
+      The lookup therefore fell through to the next link in the document carrying
+      those words, which lives in a section far down the page, and reported "the
+      hero CTA is below the fold" at every width. The measurement was correct; it
+      was measuring the wrong element, and the hero's own actions were never
+      looked at.
+
+      It now matches the hero's primary label, "Work With Lokesh", AND scopes the
+      search to the hero section. Both halves matter: the label alone would still
+      drift if a later section ever published the same intent, and the scope alone
+      would still be measuring a control that may not be the primary one.
+    */
+    const heroCta = [...(hero?.querySelectorAll("a") ?? [])].find((a) =>
+      a.textContent.includes("Work With Lokesh"),
     );
 
     // Any element wider than the viewport is a horizontal overflow bug, unless
@@ -113,42 +135,27 @@ for (const width of WIDTHS) {
         ? heroCta.getBoundingClientRect().bottom <= window.innerHeight
         : null,
       /*
-        THE HERO IS A SPLIT, AND THIS FOLLOWS IT.
+        THE HERO IS A FULL BLEED PHOTOGRAPH WITH A LOGOTYPE STANDING ON IT.
 
-        The portrait is a card in the hero's right hand column. It is not full
-        bleed, so "does the image cover its section" describes a layout that no
-        longer exists and fails on a hero that is provably correct.
+        This measured a portrait card, and before that a full bleed image, and
+        before that a headline measure. None of them apply now: the hero has no
+        portrait, and the artwork filling its section is `probe-hero`'s assertion
+        rather than this one's, because it is about the design and not about widths.
 
-        What can break on a split hero is a different set of things, and both are
-        checked here:
+        What replaces it is the thing that can go wrong with a wordmark, which is
+        that it wraps. One word, set to fill the lower left of the frame. Break it
+        across two lines and it stops being a logotype and becomes a headline, and
+        it also changes the height of the hero, which moves the calls to action.
 
-        - the card losing the ratio it reserves, which is the whole reason it
-          reserves one, since it is what lets a real photograph arrive with no
-          layout shift
-        - the photograph landing on top of the copy instead of beside it, which a
-          screenshot catches and an assertion is the only way to catch at every
-          width at once
-
-        `besideCopy` is only meaningful once the grid is actually two columns.
-        Below lg the two are stacked by design, so the portrait sitting below the
-        headline is correct and comparing their lefts would report a fault that is
-        not one.
+        Measured from real line boxes rather than guessed from character count, which
+        is the same method `h1Lines` uses and for the same reason.
       */
-      split: portrait
-        ? (() => {
-            const img = portrait.getBoundingClientRect();
-            const head = q("main h1")?.getBoundingClientRect();
-            const columns = heroGrid
-              ? getComputedStyle(heroGrid).gridTemplateColumns
-              : "";
-            const twoColumn = columns.trim().split(/\s+/).length === 2;
-            return {
-              ratio: Number((img.width / img.height).toFixed(3)),
-              twoColumn,
-              besideCopy: head ? img.left >= head.right - 2 : null,
-            };
-          })()
-        : null,
+      heroH1Lines: (() => {
+        const h1 = q("main h1");
+        if (!h1) return null;
+        const lh = parseFloat(getComputedStyle(h1).lineHeight);
+        return Math.round(h1.getBoundingClientRect().height / lh);
+      })(),
       // A page with no h1, or more than one, is a real defect. This is the
       // assertion that matters most since the hero that used to own the h1 is
       // gone.
@@ -217,24 +224,17 @@ for (const r of report) {
     failures.push(`${w}px: the hero CTA is below the fold`);
   }
   /*
-    The portrait must be a card in the hero's own column, not painted over the
-    copy. This replaced a "the image fills its section" assertion, which only held
-    while the portrait was full bleed.
+    THE WORDMARK MUST NOT WRAP.
+
+    It is one word. Two lines means the logotype has become a headline, and the
+    extra line also changes the height of the hero, which is what pushes the calls
+    to action down. The narrower viewports are where this happens first, so it is
+    checked at every width rather than only where it looks fine.
   */
-  if (r.split === null) {
-    failures.push(`${w}px: no hero image slot found, the hero may not have rendered`);
-  } else {
-    // 4 / 5 = 0.8. The tolerance covers sub-pixel rounding at fractional widths.
-    if (Math.abs(r.split.ratio - 0.8) > 0.02) {
-      failures.push(
-        `${w}px: the hero portrait is ${r.split.ratio}, expected the 4 / 5 it reserves`,
-      );
-    }
-    if (r.split.twoColumn && r.split.besideCopy !== true) {
-      failures.push(
-        `${w}px: the hero portrait overlaps the headline, the two columns are colliding`,
-      );
-    }
+  if (r.heroH1Lines !== null && r.heroH1Lines > 1) {
+    failures.push(
+      `${w}px: the hero wordmark wraps to ${r.heroH1Lines} lines, expected 1`,
+    );
   }
   if (r.videoFrameWidths !== null && r.videoFrameWidths.length > 1) {
     failures.push(
@@ -248,5 +248,5 @@ if (failures.length) {
   process.exit(1);
 }
 console.log(
-  "\nWIDTHS OK: no overflow, one h1, hero CTA above the fold, hero portrait holds its 4:5 beside the copy, even video frames.",
+  "\nWIDTHS OK: no overflow, one h1 on one line, hero CTA above the fold, even video frames.",
 );

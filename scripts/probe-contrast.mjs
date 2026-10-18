@@ -206,9 +206,22 @@ for (const vp of [
         So the solid goes on the element that owns the text, found as the nearest
         positioned ancestor with an explicit z-index, which is the Container at
         `--z-content`. That is the surface the text is actually painted on, and
-        painting it puts every descendant in the right relationship: the accent
-        button keeps its own fill, and the light ink is measured against the scrim
+        painting it puts every descendant in the right relationship: the white
+        button keeps its own fill, and the light ink is measured against the veil
         colour it really sits on.
+
+        THE SOLID IS `#283349`, AND IT IS DERIVED FROM THE VEIL'S OWN ALPHA.
+
+        Navy `#0B1730` at 0.88 over a pure white photograph, which is the lightest
+        composite that veil can produce where the type sits, so it is the worst case
+        for light text. It was `#374155` for the previous hero's side weighted scrim,
+        which was 0.82 over white; the hero is bottom weighted now and its veil is
+        darker, so the constant moved with it.
+
+        It has to be recomputed whenever `hero-veil` changes alpha. Measuring
+        against a stale constant is the quiet version of this bug: the probe passes
+        a hero whose text is not actually readable over its own artwork, because it
+        never looked at the artwork at all.
       */
       if (modes.includes("solidify-scrim")) {
         /*
@@ -221,7 +234,7 @@ for (const vp of [
         */
         const layer = el.querySelector("[data-hero-text]") ?? el;
         layer.style.backgroundImage = "none";
-        layer.style.backgroundColor = "#374155";
+        layer.style.backgroundColor = "#283349";
 
         /*
           The IMAGE SLOT goes away entirely rather than being painted.
@@ -263,21 +276,17 @@ for (const vp of [
           against the solidified scrim exactly as the rest of the hero is.
         */
         /*
-          THE ROTATING CLOSING WORD NEEDS NOTHING HERE.
+          THE WORDMARK NEEDS NOTHING HERE.
 
-          It was reported ten times on every pass: five words stacked in one grid
-          cell, so the live word is overlapped by its own siblings in the box model,
-          and axe declines to guess a background through that. Removing the four
-          hidden words here did not fix it, because hydration runs after this and
-          restores them.
+          It used to. The hero had a rotating closing word stacked five deep in one
+          grid cell, so the live word was overlapped by its own siblings in the box
+          model and axe declined to guess a background through that. That component
+          is gone, and the hero's h1 is now a single fixed word with no siblings in
+          its cell, so there is nothing to overlap.
 
-          The cause was a `relative` on the word's grid host, which axe reads as the
-          word being overlapped by its own parent. The component no longer sets it.
-
-          The fix is in the component instead. Under `prefers-reduced-motion`, which
-          this probe emulates, the component renders only the live word, so there is
-          nothing left to overlap it. One decision in the component, and the probe
-          measures the page rather than compensating for it.
+          Kept as a note because the shape of the problem has not changed. Anything
+          painted over type inside this hero needs either a solid background of its
+          own or a decision in the component, not a compensation here.
         */
 
         continue;

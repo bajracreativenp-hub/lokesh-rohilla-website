@@ -26,6 +26,17 @@ const variants = {
   /* Outline pill that survives on photography or a dark band. */
   "on-media":
     "rounded-pill border border-white/45 bg-white/10 text-white backdrop-blur-sm hover:bg-white hover:text-ink active:translate-y-px",
+  /*
+    Solid white pill with a navy label.
+
+    For a call to action standing on a dark photograph, which is the hero's case.
+    It is a variant rather than a `className` override on `primary` because the
+    radius scale and the transition set are already right and only the two colours
+    are wrong, and because a one off override in a section is how a control ends up
+    looking subtly different from every other control on the site.
+  */
+  light:
+    "rounded-pill bg-white text-ink hover:brightness-95 hover:shadow-card active:translate-y-px",
 } as const;
 
 const sizes = {

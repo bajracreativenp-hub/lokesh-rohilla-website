@@ -67,119 +67,104 @@ export const SITE_DESCRIPTION =
 /* -------------------------------------------------------------------------
    SECTION 1 - HERO
 
-   Restored at the client's instruction after being removed. The verb rail and
-   the platform grid shared a file with the hero and were removed at the same
-   time; they are deliberately NOT restored, because only the hero was asked for.
+   Rebuilt as a cinematic full bleed hero: one wordmark standing in the lower left
+   of a photograph, a line of supporting copy and two calls to action in the lower
+   right.
+
+   WHAT CAME OUT WITH IT
+
+   The previous hero was a split layout on white, and it carried elements that only
+   worked with white space around them. None of them survive this design:
+
+     - the rotating word. There is no sentence for it to rotate inside: the h1 is
+       now the wordmark, which is one fixed word. `RotatingWord` and its typewriter
+       are removed rather than left orphaned, along with the probe that tested it.
+     - the stat row. Three unverified outcome figures behind a pending note. This
+       design has no room for them and they were placeholders in any case.
+     - the floating quote cards and the offset accent plate. Both were composed
+       against a portrait sitting in a grid column, which this hero does not have.
+     - the portrait and the 4 / 5 it reserved.
+
+   The words themselves are not lost. "Turning Chaos Into Clarity." is the headline
+   of the philosophy section and is published there, and `SITE_DESCRIPTION` is the
+   site description in the metadata and the metadata description, so every string
+   the old hero painted still appears somewhere on the site.
+
+   THE ARTWORK IS NOT SUPPLIED YET
+
+   `artwork.src` is null, so the hero renders the labelled pending slot. That is the
+   correct state rather than a gap to paper over: this design is a photograph with
+   type standing on it, so with no photograph there is nothing to look at. Filling it
+   with a stock photograph would put someone else's image on a personal brand site,
+   which is the specific thing `next.config.ts` warns about in capitals.
+
+   TO SUPPLY IT: drop the file into `public/` and set `artwork.src` to its path.
+   Nothing else changes, and no config change is needed either, because a local path
+   does not go through the Unsplash allowlist that the demo imagery uses.
    ------------------------------------------------------------------------- */
 
 export const hero = {
-  wordmark: "Lokesh Rohilla",
-  role: "Business Consultant, Mentor, Transformation Leader",
-  headline: "Turning Chaos Into Clarity.",
-  sub: SITE_DESCRIPTION,
-  primary: { label: "Discover Lokesh", href: "/about" },
-  secondary: { label: "Work With Lokesh", href: "/contact" },
   /*
-    THE STAT ROW, AND WHY EVERY VALUE IS null.
-
-    Three figures sit under the hero's calls to action, in the position a proof
-    point usually occupies. Every one of them is a measurable claim about results,
-    and not one of them has been confirmed:
-
-      - "3x ROI" is a multiple of the client's investment, which depends entirely
-        on how the investment is counted.
-      - "hours saved" needs a baseline to be saved against.
-      - a savings total needs a currency and a period.
-
-    `null` is therefore the correct value for all three, and the hero renders a
-    pending mark rather than a number. A plausible figure invented to fill a
-    designed slot is the one error on this site that cannot be walked back: it is
-    a performance claim published under the client's own name, and "guaranteed"
-    beside it is a term with legal weight.
-
-    FILLING THESE IN: set `value` to the string the client has actually verified,
-    and the pending mark disappears with no other change. The `topic` is the
-    caption the figure will sit under, and each one names a CATEGORY of measure
-    rather than asserting anything, which is why they are safe to publish while
-    the numbers are not.
-
-    "18+ years" is the single quantified claim the client has confirmed, and it is
-    already published in `SITE_DESCRIPTION` and on /about. It can be the first of
-    these three the moment that is wanted in the hero.
+    The logotype. One word rather than the full name, because a wordmark set this
+    large has to be short: "Lokesh Rohilla" at this size runs off both edges of the
+    container and stops reading as a word at all.
   */
-  stats: [
-    { value: null, topic: "Years in practice" },
-    { value: null, topic: "Leaders and teams coached" },
-    { value: null, topic: "Engagements delivered" },
-  ] as const,
-  portrait: {
-    ratio: "4 / 5",
-    spec: "Editorial portrait, vertical 4:5, 1600x2000",
-    /*
-      REWRITTEN FOR THE SPLIT HERO.
+  wordmark: "Lokesh",
 
-      This art direction described the full bleed hero, where the photograph ran
-      edge to edge behind the headline and the subject had to be pushed right of
-      centre to keep out from under the text.
+  /* The asterisk, set raised beside the wordmark. */
+  mark: "*",
 
-      The portrait is now a card in the hero's right hand column. No headline
-      overlaps it, so there is no reason to compose around one, and the negative
-      space that requirement demanded is exactly what makes a framed portrait look
-      accidental. Waist up, centred, filling the frame.
-    */
-    direction:
-      "Natural light, calm neutral backdrop, subject centred and waist up, filling the frame. Sits inside a rounded card, so no negative space is being reserved for text and none should be composed in. No studio strobe look.",
-    /*
-      DEMO ONLY. Not Lokesh. Delete both lines to go live.
+  /*
+    THE SUPPORTING LINE, BOTTOM RIGHT.
 
-      This was framed so the subject sits right of centre, which the full bleed
-      hero asked for, because the headline ran across the left of the photograph.
-      The hero is a split layout now and the headline never crosses the image, so
-      the framing constraint is gone and a centred portrait is the better demo.
+    `SITE_DESCRIPTION`, not new copy. It is already the site's metadata description
+    and it is published on /about, it says what he does without claiming a result,
+    and reusing it means the hero cannot assert anything the rest of the site does
+    not.
+  */
+  lede: SITE_DESCRIPTION,
 
-      It still must not ship. A face in the hero of a personal brand site asserts
-      that the person is the subject.
+  /*
+    THE CTA INTENT LOCK STILL HOLDS.
 
-      `portrait-of-a-man` is a real Unsplash photo ID and resolves, it is not a
-      constructed URL.
-    */
-    src: `${UNSPLASH}1519085360753-af0119f7cbe7?auto=format&fit=crop&w=1600&q=80`,
-    alt: "Studio portrait of a man in a dark jacket against a plain backdrop",
+    Recorded in `site.ts`: every distinct action gets exactly one label across the
+    whole site, so nobody ever faces two wordings for the same intent. The
+    reference this design came from carries a single "Join the lab" pill, which
+    maps onto nothing here, so the two intents that already exist are used
+    unchanged and no third wording is invented for the hero:
+
+      contact intent -> "Work With Lokesh"   the white pill
+      about intent   -> "Discover Lokesh"     the circular arrow
+
+    The circular one is icon only, so it carries its label in `ariaLabel`. A bare
+    arrow glyph announces "button" and nothing else, and the navigation already
+    has three of those.
+  */
+  primary: { label: "Work With Lokesh", href: "/contact" },
+  secondary: {
+    label: "Discover Lokesh",
+    href: "/about",
+    ariaLabel: "Discover Lokesh, read Lokesh's story",
   },
+
   /*
-    Floating cards flanking the portrait.
-    Both are placeholders. No publication name, attribution or endorsement is
-    asserted, because none has been confirmed.
+    THE ARTWORK.
 
-    Which card sits on which side is set by the className in hero.tsx, not by
-    data, so there is no `position` field here to drift out of sync with it.
+    `spec` and `direction` are published whether or not a file exists, because they
+    remain the art direction whoever supplies it. They are the only record of what
+    this hero is waiting for, so they live next to the empty `src` rather than in a
+    comment above it.
+
+    There is no `ratio` any more. The hero is a fixed height with the artwork
+    covering it and cropping, so a ratio would describe nothing about the layout.
+    The aspect the file should be is stated in `spec` instead.
   */
-  quotes: [
-    /*
-      THESE ARE SERVICE CARDS, NOT TESTIMONIALS. THEY WERE TESTIMONIAL SLOTS.
-
-      Both used to read "[Publication to be provided]" with the body "Confirmed
-      words from the people Lokesh has worked with will sit here." Two identical
-      placeholders in the most prominent position on the site, advertising the
-      absence of testimonials rather than making a point.
-
-      The fix was to accept that these cards are not the right home for social
-      proof. A floating card next to a portrait reads as something the subject is
-      associated with, so filling them with unattributed praise makes the absence
-      louder. A card that names a documented capability is doing the job the
-      placement can actually support.
-
-      So these are now the three documented service areas. Every word is grounded in
-      the services already published on this site. No testimonial is implied, no
-      person is quoted, and nothing is invented to fill a box.
-
-      The testimonial slots are not lost. They live further down the page in their
-      own section with three video frames and a Google Reviews panel, which is the
-      right place for them and a less dishonest place than the hero.
-    */
-    { source: "Business Consultation", tone: "light" as const },
-    { source: "Self-Development Programs", tone: "dark" as const },
-  ],
+  artwork: {
+    spec: "Hero artwork, landscape 21:9, 2560x1170",
+    direction:
+      "Cinematic wide landscape or atmospheric scene with a clear uncluttered band across the lower third, where the wordmark and supporting copy stand. The top two thirds carry the image. Deep shadow or negative space along the bottom edge so the veil has something to sit on. No text, no logos, no recognisable faces.",
+    src: null as string | null,
+  },
 } as const;
 
 /* -------------------------------------------------------------------------
