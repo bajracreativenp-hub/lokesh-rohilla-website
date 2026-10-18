@@ -1,353 +1,325 @@
+/**
+ * PROBES THE HERO'S ROTATING WORD.
+ * ===========================================================================
+ *
+ * THE FILE IS STILL NAMED probe-morph.mjs AND THE SCRIPT IS STILL verify:morph.
+ *
+ * That is deliberate, to keep `npm run verify:morph` and anything else that calls
+ * it working, but the name no longer describes the effect. The word is typed and
+ * deleted now, not morphed. The old probe measured the SVG turbulence
+ * displacement map this replaced: how much of each stroke's interior survived the
+ * filter at rest, and how far the filter inflated the glyph area. None of that is
+ * measurable when there is no filter, and none of it is worth measuring, because a
+ * typewriter has no threshold to eat a stroke and no area to inflate.
+ *
+ * So this measures the things that can go wrong in a typewriter instead. All of
+ * them are invisible in a screenshot, which is the point: a word that skips three
+ * characters at a time, or a headline that reflows on every keystroke, or a screen
+ * reader hearing "Cla", all look like a working animation in a still frame.
+ *
+ * WHAT IS ASSERTED, AND WHY EACH ONE
+ *
+ *   the word grows ONE CHARACTER AT A TIME
+ *     The defining property. Sampling catches the intermediate strings, so a
+ *     regression that types a whole word in one frame fails here even though the
+ *     word still ends up spelled correctly.
+ *
+ *   every painted string is a PREFIX of a real word
+ *     Catches a malformed serif marker. `SerifText` swaps letters using `|` in the
+ *     source string, and if the prefix slicing ever cut a marker in half the
+ *     painted text would carry a stray pipe or lose a letter.
+ *
+ *   the reserved width NEVER CHANGES
+ *     The painted stage is out of flow over a hidden sizing layer. If that layer
+ *     stopped doing its job the h1 would change width on every keystroke and the
+ *     whole headline would twitch for as long as the word was typing.
+ *
+ *   the caret EXISTS
+ *     It is the only thing signalling that this is a typewriter rather than text
+ *     appearing.
+ *
+ *   the accessible name is ALWAYS a WHOLE WORD
+ *     It follows the word rather than the caret. A partial word reaching a screen
+ *     reader is the one failure here that is invisible on screen and fatal to
+ *     read aloud.
+ *
+ *   reduced motion renders STATIC text, no caret, no per character spans
+ *     Not "slower". The static path renders the whole word through `SerifText`
+ *     exactly as the component did before it became a typewriter, so none of the
+ *     per glyph machinery should exist at all when motion is off.
+ *
+ * Sampling happens inside the page on a timer and the array is returned once. A
+ * round trip per sample would sample Chrome's message passing rather than the
+ * animation, and the intermediate states it exists to catch are exactly the ones
+ * a round trip would step over.
+ */
+import { mkdir } from "node:fs/promises";
+
 import puppeteer from "puppeteer-core";
 
-import { CHROME } from "./browser.mjs";
+import { CHROME, probeOut } from "./browser.mjs";
+
+const URL = process.env.PROBE_URL ?? "http://localhost:3001";
+const OUT = probeOut("lr-type");
 
 /*
- * PROBE: does the morph filter eat the letterforms?
- *
- * WHAT THIS EXISTS FOR.
- *
- * The threshold filter remaps alpha to `S*A - O`. Any pixel whose alpha after the
- * blur falls below O/S is deleted outright, and any pixel above it is forced fully
- * solid, so the filter can only ever erode a glyph or inflate it. On display type both
- * are plainly visible, and erosion is the dangerous direction: at 60px, a roughly 3px
- * stroke blurred by 4 and then cut at the original 18/-7 lands near alpha 0.29, below
- * the 0.39 cut, so the middle of every stroke is removed and the settled word renders
- * as fragments.
- *
- * That is worth catching mechanically. The settled state is what a visitor looks at
- * for most of the time, and the hero probe examines the section as a whole, so nothing
- * else here would notice.
- *
- * CORE SURVIVAL, NOT AREA. THIS IS THE PART THAT WAS GETTING IT WRONG.
- *
- * The first version of this compared total ink area, filtered against unfiltered, and
- * reported the current filter at 0.987, which read as a pass. The word was visibly
- * wrecked. The reason is that a wider blur inflates the antialiased halo around every
- * stroke at the same time as it erodes the stroke core, so the two effects cancel in
- * the total and a badly damaged word scores the same as an intact one.
- *
- * So the metric is erosion of the CORE. The unfiltered mask is eroded by one pixel
- * with a 3x3 minimum, which keeps only pixels with all eight neighbours also inked,
- * and that is the part of a stroke the filter has to preserve. The score is the
- * fraction of those core pixels still inked in the filtered render.
- *
- * Measured, sweeping the two parameters against both metrics:
- *
- *   stdDev 3    area 1.076   core 0.902
- *   stdDev 2.5  area 1.144   core 0.961
- *   stdDev 2    area 1.168   core 0.979
- *   stdDev 1.5  area 1.167   core 0.993
- *   stdDev 1    area 1.149   core 1.000
- *
- * Note how the area column barely moves while core collapses. That is the whole
- * reason this metric exists.
- *
- * THE BANDS, AND WHY THE UPPER ONE IS LOOSE.
- *
- * Floor at 0.97: below that, stroke cores have separated and the glyphs stop reading
- * as letters. A little erosion is not a defect, it is what gives the morph its fused
- * edges, and asking for 1.00 would be asking for the effect not to work.
- *
- * The ceiling is 1.35 rather than something tight, and it exists for a different
- * reason: inflation. Too little blur and too soft a cut thickens every stroke until
- * adjacent letters meet and counters close. The measured values sit at or above 1.0
- * because blur inflates, and the band is set where the settled word still looks like
- * the unfiltered one rather than at the arithmetic midpoint.
- *
- * WHY THE PIXELS ARE COUNTED IN THE BROWSER.
- *
- * An earlier draft decoded the PNGs in Node with pngjs, which is not a dependency of
- * this project, and adding a package to assert something a browser can already do was
- * not worth it. The capture comes back as base64, `createImageBitmap` decodes it off
- * the main thread, and `getImageData` does the rest in the same process that produced
- * the image, so there is no encoder to disagree with.
- *
- * WHY PIXELS ARE COUNTED BY COLOUR RATHER THAN AS "NOT BACKGROUND".
- *
- * The word is `text-accent`, royal blue on a dark canvas, so the pixels of interest
- * are the ones where blue clearly exceeds red. The antialiased halo is a low-alpha
- * version of the same hue and belongs to the glyph, so counting by hue keeps it with
- * the stroke instead of with the page.
- */
+  The word list is restated here on purpose. It is the contract: a painted string
+  has to be a prefix of one of THESE, and the accessible name has to be exactly
+  one of them. Reading the list out of the page instead would make the probe
+  agree with whatever the component currently does, which is the failure mode of
+  a self describing test.
 
-const MIN_CORE = 0.97;
-const MAX_AREA = 1.35;
+  Every entry ends in a full stop, so a name missing one is a partial word.
+*/
+const WORDS = ["Clarity.", "Direction.", "Focus.", "Growth.", "Action."];
+
+/** How long to watch the animation run, in ms. Long enough for a full cycle. */
+const WATCH_MS = 9000;
+
+/** Gap between samples, in ms. Under the 110ms typing interval on purpose. */
+const SAMPLE_MS = 45;
+
+/** Shorter watch for the reduced motion pass, which must not change at all. */
+const REDUCED_WATCH_MS = 2500;
+
+/** How many distinct growing states must be seen before it counts as typing. */
+const MIN_TYPED_STATES = 5;
+
+await mkdir(OUT, { recursive: true });
 
 const browser = await puppeteer.launch({
-    executablePath: CHROME,
+  executablePath: CHROME,
   headless: true,
   args: ["--hide-scrollbars"],
 });
+
 const page = await browser.newPage();
-await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 2 });
-await page.goto("http://localhost:3001/", { waitUntil: "networkidle0" });
+await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
 
-/*
-  Wait for a settled word rather than sleeping a fixed time.
- *
-  A fixed sleep races the loop: the morph starts at HOLD_MS, and a capture landing
-  inside it measures a warped mid transition word and reports the motion as if it were
-  erosion. Polling the displacement scale for zero many times in a row means the word
-  is genuinely at rest.
- *
-  This is a fast precondition only, NOT the guarantee. Two full screenshots can
-  outlast the settled hold, so a capture pair can still straddle a morph. The pair
-  is therefore re-checked after it is taken, and retaken if the word moved. See
-  `capturePairWhenStill` below.
- */
-const settled = await page.evaluate(async () => {
-  const disp = () => document.querySelector("feDisplacementMap");
-  let zeros = 0;
-  const deadline = performance.now() + 15000;
-  while (performance.now() < deadline) {
-    zeros = disp() && disp().getAttribute("scale") === "0" ? zeros + 1 : 0;
-    if (zeros > 15) return true;
-    await new Promise((r) => setTimeout(r, 50));
-  }
-  return false;
-});
-
-if (!settled) {
-  console.error(
-    "MORPH PROBE: never reached a settled word, so nothing was measured",
-  );
-  await browser.close();
-  process.exit(1);
-}
-
-const clip = await page.evaluate(() => {
-  const r = document.querySelector("[data-morph-stage]").getBoundingClientRect();
-  return {
-    x: Math.max(0, Math.round(r.left)),
-    y: Math.max(0, Math.round(r.top)),
-    width: Math.round(r.width),
-    height: Math.round(r.height),
-  };
-});
-
-/*
- * The unfiltered capture is the ground truth, so it is taken first and with the filter
- * genuinely off. The inline value is read rather than assumed, because this component
- * sets the filter from a React style prop and an earlier draft cleared the style
- * attribute outright, which left NO filter on the stage and made every parameter look
- * perfect.
- */
 /**
- * Capture the pair, and only keep it if the word never moved during the capture.
+ * Samples the word from inside the page.
  *
- * THIS WAS THE FLAKE. Waiting for a settled word is not sufficient on its own.
- * The two screenshots below are full page captures of the clip at
- * deviceScaleFactor 2, and they are taken in sequence. The settled hold is
- * HOLD_MS, 2600ms, and the capture pair can easily take longer than that on a
- * cold cache or a busy machine. When the morph therefore began between the two
- * shots, the filtered capture caught a displaced, mid-transition word rather
- * than a settled one, and the probe reported the motion as erosion. The same
- * build measured 96.6% of cores on one run and 99.3% on the next, with no code
- * change in between.
- *
- * So the settle check is repeated after the fact. The displacement scale is
- * read straight after each capture; if it is anything but "0", the word moved
- * while the shutter was open, the pair is discarded, and the whole thing is
- * retaken from a fresh hold. A capture is only trusted when the word provably
- * did not move while it was being taken.
+ * `width` is read from the `inline-block` wrapper rather than from the painted
+ * stage: the stage is `absolute inset-0`, so its box is the reserved box by
+ * definition and would report a constant even if the sizing layer behind it had
+ * collapsed. Reading the wrapper is what actually detects a lost reservation.
  */
-async function capturePairWhenStill() {
-  for (let attempt = 1; attempt <= 4; attempt++) {
-    // Re-settle, so each attempt starts from a known-at-rest word.
-    const still = await page.evaluate(async () => {
-      const disp = () => document.querySelector("feDisplacementMap");
-      let zeros = 0;
-      const deadline = performance.now() + 15000;
-      while (performance.now() < deadline) {
-        zeros = disp() && disp().getAttribute("scale") === "0" ? zeros + 1 : 0;
-        if (zeros > 15) return true;
-        await new Promise((r) => setTimeout(r, 50));
+const watch = () =>
+  page.evaluate(
+    async (ms, step) => {
+      const stage = document.querySelector("[data-type-stage]");
+      const holder = document.querySelector("[data-rotating-word]");
+      if (!stage || !holder) return null;
+
+      const nameEl = holder.querySelector(".sr-only");
+      const samples = [];
+      const t0 = performance.now();
+
+      while (performance.now() - t0 < ms) {
+        samples.push({
+          text: stage.textContent ?? "",
+          width: Math.round(holder.getBoundingClientRect().width),
+          name: nameEl ? (nameEl.textContent ?? "") : null,
+          caret: Boolean(stage.querySelector("[data-type-caret]")),
+          glowSpans: stage.querySelectorAll(".char-glow").length,
+        });
+        await new Promise((r) => setTimeout(r, step));
       }
-      return false;
-    });
-    if (!still) continue;
 
-    const scaleNow = () =>
-      page.evaluate(
-        () => document.querySelector("feDisplacementMap")?.getAttribute("scale") ?? "0",
-      );
-
-    const prior = await page.evaluate(() => {
-      const stage = document.querySelector("[data-morph-stage]");
-      const existing = stage.style.filter;
-      stage.style.filter = "none";
-      window.__priorFilter = existing;
-      return existing;
-    });
-
-    const plain = await page.screenshot({ encoding: "base64", clip });
-    const afterPlain = await scaleNow();
-
-    await page.evaluate((value) => {
-      document.querySelector("[data-morph-stage]").style.filter = value;
-    }, prior);
-
-    const filtered = await page.screenshot({ encoding: "base64", clip });
-    const afterFiltered = await scaleNow();
-
-    // Always leave the real filter in place, whatever the outcome.
-    await page.evaluate(() => {
-      const stage = document.querySelector("[data-morph-stage]");
-      if (window.__priorFilter !== undefined) stage.style.filter = window.__priorFilter;
-    });
-
-    if (afterPlain === "0" && afterFiltered === "0") {
-      return { plain, filtered, attempts: attempt };
-    }
-
-    console.error(
-      `  attempt ${attempt}: the word moved mid-capture (scale ${afterPlain} -> ${afterFiltered}), discarding and retaking`,
-    );
-  }
-  throw new Error(
-    "the word kept moving during capture; could not take a still pair in 4 attempts",
-  );
-}
-
-const { plain, filtered, attempts } = await capturePairWhenStill();
-if (attempts > 1) console.error(`  (captured on attempt ${attempts})`);
-
-const measured = await page.evaluate(
-  async (plainData, filteredData) => {
-    const load = async (data) => {
-      const bytes = Uint8Array.from(atob(data), (c) => c.charCodeAt(0));
-      const bitmap = await createImageBitmap(
-        new Blob([bytes], { type: "image/png" }),
-      );
-      const canvas = document.createElement("canvas");
-      canvas.width = bitmap.width;
-      canvas.height = bitmap.height;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(bitmap, 0, 0);
-      const { data: px } = ctx.getImageData(
-        0,
-        0,
-        canvas.width,
-        canvas.height,
-      );
-      const mask = new Uint8Array(canvas.width * canvas.height);
-      for (let i = 0, j = 0; i < px.length; i += 4, j++) {
-        /* Blue over red identifies the accent hue. Green is skipped deliberately:
-           royal blue is judged on the gap between blue and red, and including green
-           only widens the accepted range without adding any discrimination. */
-        const r = px[i];
-        const b = px[i + 2];
-        const a = px[i + 3];
-        mask[j] = a >= 32 && b > r + 24 && b > 90 && r < 190 ? 1 : 0;
-      }
-      return { mask, width: canvas.width, height: canvas.height };
-    };
-
-    const plain_ = await load(plainData);
-    const filtered_ = await load(filteredData);
-
-    /*
-      3x3 minimum is a one pixel binary erosion. A pixel survives as core only if all
-      eight neighbours are inked in the unfiltered mask, which is exactly the interior
-      of a stroke and never the halo.
-    */
-    const { mask, width, height } = plain_;
-    const inked = (x, y) =>
-      x < 0 || y < 0 || x >= width || y >= height ? 0 : mask[y * width + x];
-
-    let plainInk = 0;
-    let filteredInk = 0;
-    let core = 0;
-    let kept = 0;
-
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const i = y * width + x;
-        if (filtered_.mask[i]) filteredInk++;
-        if (!mask[i]) continue;
-        plainInk++;
-        let interior = 1;
-        for (let dy = -1; dy <= 1 && interior; dy++) {
-          for (let dx = -1; dx <= 1; dx++) {
-            if (!inked(x + dx, y + dy)) {
-              interior = 0;
-              break;
-            }
-          }
-        }
-        if (!interior) continue;
-        core++;
-        if (filtered_.mask[i]) kept++;
-      }
-    }
-
-    return {
-      plainInk,
-      filteredInk,
-      core,
-      kept,
-      areaRatio: plainInk === 0 ? 0 : filteredInk / plainInk,
-      coreSurvival: core === 0 ? 0 : kept / core,
-    };
-  },
-  plain,
-  filtered,
-);
-
-const round = (n) => Number(n.toFixed(3));
-
-console.log(
-  JSON.stringify(
-    {
-      clip,
-      plainInk: measured.plainInk,
-      filteredInk: measured.filteredInk,
-      corePixels: measured.core,
-      areaRatio: round(measured.areaRatio),
-      coreSurvival: round(measured.coreSurvival),
-      minCore: MIN_CORE,
-      maxArea: MAX_AREA,
+      return samples;
     },
-    null,
-    1,
-  ),
-);
+    WATCH_MS,
+    SAMPLE_MS,
+  );
 
 const failures = [];
-if (measured.plainInk < 1500) {
+
+await page.goto(URL, { waitUntil: "networkidle0" });
+const samples = await watch();
+
+if (!samples || samples.length === 0) {
   failures.push(
-    `the unfiltered capture holds only ${measured.plainInk} ink pixels, so the crop is wrong and the comparison would be meaningless`,
-  );
-}
-if (measured.core === 0) {
-  failures.push(
-    "no stroke cores were found in the unfiltered capture, so erosion cannot be measured and the score would be meaningless",
-  );
-}
-if (measured.coreSurvival < MIN_CORE) {
-  failures.push(
-    `the filter keeps only ${(measured.coreSurvival * 100).toFixed(1)}% of the stroke cores; below ${(MIN_CORE * 100).toFixed(0)}% the interiors of the strokes have been eaten away and the settled word stops reading as letters`,
-  );
-}
-if (measured.areaRatio > MAX_AREA) {
-  failures.push(
-    `the filter inflates the word to ${(measured.areaRatio * 100).toFixed(0)}% of its unfiltered area; above ${(MAX_AREA * 100).toFixed(0)}% the strokes have thickened until adjacent letters meet and the counters close`,
+    "the typewriter stage is not on the page, so nothing could be measured; the hero may not have rendered",
   );
 }
 
+const report = { motion: null, reduced: null };
+
+if (samples && samples.length) {
+  await page.screenshot({ path: `${OUT}/word-1440.png` });
+
+  const widths = samples.map((s) => s.width);
+  const minWidth = Math.min(...widths);
+  const maxWidth = Math.max(...widths);
+
+  const texts = samples.map((s) => s.text);
+  // Consecutive duplicates removed, so the list is the sequence of states the word
+  // actually passed through rather than each state repeated a dozen times.
+  const distinct = texts.filter((t, i) => i === 0 || t !== texts[i - 1]);
+
+  const isPrefixOfAWord = (t) => WORDS.some((w) => w.startsWith(t));
+  const strayText = distinct.filter((t) => t.length > 0 && !isPrefixOfAWord(t));
+
+  /*
+    The longest run of states where each is exactly one character longer than the
+    one before it.
+
+    Scanned rather than assumed, because the cycle is hold, delete, pause, type:
+    the sample window contains three separate descending runs and one ascending
+    one, and only the ascending run is evidence of typing. Requiring a minimum run
+    length is what separates a real typewriter from text that merely appeared.
+  */
+  let bestRun = 0;
+  let run = 1;
+  for (let i = 1; i < distinct.length; i++) {
+    if (distinct[i].length === distinct[i - 1].length + 1) {
+      run += 1;
+      if (run > bestRun) bestRun = run;
+    } else {
+      run = 1;
+    }
+  }
+
+  const names = [...new Set(samples.map((s) => s.name))];
+  const badNames = names.filter((n) => n !== null && !WORDS.includes(n));
+  const sawCaret = samples.some((s) => s.caret);
+  const sawGlow = samples.some((s) => s.glowSpans > 0);
+
+  report.motion = {
+    samples: samples.length,
+    distinctStates: distinct.length,
+    longestAscendingRun: bestRun,
+    longestWordSeen: Math.max(...distinct.map((t) => t.length)),
+    widthMin: minWidth,
+    widthMax: maxWidth,
+    sawCaret,
+    sawGlow,
+    namesSeen: names,
+  };
+
+  if (maxWidth - minWidth > 1) {
+    failures.push(
+      `the reserved width moved from ${minWidth}px to ${maxWidth}px while the word was typing, so the headline reflows on every keystroke`,
+    );
+  }
+
+  if (bestRun < MIN_TYPED_STATES) {
+    failures.push(
+      `the longest run of one character at a time was ${bestRun} states, expected at least ${MIN_TYPED_STATES}; the word is appearing in chunks rather than being typed`,
+    );
+  }
+
+  if (strayText.length) {
+    failures.push(
+      `painted text that is not a prefix of any word: ${JSON.stringify(strayText.slice(0, 4))}; the serif markers are being sliced wrongly`,
+    );
+  }
+
+  if (!sawCaret) {
+    failures.push("no caret was ever rendered, so this does not read as a typewriter");
+  }
+
+  if (!sawGlow) {
+    failures.push("no per character spans were ever rendered, so newly typed characters cannot glow");
+  }
+
+  if (badNames.length) {
+    failures.push(
+      `the accessible name was not always a whole word: ${JSON.stringify(badNames.slice(0, 4))}`,
+    );
+  }
+}
+
+/* ------------------------------------------------- reduced motion is static */
+
+await page.emulateMediaFeatures([
+  { name: "prefers-reduced-motion", value: "reduce" },
+]);
+await page.reload({ waitUntil: "networkidle0" });
+
+const reducedSamples = await page.evaluate(
+  async (ms, step) => {
+    const stage = document.querySelector("[data-type-stage]");
+    const holder = document.querySelector("[data-rotating-word]");
+    if (!stage || !holder) return null;
+
+    const nameEl = holder.querySelector(".sr-only");
+    const samples = [];
+    const t0 = performance.now();
+
+    while (performance.now() - t0 < ms) {
+      samples.push({
+        text: stage.textContent ?? "",
+        width: Math.round(holder.getBoundingClientRect().width),
+        name: nameEl ? (nameEl.textContent ?? "") : null,
+        caret: Boolean(stage.querySelector("[data-type-caret]")),
+        glowSpans: stage.querySelectorAll(".char-glow").length,
+      });
+      await new Promise((r) => setTimeout(r, step));
+    }
+
+    return samples;
+  },
+  REDUCED_WATCH_MS,
+  SAMPLE_MS,
+);
+
+if (!reducedSamples || reducedSamples.length === 0) {
+  failures.push("the typewriter stage disappeared under reduced motion");
+} else {
+  const texts = [...new Set(reducedSamples.map((s) => s.text))];
+  const names = [...new Set(reducedSamples.map((s) => s.name))];
+  const sawCaret = reducedSamples.some((s) => s.caret);
+  const sawGlow = reducedSamples.some((s) => s.glowSpans > 0);
+
+  report.reduced = {
+    samples: reducedSamples.length,
+    distinctTexts: texts,
+    namesSeen: names,
+    sawCaret,
+    sawGlow,
+  };
+
+  if (texts.length !== 1) {
+    failures.push(
+      `under reduced motion the word changed between ${JSON.stringify(texts)}; it must be static`,
+    );
+  }
+
+  if (texts.length === 1 && !WORDS.includes(texts[0])) {
+    failures.push(
+      `under reduced motion the word is "${texts[0]}", which is not a whole word`,
+    );
+  }
+
+  if (sawCaret) {
+    failures.push(
+      "a caret is rendered under reduced motion, which promises typing that is not happening",
+    );
+  }
+
+  if (sawGlow) {
+    failures.push(
+      "per character glow spans exist under reduced motion; a static word should render through SerifText with none of them",
+    );
+  }
+
+  if (names.length !== 1) {
+    failures.push(
+      `the accessible name changed under reduced motion: ${JSON.stringify(names)}`,
+    );
+  }
+}
+
+await browser.close();
+
+console.log(JSON.stringify(report, null, 1));
+
 if (failures.length) {
-  console.error("\nMORPH FILTER FAILURES:\n  " + failures.join("\n  "));
-  await browser.close();
+  console.error("\nWORD FAILURES:\n  " + failures.join("\n  "));
   process.exit(1);
 }
 
 console.log(
-  "\nMORPH OK: the settled word keeps " +
-    (measured.coreSurvival * 100).toFixed(1) +
-    " percent of its stroke cores and renders at " +
-    (measured.areaRatio * 100).toFixed(0) +
-    " percent of its unfiltered area, so the letters survive at rest and still fuse mid morph.",
+  "\nWORD OK: the word types one character at a time, every painted state is a real prefix, the reserved width never moves, the caret is lit, the accessible name is always a whole word, and reduced motion renders it static with no caret and no per character spans.",
 );
-
-await browser.close();

@@ -639,6 +639,82 @@ p {
 }
 
 /*
+  THE TYPEWRITER CARET AND THE PER CHARACTER GLOW.
+
+  Both belong to `RotatingWord`, and both run on CSS keyframes rather than on
+  JavaScript. That is the point of the rewrite rather than an accident: a
+  typewriter knows exactly when a character was typed, because that character did
+  not exist a moment earlier. So the glow is a one shot animation triggered by
+  the character mounting, and nothing has to re-render sixty times a second to
+  fade it, which is exactly what the SVG displacement filter it replaced had to do.
+
+  `currentColor` throughout, so both take their colour from the word rather than
+  naming a hue. The word is `text-accent`, so the caret and its glow are the same
+  colour as the word by construction and follow the palette in both schemes
+  instead of being pinned to the blue they were designed against.
+*/
+@keyframes type-caret-blink {
+  0%,
+  42% {
+    opacity: 1;
+  }
+  50%,
+  92% {
+    opacity: 0.18;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@utility type-caret {
+  display: inline-block;
+  /* In em, so the caret scales with the fluid display type exactly as the glyphs
+     around it do. A pixel width would be a hairline on a phone and a fat bar on a
+     desktop. */
+  width: 0.075em;
+  height: 0.72em;
+  /* Its bottom edge sits a hair below the baseline, which is where a text
+     insertion point is drawn. `middle` would float it to the x-height. */
+  vertical-align: -0.04em;
+  margin-left: 0.05em;
+  border-radius: var(--radius-pill);
+  background-color: currentColor;
+  /* What makes the caret read as lit rather than as a dark bar dropped on the
+     word. Two radii: a tight core and a wide bloom. */
+  box-shadow: 0 0 6px currentColor, 0 0 16px currentColor;
+  animation: type-caret-blink 1.06s ease-in-out infinite;
+}
+
+/*
+  THE GLOW A CHARACTER IS BORN WITH, DECAYING TO NOTHING.
+
+  Three radii at decreasing opacity, so the character has a hard bright edge and a
+  wide soft bloom behind it. One radius reads as a blur filter rather than as
+  light coming off the letter.
+
+  `both` fill mode is load bearing. Without it the element snaps back to its own
+  inherited `text-shadow: none` in the frame between the animation ending and the
+  next one starting, which on a 110ms typist is a visible flicker on whichever
+  character finished glowing most recently.
+*/
+@keyframes char-glow {
+  from {
+    text-shadow:
+      0 0 4px currentColor,
+      0 0 11px currentColor,
+      0 0 24px currentColor;
+  }
+  to {
+    text-shadow: 0 0 0 transparent;
+  }
+}
+
+@utility char-glow {
+  animation: char-glow 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/*
   THE HERO WASH.
 
   A linear gradient behind the hero, built entirely from `--canvas`, `--surface`
