@@ -427,7 +427,29 @@ export const workedWith = {
   and a local path bypasses it, exactly as the hero artwork does.
 */
 export const clientLogos = [
-  { name: "Siddharth Hospitality", initials: "SH", spec: "320x120", src: null as string | null },
+  {
+    name: "Siddharth Hospitality",
+    initials: "SH",
+    spec: "648x336",
+    /*
+      THE FIRST REAL MARK ON THE SITE.
+
+      Supplied as `logo-2.webp`, 1275x594, of which the mark itself was only
+      632x320: 316px of empty space on the left, 327 on the right, and a further
+      133 above and 141 below. In a 168px slot that padding would have rendered the
+      logo at about half the size it should be, off centre, inside a frame that
+      reads as mostly empty.
+
+      So it was trimmed to its content box with an 8px margin and saved as PNG,
+      which is lossless and correct for a mark of flat colour with hard edges.
+
+      The white background is left in place rather than keyed out. The strip sits
+      on a light section and every slot is `bg-canvas`, so white is invisible, and
+      knocking white to transparency puts a grey halo on the anti-aliased edges of
+      the gold, which is the part of the mark most likely to be judged.
+    */
+    src: "/logos/siddhartha-hospitality.png" as string | null,
+  },
   { name: "Hamsa Wears", initials: "HW", spec: "320x120", src: null as string | null },
   { name: "Kshipra Attire", initials: "KA", spec: "320x120", src: null as string | null },
   {

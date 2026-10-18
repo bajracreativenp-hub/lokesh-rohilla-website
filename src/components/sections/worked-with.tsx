@@ -107,6 +107,12 @@ export function WorkedWith() {
                 one. That is the reason the slot reserves `h-16 w-[10.5rem]` rather
                 than sizing to the image.
 
+                48 OF THE SLOT'S 64px IS GIVEN TO THE MARK.
+
+                At 40px the first genuine logo on the site sat inside a bordered
+                frame and read as an afterthought. The remaining 16px is the
+                breathing room that stops it touching the frame.
+
                 `alt` names the organisation. The mark is a picture of a logo, and
                 for anyone not seeing it the name is the whole content.
               */
@@ -114,8 +120,8 @@ export function WorkedWith() {
                 src={logo.src}
                 alt={`${logo.name} logo`}
                 width={168}
-                height={40}
-                className="max-h-10 max-w-full object-contain"
+                height={48}
+                className="max-h-12 max-w-full object-contain"
               />
             ) : (
               /*
