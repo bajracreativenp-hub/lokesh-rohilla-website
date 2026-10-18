@@ -1,6 +1,6 @@
 import { ButtonLink } from "@/components/ui/button";
 import { Container, PendingNote } from "@/components/ui/layout";
-import { ImageSlot } from "@/components/ui/portrait-slot";
+import { ImageSlot, QuoteCard } from "@/components/ui/portrait-slot";
 import { RotatingWord } from "@/components/ui/rotating-word";
 import { Reveal } from "@/components/ui/reveal";
 import { SerifText } from "@/components/ui/serif-text";
@@ -71,6 +71,42 @@ import { hero } from "@/lib/content";
  * up, and a headline that filled its column instead would break that at the narrow
  * end. Two lines is also where the break belongs in this sentence.
  */
+/**
+ * WHERE EACH FLOATING CARD SITS, AND WHY BOTH ARE ON THE SAME EDGE.
+ *
+ * They straddle the photograph's left edge, one at the top and one at the bottom.
+ * The first attempt put the dark card in the opposite top right corner, which is
+ * the arrangement a stock photo usually suggests, and it put the card straight
+ * across the subject's head: this portrait is centre framed, so the top right
+ * corner is a face, not background. The left edge is empty blurred room at both
+ * ends, so the pair brackets the photograph there and leaves the person legible.
+ *
+ * They are aligned rather than diagonally opposed on purpose. Two cards on the
+ * left, top and bottom, read as a deliberate pair framing the picture. The same two
+ * cards diagonally opposed read as a coincidence, and two on one side with nothing
+ * balancing the other reads as a stack.
+ *
+ * `float-card` and `float-card-late` are the two halves of one animation: the
+ * same nine second float, the second delayed by half a cycle, so the pair never
+ * rises and falls together.
+ *
+ * They animate `transform`, which is the reason these cards are NOT wrapped in
+ * `Reveal` the way every other block in this hero is. `Reveal` animates `y` on
+ * the element it renders, and a CSS keyframe animation on that same element
+ * wins, so the reveal would be silently lost.
+ *
+ * The reduced motion block in `globals.css` collapses every animation duration
+ * to 0.01ms for one iteration, which parks the keyframe at its 0% value of
+ * `translateY(0)`. The cards arrive in their resting position and simply do not
+ * float, which is the correct outcome rather than a half finished movement.
+ */
+const FLOAT_CARD_PLACEMENT = [
+  // Bottom left, over the lower corner of the photograph.
+  "-bottom-6 -left-6 float-card",
+  // Top left. Deliberately NOT the opposite corner: see above.
+  "-top-6 -left-6 float-card-late",
+] as const;
+
 export function Hero() {
   return (
     /* `data-hero-split` replaced `data-hero-fullbleed`, which is what
@@ -178,12 +214,12 @@ export function Hero() {
           {/* ------------------------------------------------------ portrait */}
           <Reveal trigger="mount" delay={0.1} distance={22}>
             {/*
-              `max-w-[24rem]` caps and centres the portrait inside its column, and
+              `max-w-[30rem]` caps and centres the portrait inside its column, and
               `mx-auto` is what centres it. The offset plate is inside this box, so
               it is capped and offset with the photograph rather than escaping its
               column.
             */}
-            <div className="relative isolate mx-auto w-full max-w-[24rem]">
+            <div className="relative isolate mx-auto w-full max-w-[30rem]">
               {/*
                 The offset plate. `aria-hidden`, and behind the portrait because
                 `isolate` scopes this stacking context to the wrapper and the slot
@@ -225,8 +261,41 @@ export function Hero() {
                 src={hero.portrait.src}
                 alt={hero.portrait.alt}
                 preload
-                sizes="(min-width: 1024px) 24rem, 100vw"
+                sizes="(min-width: 1024px) 30rem, 100vw"
               />
+
+              {/*
+                THE FLOATING CARDS, RESTORED.
+
+                `hero.quotes` and `QuoteCard` were both written for this and neither
+                was wired into the split layout, so they had been dead code since
+                the hero changed shape. They are back over the photograph.
+
+                They carry service names and a line about each service, not
+                testimonials. `QuoteCard` was rewritten from testimonial slots for
+                exactly that reason: a card floating beside a portrait reads as
+                something the subject is associated with, and filling that slot
+                with unattributed praise would have advertised the absence of
+                testimonials more loudly than leaving it empty.
+
+                `hidden lg:block`, and that is not a responsive nicety. These cards
+                straddle the portrait by 24px, and below `lg` the container's
+                padding is 32px rather than 48px while the photograph is the full
+                width of its column, so an outward card would put the page into
+                horizontal scroll. At `lg` there is 48px of padding to absorb a
+                24px overhang and the overflow probes stay clean. `probe-hero` and
+                `verify:widths` both fail on `scrollWidth > clientWidth`.
+              */}
+              {hero.quotes.map((quote, i) => (
+                <QuoteCard
+                  key={quote.source}
+                  source={quote.source}
+                  tone={quote.tone}
+                  className={`absolute z-[var(--z-raised)] hidden lg:block ${
+                    FLOAT_CARD_PLACEMENT[i] ?? ""
+                  }`}
+                />
+              ))}
             </div>
           </Reveal>
         </div>
