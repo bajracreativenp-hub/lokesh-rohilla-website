@@ -832,7 +832,25 @@ p {
   .marquee-track {
     display: flex;
     width: max-content;
-    animation: logo-marquee var(--marquee-duration, 44s) linear infinite;
+    /*
+      26s, DOWN FROM 44s, AND THE NUMBER IS NOT THE POINT.
+
+      The strip is not the six monogram frames it was when this was 44 seconds.
+      It is nine real marks, and it got wider at the same time as it got faster,
+      so leaving the duration alone made it slower in pixels per second rather than
+      keeping it steady: at 44s the track was roughly 2x longer and each logo
+      crossed the screen at half the speed it used to.
+
+      At 26s the track runs about 4.7px per millisecond, so a mark takes roughly a
+      second to cross. That is brisk enough to read as motion rather than as a
+      stuck element, and slow enough that a logo is legible while it passes.
+
+      Faster than this stops being a logo wall and starts being a slot machine.
+      Hover still pauses it, and reduced motion still switches it off entirely, so
+      the two things that matter for someone who cannot follow the movement are
+      unaffected by how fast this is.
+    */
+    animation: logo-marquee var(--marquee-duration, 26s) linear infinite;
   }
 
   /*

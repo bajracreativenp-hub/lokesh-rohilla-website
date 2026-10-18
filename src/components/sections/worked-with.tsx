@@ -95,33 +95,55 @@ export function WorkedWith() {
               the one place the visitor is most likely to be looking.
             */
             title={logo.src ? logo.name : `${logo.name}, logo pending`}
-            className="flex h-16 w-[10.5rem] items-center justify-center gap-2.5 rounded-md border border-hairline bg-canvas px-3 grayscale transition-[filter,border-color,transform] duration-300 ease-brand group-hover:-translate-y-0.5 group-hover:border-accent group-hover:grayscale-0 group-focus-within:grayscale-0 motion-reduce:transition-none"
+            /*
+              NO BOX. The border, the rounded corners and the `bg-canvas` are gone.
+
+              They existed for the monograms, which were placeholders and needed to
+              read as labelled objects rather than as floating text. Real marks do
+              not: a bordered tile per logo is nine little frames competing with the
+              marks themselves, and it makes a logo wall look like a table of
+              thumbnails rather than like a line of organisations.
+
+              What replaces the border on hover is nothing, deliberately. The
+              accent border drew a box round one logo to say "this one", which was
+              useful when the box was always there and is just an outline in the
+              middle of the strip now. Colour is the whole of the hover state, and
+              a small lift, which is enough to track a moving target.
+
+              `py-6` is the breathing room the border used to provide. Without a
+              frame the marks need more space around them, not less, because nothing
+              bounds them any more.
+
+              The greyscale at rest is unchanged and is doing the real work here:
+              nine marks in nine different colour schemes, desaturated, read as one
+              set. Full colour arrives on hover.
+            */
+            className="flex h-20 w-[13rem] items-center justify-center py-6 grayscale transition-[filter,transform] duration-300 ease-brand group-hover:-translate-y-0.5 group-hover:grayscale-0 group-focus-within:grayscale-0 motion-reduce:transition-none"
           >
             {logo.src ? (
               /*
                 THE REAL MARK.
 
-                `object-contain` inside the same fixed box the monogram occupied, so
-                a wide wordmark and a square one both sit on the same baseline and
-                the strip does not change height when the six are replaced one by
-                one. That is the reason the slot reserves `h-16 w-[10.5rem]` rather
-                than sizing to the image.
+                `object-contain` inside a fixed box, so a 4:1 wordmark and a square
+                badge both sit on the same baseline and the strip does not change
+                height as the marks are replaced one at a time. The box is what
+                reserves the space; the image is letterboxed inside it.
 
-                48 OF THE SLOT'S 64px IS GIVEN TO THE MARK.
+                64px IN A 192px BOX.
 
-                At 40px the first genuine logo on the site sat inside a bordered
-                frame and read as an afterthought. The remaining 16px is the
-                breathing room that stops it touching the frame.
-
-                `alt` names the organisation. The mark is a picture of a logo, and
-                for anyone not seeing it the name is the whole content.
+                That is roughly twice what a mark had before, which is the point of
+                removing the frame: there is now room to actually read nine logos
+                rather than nine hints of them. A 4:1 mark fills the width and runs
+                about 48px tall; a square badge fills the height at 64px and runs
+                about half that wide. Both are legible, which at the previous size
+                neither was.
               */
               <Image
                 src={logo.src}
                 alt={`${logo.name} logo`}
-                width={168}
-                height={48}
-                className="max-h-12 max-w-full object-contain"
+                width={192}
+                height={64}
+                className="max-h-16 max-w-[12rem] object-contain"
               />
             ) : (
               /*
@@ -132,18 +154,22 @@ export function WorkedWith() {
                 carried by colour instead: `text-ink-muted` at 5.9:1 passes, going to
                 full `text-ink` on hover.
 
-                `bg-canvas` is explicit because a strip of transparent frames lets
-                whatever scrolls behind it show through, which on the homepage is the
-                hero's bottom edge and on a `surface` section is the tint. With it
-                the frames read as objects sitting on the page rather than as holes
-                cut in it.
+                The gap moved here. It used to sit on the slot, back when the slot
+                was a bordered frame and the monogram and the name sat side by side
+                inside it. A fragment takes no classes, so it is a div now and the
+                spacing belongs to the thing it spaces.
+
+                Nothing else renders this path today: all nine marks have a `src`.
+                It stays because a `src` is one string away from being null, and an
+                organisation added without a file should show an honest labelled
+                placeholder rather than an empty gap in the strip.
 
                 The monogram stands in for the mark and is `aria-hidden`: the name
-                beside it is the label, and announcing "LR" before each organisation
+                beside it is the label, and announcing "SH" before each organisation
                 would be noise. When a real logo replaces this, the monogram is the
                 single element to delete.
               */
-              <>
+              <div className="flex items-center justify-center gap-2.5">
                 <span
                   aria-hidden="true"
                   className="grid size-7 shrink-0 place-items-center rounded-md bg-ink text-[0.625rem] font-extrabold tracking-tight text-canvas transition-colors duration-300 ease-brand group-hover:bg-accent group-hover:text-accent-ink"
@@ -153,7 +179,7 @@ export function WorkedWith() {
                 <span className="text-center text-[0.8125rem] font-bold leading-tight tracking-tight text-ink-muted transition-colors duration-300 ease-brand group-hover:text-ink">
                   {logo.name}
                 </span>
-              </>
+              </div>
             )}
           </div>
         </li>
