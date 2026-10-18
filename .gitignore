@@ -42,3 +42,21 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Scratch directories that are NOT part of the website.
+#
+# `git add -A` swept both of these into a commit once, along with eight font
+# binaries and a pile of Python bytecode, so they are ignored explicitly rather
+# than left to happen again. Neither is built, served or imported by the site.
+#
+#   lokesh-rohilla-logo/  logo design scratch: concepts, renders, font files and
+#                         the scripts that generated them
+#   logo-design-skill/    a separate git repository in its own right; committing
+#                         it added a gitlink, which clones as an empty broken
+#                         submodule reference rather than as the files
+#
+# IGNORE THESE OR MOVE THEM OUTSIDE THE REPO. If the logo work should be kept,
+# it belongs in its own repository, not alongside the site it designs for.
+lokesh-rohilla-logo/
+logo-design-skill/
+__pycache__/
