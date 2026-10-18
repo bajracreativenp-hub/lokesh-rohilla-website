@@ -409,14 +409,35 @@ export const workedWith = {
   to be one: it is a monogram in the site's own ink, beside the organisation's
   name in full, so the row reads as a labelled placeholder rather than as a row of
   marks that might be mistaken for real artwork.
+
+  `src` IS WHERE A REAL MARK GOES, AND IT IS NULL ON ALL SIX.
+
+  Setting it is the only edit needed to publish a mark. The component renders the
+  monogram when it is null and the image when it is not, in the same fixed box, so
+  the six can be replaced one at a time without the strip changing height.
+
+  Null is the correct value for every entry. Written permission to display each
+  mark is not confirmed, and displaying one without it asserts an endorsement that
+  has not been granted. That is a different kind of gap from a missing file: a
+  missing file is an oversight, and an unpermissioned mark is a claim about someone
+  else's business.
+
+  A mark belongs in `public/` and is referenced by path. Nothing here needs a
+  config change: `next.config.ts` only allowlists Unsplash for the demo imagery,
+  and a local path bypasses it, exactly as the hero artwork does.
 */
 export const clientLogos = [
-  { name: "Siddharth Hospitality", initials: "SH", spec: "320x120" },
-  { name: "Hamsa Wears", initials: "HW", spec: "320x120" },
-  { name: "Kshipra Attire", initials: "KA", spec: "320x120" },
-  { name: "Center for Leadership and Entrepreneurship", initials: "CL", spec: "320x120" },
-  { name: "Kalpa Internet Ventures", initials: "KI", spec: "320x120" },
-  { name: "Omega International College", initials: "OI", spec: "320x120" },
+  { name: "Siddharth Hospitality", initials: "SH", spec: "320x120", src: null as string | null },
+  { name: "Hamsa Wears", initials: "HW", spec: "320x120", src: null as string | null },
+  { name: "Kshipra Attire", initials: "KA", spec: "320x120", src: null as string | null },
+  {
+    name: "Center for Leadership and Entrepreneurship",
+    initials: "CL",
+    spec: "320x120",
+    src: null as string | null,
+  },
+  { name: "Kalpa Internet Ventures", initials: "KI", spec: "320x120", src: null as string | null },
+  { name: "Omega International College", initials: "OI", spec: "320x120", src: null as string | null },
 ] as const;
 
 export const finalCta = {

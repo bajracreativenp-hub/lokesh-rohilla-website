@@ -623,20 +623,18 @@ p {
 }
 
 /*
-  THE COUNTER-SCROLLING ROW.
+  THE COUNTER-SCROLLING ROW'S REVERSE VARIANT IS GONE WITH THE SECOND ROW.
 
-  Two rows run at once, one left and one right, so the eye reads a weave rather than
-  a conveyor belt. Both use one keyframe with a `reverse` variant rather than a
-  second keyframe, which is the cheaper and better way: two identical animations in
-  opposite directions cannot drift apart over time, because there is only one thing
+  `.marquee-track-reverse` existed so two rows could share one keyframe travelling
+  in opposite directions, which was the cheaper and better way to do it: two
+  identical animations cannot drift apart over time, because there is only one thing
   that can drift.
 
-  Applied with `.marquee-track-reverse`, which sets `animation-direction: reverse`
-  on the same keyframes. Nothing else changes.
+  There is one strip now, so there is nothing to run in reverse and the utility has
+  no user. Removed rather than left parked, since an unused reverse variant invites
+  someone to build the two row weave back without knowing it was a deliberate
+  change.
 */
-@utility marquee-track-reverse {
-  animation-direction: reverse;
-}
 
 /*
   THE SLOW FLOAT.
@@ -847,21 +845,21 @@ p {
     animation-play-state: paused;
   }
 
-  /* The explicit toggle. Higher specificity than the rule above so it wins
-     whichever order the cascade resolves in. */
-  .marquee[data-paused="true"] .marquee-track {
-    animation-play-state: paused;
-  }
-
   /*
-    With two counter-scrolling rows, the toggle lives on a wrapper above both, so
-    this descendant selector is what makes one control stop the pair. Without it the
-    Pause button would only reach the first row and half the section would keep
-    moving, which is the classic half-implemented marquee bug.
+    THE PAUSE BUTTON'S RULES ARE GONE WITH THE BUTTON.
+
+    Two rules used to live here and both are dead now. `.marquee[data-paused]` and
+    its wrapper descendant existed so one control could stop both counter-scrolling
+    rows, and there is a single strip and no control, so there is nothing left for
+    them to select.
+
+    `:focus-within` stays even though it cannot currently fire: nothing inside the
+    strip is focusable, so the selector never matches today. It stays because real
+    client marks may well arrive as links to case studies, and if they do the
+    keyboard gets a pause mechanism for free with no new code. `probe-marquee`
+    asserts the focusable count is zero, so the moment that changes it is recorded
+    rather than assumed.
   */
-  [data-paused="true"] .marquee-track {
-    animation-play-state: paused;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -900,16 +898,13 @@ p {
   }
 
   /*
-    The Pause button is removed, not just visually hidden.
+    THE PAUSE BUTTON'S REDUCED MOTION RULE WENT WITH THE BUTTON.
 
-    A control for something that is not happening is worse than no control: it
-    promises a motion the visitor has switched off. `display: none` rather than
-    opacity or visibility so it also leaves the tab order, otherwise a keyboard
-    user would tab onto an invisible button with a label promising motion.
+    It used to set `display: none` here, on the reasoning that a control for
+    something that is not moving promises motion the visitor has switched off and
+    has to leave the tab order as well as the screen. That reasoning was right and
+    the button no longer exists, so there is nothing left to hide.
   */
-  .marquee-toggle {
-    display: none;
-  }
 
   *,
   *::before,

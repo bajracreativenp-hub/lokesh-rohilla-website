@@ -5,9 +5,12 @@
  * The things worth asserting are all accessibility rules that a screenshot
  * cannot show and that a build cannot catch:
  *
- *   - the row actually scrolls, and the loop is seamless
- *   - it pauses on hover, on keyboard focus, and via an explicit toggle
- *   - the toggle reports its state through aria-pressed
+ *   - the strip actually scrolls, and the loop is seamless
+ *   - it pauses on hover
+ *   - there is NO Pause button, and its absence is asserted so that one creeping
+ *     back is caught rather than shipped
+ *   - nothing inside the strip is focusable, which records that hover is the only
+ *     pause mechanism that currently fires
  *   - the duplicated row is hidden from assistive tech, so names are not
  *     announced twice
  *   - logos are greyscaled at rest and reveal colour on hover
@@ -82,11 +85,26 @@ const read = () =>
       viewportWidth: document.documentElement.clientWidth,
       overflowsViewport:
         marquee && marquee.getBoundingClientRect().right > document.documentElement.clientWidth + 1,
-      toggleLabel: document.querySelector("[aria-pressed]")?.textContent?.trim() ?? null,
-      togglePressed: document.querySelector("[aria-pressed]")?.getAttribute("aria-pressed") ?? null,
-      toggleVisible: (() => {
-        const b = document.querySelector("[aria-pressed]");
-        return b ? getComputedStyle(b).display !== "none" && b.offsetParent !== null : null;
+      /*
+        The Pause button is asserted GONE, at rest as well as under reduced motion.
+
+        It used to be asserted working: pressed state, label offering to play again,
+        track held still after the click. Those four assertions were removed with
+        the control, and in their place this one, so that if the button ever comes
+        back nobody notices it as a regression to a design decision. Its absence is
+        now a tested property rather than a leftover.
+
+        Which leaves hover as the only mechanism that actually fires, because
+        `:focus-within` is inert here: nothing inside the strip is focusable. The
+        slots are divs holding a monogram and a name, deliberately not links, since
+        six decorative marks in the tab order is worse than a scrolling row. See the
+        note in `worked-with.tsx` about the WCAG 2.2.2 trade this represents.
+      */
+      pauseButtonPresent: document.querySelector("[aria-pressed]") !== null,
+      focusableInside: (() => {
+        const m = document.querySelector(".marquee");
+        if (!m) return null;
+        return m.querySelectorAll("a, button, [tabindex]:not([tabindex='-1'])").length;
       })(),
       // The edge fade only makes sense on a moving row.
       marqueeMask: marquee ? getComputedStyle(marquee).maskImage : null,
@@ -119,16 +137,19 @@ await page.mouse.move(1439, 60);
 await page.evaluate(() => new Promise((r) => setTimeout(r, 500)));
 report.afterLeave = await read();
 
-// The explicit toggle.
-await page.evaluate(() => document.querySelector("[aria-pressed]")?.click());
-await page.evaluate(() => new Promise((r) => setTimeout(r, 400)));
-report.afterToggle = await read();
+/*
+  THE PAUSE BUTTON IS NOT HERE ANY MORE.
 
-const toggledTransform = report.afterToggle.trackTransform;
-await page.evaluate(() => new Promise((r) => setTimeout(r, 600)));
-const stillToggled = await read();
-report.toggleIsStatic = stillToggled.trackTransform === toggledTransform;
-await page.screenshot({ path: `${OUT}/2-paused.png` });
+  Hover, focus and a Pause button were the three mechanisms. The button is gone, so
+  this records that its absence is deliberate and tested rather than an oversight:
+  if one reappears it fails, which is the behaviour you want if a design decision
+  gets reversed by accident.
+*/
+if (report.atRest.pauseButtonPresent !== false) {
+  failures.push(
+    "a Pause button is present; it was removed on purpose, so this is a regression rather than a fix",
+  );
+}
 
 // Reduced motion must switch it off entirely, not merely slow it.
 await page.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "reduce" }]);
@@ -176,12 +197,24 @@ if (!report.hoverIsStatic) failures.push("the track kept moving while hovered");
 if (report.afterLeave.playState === "paused") {
   failures.push("the row stayed paused after the pointer left");
 }
-if (report.afterToggle.togglePressed !== "true") {
-  failures.push(`the toggle did not report pressed state (aria-pressed: ${report.afterToggle.togglePressed})`);
-}
-if (!report.toggleIsStatic) failures.push("the track kept moving after the toggle was set to paused");
-if (!/play/i.test(report.afterToggle.toggleLabel ?? "")) {
-  failures.push(`the toggle label does not offer to play again (reads: "${report.afterToggle.toggleLabel}")`);
+/*
+  NOTHING IN THE STRIP IS FOCUSABLE, AND THAT IS ASSERTED RATHER THAN ASSUMED.
+
+  `:focus-within` is one of the two pause mechanisms in `globals.css`, so it is
+  worth knowing whether it can ever fire. Today it cannot: the slots are divs, not
+  links, so there is nothing inside the strip for a keyboard to land on and the
+  selector never matches. Six decorative marks in the tab order would be a worse
+  problem than a scrolling row, so the strip stays unfocusable and hover is left
+  carrying the whole job.
+
+  If real client marks arrive as links to case studies, this count goes above zero
+  and focus pause starts working for free. Until then this assertion is the thing
+  that records which mechanism is actually load bearing.
+*/
+if (report.atRest.focusableInside !== 0) {
+  failures.push(
+    `the strip now contains ${report.atRest.focusableInside} focusable element(s); if those are real links to case studies that is good, and if they are not it is six stops in the tab order for decoration`,
+  );
 }
 
 /*
@@ -204,16 +237,12 @@ if (report.reducedMotion.overflowsViewport) {
 }
 
 /*
-  Under reduced motion the Pause button must be GONE, not merely idle.
-
-  A control for something that is not moving promises motion the visitor has
-  switched off, and it has to leave the tab order as well as the screen.
+  The reduced motion block used to remove the Pause button from the tab order. There
+  is no button now, so there is nothing to remove, and the `.marquee-toggle` rules
+  that used to live in `globals.css` were deleted along with it rather than left
+  parked. What matters instead is that the scroll is off: a control for something
+  that is not moving promises motion the visitor has switched off.
 */
-if (report.reducedMotion.toggleVisible !== false) {
-  failures.push(
-    `the Pause button is still shown under reduced motion (visible: ${report.reducedMotion.toggleVisible})`,
-  );
-}
 // And the edge fade has nothing to soften once nothing is moving.
 if (report.reducedMotion.marqueeMask && report.reducedMotion.marqueeMask !== "none") {
   failures.push("the edge fade still applies under reduced motion, dimming the first and last logo");
@@ -224,5 +253,5 @@ if (failures.length) {
   process.exit(1);
 }
 console.log(
-  "\nMARQUEE OK: scrolls, seamless loop, pauses on hover and by toggle, duplicate row hidden, greyscaled at rest, off under reduced motion.",
+  "\nMARQUEE OK: one scrolling strip, seamless loop, pauses on hover, no Pause button, duplicate row hidden, greyscaled at rest, off under reduced motion.",
 );
