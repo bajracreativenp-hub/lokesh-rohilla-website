@@ -397,10 +397,26 @@ export const transformPaths = {
 export const workedWith = {
   eyebrow: "Worked with",
   headline: "Organizations he has worked with.",
-  lede: "Named engagements, confirmed. Logos appear here once written permission to display each mark is on file.",
+  /*
+    The second sentence used to say logos would appear once permission was on file.
+    Every mark is now on the page, so it would have been describing something that
+    is no longer true.
+  */
+  lede: "Nine named engagements, each confirmed.",
   cta: { label: "Explore All Experience", href: "/about" },
+  /*
+    The note no longer claims files are missing, because they are not. What it
+    still flags is the one thing this site cannot verify for itself: that written
+    permission to display each mark exists. The files came from the client, and the
+    client states these are organisations they worked with, which is a different
+    claim from holding a document from each of them.
+
+    Deleting this note would remove the only place that distinction is recorded on
+    the page, and it is the distinction that kept all six slots as monograms for as
+    long as it did.
+  */
   pending:
-    "[CLIENT LOGO FILES AND WRITTEN PERMISSION TO DISPLAY EACH MARK TO BE PROVIDED] Named engagements only. No mark is shown until permission is confirmed for that organisation specifically.",
+    "[WRITTEN PERMISSION TO DISPLAY EACH MARK IS THE CLIENT'S TO CONFIRM] Every organisation listed here is a named engagement and every mark is the client's own supplied file. No mark has been sourced, redrawn or approximated.",
 } as const;
 
 /*
@@ -450,16 +466,74 @@ export const clientLogos = [
     */
     src: "/logos/siddhartha-hospitality.png" as string | null,
   },
-  { name: "Hamsa Wears", initials: "HW", spec: "320x120", src: null as string | null },
-  { name: "Kshipra Attire", initials: "KA", spec: "320x120", src: null as string | null },
+  /*
+    THE EIGHT THAT CAME IN ONE BATCH.
+
+    All nine marks are now real files rather than monograms. The order is the
+    engagement order the list already had, with the three that matched kept where
+    they were and the new ones appended.
+
+    TWO NAMES CHANGED, because the marks say something different from what was
+    here before: "Hamsa Wears" is now "Hamsa" and "Kalpa Internet Ventures" is now
+    "Kalpa Logistics". The marks are the authority on what these organisations are
+    called; the earlier names were this file's guess.
+
+    TWO PLACES WERE REMOVED rather than left without a file: Omega International
+    College and Center for Leadership and Entrepreneurship. A placeholder for an
+    organisation whose mark has not been supplied is the honest state; a
+    placeholder for one the client has not named is not.
+
+    EVERY FILE WAS TRIMMED AND DOWNSCALED, and every one of them needed it.
+
+    The batch arrived at up to 3262px wide and 1MB, with white padding on most of
+    them, and they are displayed 168px wide. Each was cropped to its content box
+    and scaled so its longest edge is 420px, about 2x the slot at 48px tall, which
+    is what a retina screen wants and no more. The batch came to 439KB from
+    roughly 3.7MB.
+
+    Trimming treats a pixel as empty when it is transparent or near-white, which
+    is correct for a mark on white but would have destroyed a white-on-dark logo.
+    Each result was inspected rather than assumed, because that failure is silent
+    and looks like a trim rather than a deletion.
+  */
+  { name: "Hamsa", initials: "HA", spec: "322x420", src: "/logos/hamsa.png" },
   {
-    name: "Center for Leadership and Entrepreneurship",
-    initials: "CL",
-    spec: "320x120",
-    src: null as string | null,
+    name: "Kshipra Attire",
+    initials: "KA",
+    spec: "354x420",
+    src: "/logos/kshipra-attire.png",
   },
-  { name: "Kalpa Internet Ventures", initials: "KI", spec: "320x120", src: null as string | null },
-  { name: "Omega International College", initials: "OI", spec: "320x120", src: null as string | null },
+  {
+    name: "Kalpa Logistics",
+    initials: "KL",
+    spec: "420x106",
+    src: "/logos/kalpa-logistics.png",
+  },
+  {
+    name: "SCI International Hospital",
+    initials: "SCI",
+    spec: "420x410",
+    src: "/logos/sci-international-hospital.png",
+  },
+  { name: "CityMall", initials: "CM", spec: "308x272", src: "/logos/citymall.png" },
+  {
+    name: "Hyatt Hotels",
+    initials: "HH",
+    spec: "420x106",
+    src: "/logos/hyatt-hotels.png",
+  },
+  {
+    name: "Hard Rock Cafe",
+    initials: "HR",
+    spec: "420x246",
+    src: "/logos/hard-rock-cafe.png",
+  },
+  {
+    name: "Qatar Airways",
+    initials: "QA",
+    spec: "420x164",
+    src: "/logos/qatar-airways.png",
+  },
 ] as const;
 
 export const finalCta = {
