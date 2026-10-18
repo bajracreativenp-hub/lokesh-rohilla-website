@@ -89,13 +89,36 @@
     dark band already reads as a change of weight, and giving it extra space as
     well was doubling the emphasis.
 
-    Fluid rather than stepped, so there is no breakpoint at which the rhythm
-    jumps. These clamp to 88px on a small phone and 128px on a wide desktop, which
-    is roughly 2.2 line boxes at each end, so sections never read as cramped on a
-    phone nor as a gap on a desktop.
+Fluid rather than stepped, so there is no breakpoint at which the rhythm
+     jumps.
+
+     AND MUCH TIGHTER, AT THE CLIENT'S INSTRUCTION.
+
+     These were 3.5rem to 8rem and 2.5rem to 5.5rem, which is 128px between
+     sections on a wide desktop and 88px on a phone. Measured against the sections
+     themselves, that is more air than most of them need: a section with a heading
+     and a grid was floating in its own margin, and down a long page the gaps
+     accumulated into the impression that the site had little on it.
+
+     They are now 2.25rem to 4.5rem and 1.75rem to 3.5rem: 72px between sections on
+     a wide desktop and 36px on a phone, a 44% reduction at the wide end.
+
+     The ratio between the two steps is preserved, because the relationship is the
+     point and it is what `audit-rhythm` checks. The full step is still a band in
+     its own right; the tight one is still a closing strip that belongs to the
+     section above it.
+
+     What is NOT preserved is the old reasoning, which claimed this was roughly 2.2
+     line boxes at each end so sections would never read as cramped. It is fewer
+     line boxes now, and that is the deliberate trade: less air between sections in
+     exchange for the page reading as one thing rather than as a stack of islands.
+
+     There is still a floor, because a heading needs to be visibly separated from
+     the block above it. `audit-rhythm` reports any gap over 90px, so a section that
+     has drifted back into a canyon stays visible rather than being assumed absent.
   */
-  --space-section: clamp(3.5rem, 2rem + 5.5vw, 8rem);
-  --space-section-tight: clamp(2.5rem, 1.6rem + 3.2vw, 5.5rem);
+  --space-section: clamp(2.25rem, 1.25rem + 3vw, 4.5rem);
+  --space-section-tight: clamp(1.75rem, 1rem + 2.25vw, 3.5rem);
 
   /* Radii. One documented scale, applied everywhere. --------------------- */
   --radius-pill: 999px;

@@ -163,8 +163,20 @@ await browser.close();
   and in practice that means: every route must draw from the same two numbers, and
   every number must be one the site actually defines. Anything else is a scale that
   has drifted.
+These two numbers changed when the rhythm was tightened at the client's
+  instruction: `--space-section` and `--space-section-tight` went from
+  clamp(3.5rem, 2rem + 5.5vw, 8rem) and clamp(2.5rem, 1.6rem + 3.2vw, 5.5rem) to
+  clamp(2.25rem, 1.25rem + 3vw, 4.5rem) and clamp(1.75rem, 1rem + 2.25vw, 3.5rem).
+
+  At the 1440px this audit measures at, those resolve to 63px and 48px. They were
+  111px and 72px.
+
+  Read from the rendered page rather than recomputed from the clamp, because the
+  clamp is the specification and this is the measurement, and the one thing worth
+  catching is the two having drifted apart. The line below this comment is updated
+  from what the audit printed, not from arithmetic.
 */
-const KNOWN_VALUES = new Set([72, 111]);
+const KNOWN_VALUES = new Set([63, 48]);
 
 console.log("\nSECTION TOP PADDING PER ROUTE");
 console.log("Routes whose sections do not draw from the two defined rhythm steps:");
