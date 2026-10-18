@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Instrument_Sans, Instrument_Serif } from "next/font/google";
+import { Instrument_Sans, Instrument_Serif, JetBrains_Mono } from "next/font/google";
 
 import { CartProvider } from "@/components/commerce/cart-context";
 import { Footer } from "@/components/site/footer";
@@ -48,6 +48,30 @@ const serif = Instrument_Serif({
   weight: "400",
   style: ["normal", "italic"],
   variable: "--font-instrument-serif",
+  display: "swap",
+});
+
+/*
+  A THIRD FAMILY, FOR ONE COMPONENT.
+
+  JetBrains Mono exists for the oversized step figures in the process section and
+  nothing else. It is a variable font, so the whole family costs one file rather
+  than one per weight, and only the four digits of a step number are ever set in it.
+
+  It is not `--font-mono`. Tailwind's `font-mono` is the token for code, and code
+  appears in the health checker and in the event listings; repointing that would
+  change the face of every figure, timestamp and label on the site as a side effect
+  of one decorative decision. This is `--font-figure`, mapped in globals.css, and
+  nothing else can reach it.
+
+  One weight is loaded. The numbers are set large and bold enough that the face
+  reads on weight alone, and a monospace's character is its proportion rather than
+  its range.
+*/
+const figure = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: "700",
+  variable: "--font-jetbrains-mono",
   display: "swap",
 });
 
@@ -105,7 +129,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      className={`${sans.variable} ${serif.variable}`}
+      className={`${sans.variable} ${serif.variable} ${figure.variable}`}
     >
       <head>
         {/*

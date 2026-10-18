@@ -215,6 +215,18 @@ export const brandStatement = {
 export const philosophy = {
   headline: "Turning Chaos Into Clarity.",
   body: "Lokesh approaches problems by listening first, understanding the root cause, creating clarity, and then helping people or organizations build practical systems they can actually sustain.",
+  /*
+    `body` ON EACH STEP IS NOT RENDERED.
+
+    The process section became four colour bands carrying a title and an oversized
+    figure, and there is no room in a band for a paragraph beside a number that is
+    120px tall. It was tried and it was unreadable.
+
+    The four lines are kept here rather than deleted, because they are the only
+    written account of what each step actually involves, and that is worth more as
+    a record than as an empty field. `verb` is what the page renders; `body` is
+    what the client has said, waiting for somewhere with room for it.
+  */
   steps: [
     {
       verb: "Listen",

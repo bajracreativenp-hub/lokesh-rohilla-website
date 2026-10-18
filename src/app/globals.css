@@ -252,6 +252,16 @@ Fluid rather than stepped, so there is no breakpoint at which the rhythm
   --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-instrument-serif), ui-serif, Georgia, serif;
+  /*
+    --font-figure is NOT --font-mono.
+
+    `font-mono` is the token for code, and code is set in the health checker and
+    the event listings. Repointing it for the process section's oversized step
+    numbers would change the face of every figure, timestamp and code label on the
+    site as a side effect of one decorative decision. This token is reachable only
+    by the component that asked for it.
+  */
+  --font-figure: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* Fluid scale. The target sizes these were measured against, at the top of the
      range rather than extrapolated to it:

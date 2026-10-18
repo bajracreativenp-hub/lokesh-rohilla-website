@@ -15,6 +15,7 @@
     "verify:contrast": "node scripts/probe-contrast.mjs",
     "verify:paths": "node scripts/probe-paths.mjs && node scripts/probe-paths-mobile.mjs",
     "verify:marquee": "node scripts/probe-marquee.mjs",
+    "verify:process": "node scripts/probe-process.mjs",
     "verify:timeline": "node scripts/probe-timeline.mjs",
     "verify:routes": "node scripts/audit-routes.mjs",
     "verify:rhythm": "node scripts/audit-rhythm.mjs",
