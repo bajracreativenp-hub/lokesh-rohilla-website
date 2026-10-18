@@ -71,6 +71,26 @@ export function WorkedWith() {
   const labelId = useId();
 
   /*
+    THE MARK'S OWN DIMENSIONS, READ FROM `spec`.
+
+    `spec` is a "WxH" string, written as documentation when every slot was a
+    monogram and nothing read it. It is read now, and it is the right thing to read:
+    one place to state a mark's dimensions, rather than a `width`/`height` pair
+    beside a `spec` that says the same thing and can drift from it.
+
+    Parsed once per render per logo, which is nine string splits on a nine item
+    list. Nothing here is on a hot path and the alternative, sizing to a guessed
+    box, is what produced the gap in the first place.
+
+    Falls back to a square if a `spec` is ever written in a shape this cannot read,
+    so a malformed entry renders the mark rather than throwing.
+  */
+  const dimensionsOf = (spec: string) => {
+    const [w, h] = spec.split("x").map(Number);
+    return { w: Number.isFinite(w) && w > 0 ? w : 1, h: Number.isFinite(h) && h > 0 ? h : 1 };
+  };
+
+  /*
     One direction, no offset, no reverse variant.
 
     The old second row existed to be counter-scrolled and to start on a different
@@ -84,7 +104,10 @@ export function WorkedWith() {
       aria-hidden={hidden || undefined}
       className="flex shrink-0 items-center gap-10 pr-10 sm:gap-14 sm:pr-14"
     >
-      {clientLogos.map((logo) => (
+      {clientLogos.map((logo) => {
+        const { w: logoWidth, h: logoHeight } = dimensionsOf(logo.spec);
+
+        return (
         <li key={logo.name} className="group shrink-0">
           <div
             data-asset-slot="client-logo"
@@ -96,54 +119,63 @@ export function WorkedWith() {
             */
             title={logo.src ? logo.name : `${logo.name}, logo pending`}
             /*
-              NO BOX. The border, the rounded corners and the `bg-canvas` are gone.
+              NO BOX, AND NO FIXED WIDTH.
 
-              They existed for the monograms, which were placeholders and needed to
-              read as labelled objects rather than as floating text. Real marks do
-              not: a bordered tile per logo is nine little frames competing with the
-              marks themselves, and it makes a logo wall look like a table of
-              thumbnails rather than like a line of organisations.
+              The border, the rounded corners and the `bg-canvas` are gone. They
+              existed for the monograms, which were placeholders and needed to read
+              as labelled objects rather than as floating text. Real marks do not: a
+              bordered tile per logo is nine little frames competing with the marks
+              themselves, and it makes a logo wall look like a table of thumbnails
+              rather than like a line of organisations.
 
-              What replaces the border on hover is nothing, deliberately. The
-              accent border drew a box round one logo to say "this one", which was
-              useful when the box was always there and is just an outline in the
-              middle of the strip now. Colour is the whole of the hover state, and
-              a small lift, which is enough to track a moving target.
+              The width went too, and that was the real source of the white space
+              the strip appeared to have. A fixed slot makes every mark occupy the
+              same box whether it is a 4:1 wordmark or a tall vertical badge, so a
+              narrow mark draws 50px of ink inside 192px of layout and leaves ~140px
+              of nothing either side of it. Six of these read as gaps in the strip
+              that were never in the markup.
 
-              `py-6` is the breathing room the border used to provide. Without a
-              frame the marks need more space around them, not less, because nothing
-              bounds them any more.
+              Sizing to content instead: each mark takes its own width, and the
+              `gap` on the list is the only thing separating them, so the spacing
+              is even by construction rather than by accident.
+
+              `max-w-[12rem]` is the one constraint, so a very wide wordmark cannot
+              dominate a strip of nine.
+
+              What replaces the border on hover is nothing, deliberately. The accent
+              border drew a box round one logo to say "this one", which was useful
+              when the box was always there and is just an outline in the middle of
+              the strip now. Colour is the whole of the hover state, and a small
+              lift, which is enough to track a moving target.
 
               The greyscale at rest is unchanged and is doing the real work here:
               nine marks in nine different colour schemes, desaturated, read as one
               set. Full colour arrives on hover.
             */
-            className="flex h-20 w-[13rem] items-center justify-center py-6 grayscale transition-[filter,transform] duration-300 ease-brand group-hover:-translate-y-0.5 group-hover:grayscale-0 group-focus-within:grayscale-0 motion-reduce:transition-none"
+            className="flex max-w-[12rem] items-center justify-center py-6 grayscale transition-[filter,transform] duration-300 ease-brand group-hover:-translate-y-0.5 group-hover:grayscale-0 group-focus-within:grayscale-0 motion-reduce:transition-none"
           >
             {logo.src ? (
               /*
-                THE REAL MARK.
+                THE REAL MARK, SIZED BY ITS OWN ASPECT RATIO.
 
-                `object-contain` inside a fixed box, so a 4:1 wordmark and a square
-                badge both sit on the same baseline and the strip does not change
-                height as the marks are replaced one at a time. The box is what
-                reserves the space; the image is letterboxed inside it.
+                `width` and `height` are the mark's OWN dimensions, read from `spec`,
+                not a fixed box. That is the whole change: `next/image` renders the
+                intrinsic size it is given, so handing it 192x64 for a mark that is
+                322x420 produced a 192x64 box with the logo letterboxed inside it,
+                and `object-contain` then letterboxed a second time. Giving it the
+                true dimensions and letting CSS cap the height means the element is
+                the shape of the mark, and the list's `gap` does the spacing.
 
-                64px IN A 192px BOX.
-
-                That is roughly twice what a mark had before, which is the point of
-                removing the frame: there is now room to actually read nine logos
-                rather than nine hints of them. A 4:1 mark fills the width and runs
-                about 48px tall; a square badge fills the height at 64px and runs
-                about half that wide. Both are legible, which at the previous size
-                neither was.
+                `max-h-16` is the height cap and `max-w-[12rem]` the width cap, so a
+                tall badge and a long wordmark both land inside a sensible box
+                without either being letterboxed against the other.
               */
               <Image
                 src={logo.src}
                 alt={`${logo.name} logo`}
-                width={192}
-                height={64}
-                className="max-h-16 max-w-[12rem] object-contain"
+                width={logoWidth}
+                height={logoHeight}
+                className="h-auto max-h-16 w-auto max-w-[12rem] object-contain"
               />
             ) : (
               /*
@@ -183,7 +215,8 @@ export function WorkedWith() {
             )}
           </div>
         </li>
-      ))}
+        );
+      })}
     </ul>
   );
 
