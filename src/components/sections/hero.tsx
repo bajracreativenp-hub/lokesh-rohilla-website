@@ -119,9 +119,34 @@ export function Hero() {
         THE CONTENT, ANCHORED TO THE BOTTOM.
 
         `min-h` rather than `h`, deliberately: at the narrowest widths the wordmark
-        wraps and the copy runs longer than the clamp allows, and a fixed height
-        would clip them. The hero grows instead. At every width from 1024 up the
-        clamp governs, so the artwork crops to a consistent band.
+        wraps and the copy runs longer than one screen height, and a fixed height
+        would clip them. The hero grows instead.
+
+        `100svh` MINUS THE HEADER, NOT `100svh`.
+
+        This is the whole point of the section, so it is worth being exact about.
+
+        A plain `100svh` hero fills the screen and then pushes its own bottom edge
+        73px below the fold, because the sticky header sits above it in normal flow
+        and takes that space first. The wordmark is anchored to the bottom of the
+        frame, so its calls to action end up under the fold at every width tested,
+        and the next section is entirely off screen rather than starting where it
+        should.
+
+        Subtracting the header instead means the hero runs from the bottom of the
+        header to the bottom of the viewport: the photograph fills the whole visible
+        screen, and the white section begins exactly at the fold line, which is what
+        the composition is for.
+
+        `svh` rather than `vh`, because on a phone `vh` is measured with the browser
+        chrome retracted. A hero sized to `100vh` is taller than the screen while
+        the address bar is showing, which puts the bottom of the composition under
+        it. `svh` is the height the visitor can actually see.
+
+        `var(--header-h)` is the published header height, 72px of bar plus its 1px
+        border. Using 72 here would be a pixel short and the gap would be a hairline
+        rather than nothing, which is precisely the kind of defect that gets
+        "fixed" later by someone nudging the number.
 
         `justify-end` is the composition. Everything sits in the last quarter of the
         frame and the photograph gets the rest, which is the entire arrangement.
@@ -132,7 +157,7 @@ export function Hero() {
       */}
       <Container
         data-hero-text
-        className="relative z-[var(--z-content)] flex min-h-[clamp(30rem,74svh,50rem)] flex-col justify-end pb-10 pt-20 md:pb-14"
+        className="relative z-[var(--z-content)] flex min-h-[calc(100svh_-_var(--header-h))] flex-col justify-end pb-10 pt-20 md:pb-14"
       >
         {/*
           The wordmark takes the wider track and the copy the narrower one, which is

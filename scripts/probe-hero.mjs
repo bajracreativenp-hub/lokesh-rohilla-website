@@ -44,10 +44,12 @@
  *     the risk here is the opposite of the split hero's: a hero that grew tall and
  *     pushed the actions under the fold.
  *
- *   the hero fits the fold above the mobile breakpoint
- *     Checked only where the height clamp governs. Below `lg` the content can
- *     genuinely need more room than the clamp gives it, and `min-h` lets it grow,
- *     which is correct rather than a fault.
+ *   the hero fills the screen below the header
+ *     The whole point of a full bleed hero. It is measured against the space left
+ *     under the header rather than against the fold, because a hero one viewport
+ *     tall necessarily ends past the fold by the header height and asserting
+ *     otherwise could only be satisfied by making the hero shorter than the screen,
+ *     which is the defect rather than the fix.
  *
  *   nothing scrolls horizontally
  *     A full bleed hero is the most likely place on the page for a width to escape,
@@ -78,12 +80,6 @@ const VIEWPORTS = [
   { w: 390, h: 844 },
 ];
 
-/**
- * Below this the hero height is governed by its content rather than by the clamp,
- * so "does the hero fit the fold" stops being a statement about the design.
- */
-const CLAMP_GOVERNS_ABOVE = 1024;
-
 const failures = [];
 const report = {};
 
@@ -101,7 +97,7 @@ for (const vp of VIEWPORTS) {
   const label = `${vp.w}x${vp.h}`;
 
   report[label] = await page.evaluate(
-    (ctaLabel, clampAbove) => {
+    (ctaLabel) => {
       const box = (el) => {
         const r = el.getBoundingClientRect();
         return {
@@ -188,14 +184,25 @@ for (const vp of VIEWPORTS) {
         h1FontSize: h1 ? Math.round(parseFloat(getComputedStyle(h1).fontSize)) : null,
         ctaVisible: cta ? cta.getBoundingClientRect().bottom <= window.innerHeight : null,
         headerHeight: Math.round(headerH),
-        heroFitsFold: sec ? sec.bottom - headerH <= window.innerHeight : null,
-        clampGoverns: window.innerWidth >= clampAbove,
+        /*
+          DOES THE HERO FILL THE SCREEN. This is what "full bleed" has to mean once
+          the height is a full viewport rather than a fraction of one.
+
+          Measured against the space left BELOW THE HEADER, not as "does the hero end
+          above the fold". The header sits above the hero in normal flow, so a hero
+          of 100svh necessarily ends past the fold by exactly the header height. The
+          old assertion therefore failed on a hero that was precisely the height it
+          had been asked to be, and the only way to satisfy it would have been to
+          make the hero shorter than the screen, which is the thing this change was
+          made to stop.
+        */
+        spaceBelowHeader: window.innerHeight - Math.round(headerH),
+        heroFillsViewport: sec ? sec.h >= window.innerHeight - headerH - 2 : null,
         overflowX:
           document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
       };
     },
     CTA_LABEL,
-    CLAMP_GOVERNS_ABOVE,
   );
 
   await page.screenshot({ path: `${probeOut("lr-hero")}/art-${vp.w}.png` });
@@ -233,9 +240,9 @@ for (const [label, r] of Object.entries(report)) {
     failures.push(`${label}: the hero call to action is below the ${label.split("x")[1]}px fold`);
   }
 
-  if (r.clampGoverns && r.heroFitsFold !== true) {
+  if (r.heroFillsViewport !== true) {
     failures.push(
-      `${label}: the hero runs to ${r.heroBottom}px, past the ${label.split("x")[1]}px fold`,
+      `${label}: the hero is ${r.heroHeight}px tall against ${r.spaceBelowHeader}px of screen below the header, so it leaves a band of page showing under the photograph`,
     );
   }
 

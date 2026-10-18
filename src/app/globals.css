@@ -112,6 +112,26 @@
   --dur-quick: 180ms;
   --dur-base: 320ms;
 
+  /*
+    THE HEADER'S HEIGHT, PUBLISHED ONCE.
+
+    73px, which is a 72px bar plus the 1px border under it. The border is the part
+    that matters: 72 is the height of the bar's contents, so anything that has to
+    clear the sticky header by exactly its height is a pixel short if it uses 72.
+
+    The hero is the reason this exists. It fills the screen BELOW the header, so it
+    needs the space the header leaves rather than a whole viewport, and it cannot
+    know that without being told. `min-h-[calc(100svh_-_var(--header-h))]`.
+
+    72 IS STILL HARDCODED IN FOUR PLACES: the nav's bar and its mobile panel's
+    max-height, `scroll-mt` on `<main>`, and the stacked `scroll-mt` on the content
+    pages, which add this height to a sticky sub-header. They have not been moved
+    here because each is a different kind of measurement, and consolidating them is
+    a separate job from sizing a hero. The token exists for new measurements that
+    must be exact.
+  */
+  --header-h: 73px;
+
   /* Z index scale. Do not invent values outside this list. ---------------- */
   --z-base: 0;
   --z-raised: 10;
