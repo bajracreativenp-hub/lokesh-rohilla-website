@@ -1,10 +1,6 @@
 import { BrandStatement } from "@/components/sections/brand-statement";
-import { ExperienceTeaser } from "@/components/sections/experience-teaser";
 import { FinalCta } from "@/components/sections/final-cta";
-import { FocusAreas } from "@/components/sections/focus-areas";
 import { Hero } from "@/components/sections/hero";
-import { Insights } from "@/components/sections/insights";
-import { Philosophy } from "@/components/sections/philosophy";
 import { WorkedWith } from "@/components/sections/worked-with";
 import { Testimonials } from "@/components/sections/testimonials";
 import { TransformPaths } from "@/components/sections/transform-paths";
@@ -12,32 +8,49 @@ import { TransformPaths } from "@/components/sections/transform-paths";
 /**
  * HOMEPAGE
  *
- * Ten sections, opening on the hero.
+ * Six sections, opening on the hero.
  *
  *   Hero                     the photograph, the wordmark, and the page's h1
  *   Worked with              one strip of client marks, directly under the hero
  *   Brand statement          philosophy, not biography
- *   Philosophy               the method, on a dark band
- *   What I work on           five areas of expertise
  *   What I help transform    the visitor picks their own path
- *   Experience               18+ years, on a dark band
  *   Testimonials             structured, nothing invented, equal frames
- *   Insights                 the content section
  *   Final CTA                one invitation
  *
- * WORKED WITH MOVED TO SECOND, FROM SEVENTH
+ * FOUR SECTIONS REMOVED, at the client's instruction:
  *
- * It is the shortest section on the page and it answers the first question anyone
- * has about a consultant, which is who they have already worked with. It was
- * sitting below Experience, where a visitor had to read five sections to reach it.
+ *   Philosophy               the method, four colour bands
+ *   What I work on           five areas of expertise
+ *   Experience               18+ years, multiple industries
+ *   Insights                 the content section
  *
- * Under the hero it is also the first thing to follow a full bleed photograph,
- * which is why it was reduced to a single strip. Two counter-scrolling rows
- * directly beneath a wordmark the size of the hero's meant the first two things on
- * the page competed; one strip reads as a line of evidence and hands the page back
- * to the hero.
+ * Each was deleted rather than commented out: the component, its content block,
+ * and the probe that tested it. Nothing on this page referenced any of them, so
+ * none of the remaining six sections changed shape.
  *
- * STILL REMOVED, at the client's instruction:
+ * WHAT CHANGED VISUALLY, STATED PLAINLY
+ *
+ * Experience was the last section carrying a full width `band-dark`, so the four
+ * light sections between the hero and the closing panel are now one unbroken run
+ * with nothing to break them up.
+ *
+ * The page still opens dark and still closes dark: the hero is a dark photograph
+ * and the Final CTA is a dark `on-ink` panel. What is gone is the dark band that
+ * used to sit mid page, so the middle of the page is now longer and flatter than
+ * it was. That is a real change to the rhythm and it is only visible on the full
+ * page, not in any single section.
+ *
+ * The four content blocks are deleted too, so this copy is no longer held
+ * anywhere in the repo: the five areas of expertise, the seven industry names,
+ * the six insight categories and the four method steps. Any of it can be
+ * restored from the previous commit if it comes back.
+ *
+ * `/about/philosophy` is NOT affected. That is a section of the About page with
+ * its own `#philosophy` anchor and its own copy, and the redirect to it stays.
+ * The method section removed here was a different section that happened to share
+ * a name.
+ *
+ * ALREADY REMOVED, at the client's instruction, earlier:
  *
  *   Verb rail                Explore / Learn / Get Help / Join / Shop
  *   Platform grid            One Platform. Multiple Opportunities.
@@ -45,10 +58,8 @@ import { TransformPaths } from "@/components/sections/transform-paths";
  *
  * Those three shared a source file with the hero. The hero has been restored;
  * they have not, because only the hero was asked for. Events remain reachable
- * from the top navigation and the footer.
- *
- * Events are still reachable from the top navigation and from the footer. The
- * section was removed from this page only.
+ * from the top navigation and the footer, and so does `/blog`, which the removed
+ * Insights section used to link to.
  *
  * The complete biography, timeline and background live on /about.
  */
@@ -58,12 +69,8 @@ export default function HomePage() {
       <Hero />
       <WorkedWith />
       <BrandStatement />
-      <Philosophy />
-      <FocusAreas />
       <TransformPaths />
-      <ExperienceTeaser />
       <Testimonials />
-      <Insights />
       <FinalCta />
     </>
   );

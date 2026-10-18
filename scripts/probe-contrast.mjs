@@ -27,7 +27,6 @@ const browser = await puppeteer.launch({
 
 let total = 0;
 let totalIncomplete = 0;
-let totalDelegated = 0;
 
 for (const vp of [
   { width: 412, height: 823, label: "light mobile, no scroll (Lighthouse)", scroll: false },
@@ -355,48 +354,9 @@ for (const vp of [
       })),
     });
 
-    /*
-      DELEGATED NODES, AND ONLY THOSE.
-
-      Some text genuinely has no single background behind it. The process section's
-      step figures hang below their band and are painted over two colour fields at
-      once, so axe composites what it can see, decides it cannot resolve a
-      background, and returns "could not be determined" for all four. That is a
-      limitation of the method, not a finding about the page, and it was 20
-      "failures" across five passes.
-
-      The alternative to handling it is not "pass". It is either putting
-      `overflow-hidden` back on the bands, which crops the figures along the
-      baseline and deletes the effect, or suppressing unresolvable results wholesale,
-      which would also un-hide every genuine "1:1 with the background" case this
-      probe exists to catch.
-
-      So it is opt-in per element, via `data-contrast-delegated`, and the check is
-      `closest` so it survives restructuring. The four figures carry it; the node is
-      then verified on its real terms by probe-process.mjs, which measures each
-      figure against every colour it overlaps rather than picking one of them.
-
-      Note that this filters `incomplete` only. If a delegated element ever produced
-      a real ratio failure it would arrive under `violations` and still fail here.
-
-      Anything unresolved that is NOT marked stays a failure, so an unmarked figure
-      turns the audit red again rather than passing unnoticed.
-    */
-    const colourNodes = r.incomplete.filter((v) => v.id === "color-contrast");
-    const isDelegated = (n) => {
-      const el = document.querySelector(n.target[0]);
-      return Boolean(el?.closest("[data-contrast-delegated]"));
-    };
-    const flat = colourNodes.flatMap((v) => v.nodes);
-
     return {
       violations: r.violations.map(shape),
-      incomplete: colourNodes
-        .map((v) => ({ ...v, nodes: v.nodes.filter((n) => !isDelegated(n)) }))
-        .filter((v) => v.nodes.length > 0)
-        .map(shape),
-      delegated: flat.filter(isDelegated).length,
-      delegatedTargets: [...new Set(flat.filter(isDelegated).map((n) => n.target.join(" ")))],
+      incomplete: r.incomplete.filter((v) => v.id === "color-contrast").map(shape),
     };
   });
 
@@ -405,21 +365,17 @@ for (const vp of [
 
   total += vCount;
   totalIncomplete += iCount;
-  totalDelegated += out.delegated;
 
   console.log(`\n=== ${vp.label} ===`);
-  if (vCount === 0 && iCount === 0) {
-    console.log("no violations");
-  } else {
-    console.log(
-      JSON.stringify({ violations: out.violations, unresolved: out.incomplete }, null, 1),
-    );
-  }
-  if (out.delegated > 0) {
-    console.log(
-      `  ${out.delegated} node(s) delegated to probe-process (verified there): ${out.delegatedTargets.join(", ")}`,
-    );
-  }
+  console.log(
+    vCount === 0 && iCount === 0
+      ? "no violations"
+      : JSON.stringify(
+          { violations: out.violations, unresolved: out.incomplete },
+          null,
+          1,
+        ),
+  );
   await page.close();
 }
 
@@ -427,7 +383,4 @@ await browser.close();
 await unlink(AXE_PATH).catch(() => {});
 console.log(`\nTOTAL CONTRAST VIOLATIONS: ${total}`);
 console.log(`TOTAL CONTRAST UNRESOLVED (reported as failures): ${totalIncomplete}`);
-console.log(
-  `TOTAL DELEGATED to probe-process (verified there, not here): ${totalDelegated}`,
-);
 if (total > 0 || totalIncomplete > 0) process.exitCode = 1;

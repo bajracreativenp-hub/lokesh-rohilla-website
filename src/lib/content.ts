@@ -39,7 +39,6 @@ export const PENDING = {
   vision: "[FINAL VISION STATEMENT TO BE PROVIDED]",
   mission: "[FINAL MISSION STATEMENT TO BE PROVIDED]",
   testimonials: "[REAL TESTIMONIALS AND GOOGLE REVIEWS TO BE PROVIDED]",
-  insights: "[PUBLISHED ARTICLES AND VIDEOS TO BE PROVIDED]",
   events: "[CONFIRMED UPCOMING DATES TO BE PROVIDED]",
   contact: "[EMAIL, PHONE AND LOCATION TO BE PROVIDED]",
   scale:
@@ -205,83 +204,6 @@ export const brandStatement = {
   rail: [
     { name: "Business Consultation", href: "/services/business-consultation" },
     { name: "Self-Development Programs", href: "/services/self-development" },
-  ],
-} as const;
-
-/* -------------------------------------------------------------------------
-   SECTION 3 - SIGNATURE PHILOSOPHY
-   ------------------------------------------------------------------------- */
-
-export const philosophy = {
-  headline: "Turning Chaos Into Clarity.",
-  body: "Lokesh approaches problems by listening first, understanding the root cause, creating clarity, and then helping people or organizations build practical systems they can actually sustain.",
-  /*
-    `body` ON EACH STEP IS NOT RENDERED.
-
-    The process section became four colour bands carrying a title and an oversized
-    figure, and there is no room in a band for a paragraph beside a number that is
-    120px tall. It was tried and it was unreadable.
-
-    The four lines are kept here rather than deleted, because they are the only
-    written account of what each step actually involves, and that is worth more as
-    a record than as an empty field. `verb` is what the page renders; `body` is
-    what the client has said, waiting for somewhere with room for it.
-  */
-  steps: [
-    {
-      verb: "Listen",
-      body: "Before diagnosing anything, he makes space for the real problem to be said out loud.",
-    },
-    {
-      verb: "Understand",
-      body: "He looks for the root cause rather than the symptom that is easiest to point at.",
-    },
-    {
-      verb: "Simplify",
-      body: "Complexity is reduced until the next move is obvious to everyone involved.",
-    },
-    {
-      verb: "Transform",
-      body: "The change is built into systems and habits so it holds after the engagement ends.",
-    },
-  ],
-} as const;
-
-/* -------------------------------------------------------------------------
-   SECTION 4 - WHAT I WORK ON
-   Areas of expertise, not a product catalogue.
-   ------------------------------------------------------------------------- */
-
-export const focusAreas = {
-  eyebrow: "Expertise",
-  headline: "What I Work On",
-  lede: "Five areas where Lokesh spends most of his time. They overlap by design, because organizations rarely arrive with a single clean problem.",
-  areas: [
-    {
-      title: "Business Transformation",
-      body: "Helping organizations understand problems, improve systems and create sustainable growth.",
-      span: "wide" as const,
-    },
-    {
-      title: "Leadership",
-      body: "Helping leaders and teams develop stronger ways of working.",
-      span: "tall" as const,
-    },
-    {
-      title: "Self Development",
-      body: "Helping individuals develop greater awareness, clarity and capability.",
-      span: "standard" as const,
-    },
-    {
-      title: "Systems and Operations",
-      body: "Creating practical structures and processes that reduce chaos.",
-      span: "standard" as const,
-    },
-    {
-      title: "Learning and Transformation",
-      body: "Creating programs, workshops and experiences that help people grow.",
-      span: "standard" as const,
-    },
   ],
 } as const;
 
@@ -555,27 +477,6 @@ export const finalCta = {
 } as const;
 
 /* -------------------------------------------------------------------------
-   SECTION 6 - EXPERIENCE AS CREDIBILITY
-   Teases the story. The About page tells it.
-   ------------------------------------------------------------------------- */
-
-export const experienceTeaser = {
-  headline: "18+ Years. Multiple Industries. One Perspective.",
-  body: "Hospitality teaches you service. Operations teaches you systems. Leadership teaches you people. Consulting teaches you to hold all three at once.",
-  industries: [
-    "Hospitality",
-    "Business Consulting",
-    "Retail",
-    "Logistics",
-    "Education",
-    "Leadership",
-    "Self Development",
-  ],
-  cta: { label: "Explore My Journey", href: "/about" },
-} as const;
-
-
-/* -------------------------------------------------------------------------
    SECTION 8 - TESTIMONIALS
    Structure only. No fabricated quotes, names or reviews.
    ------------------------------------------------------------------------- */
@@ -620,36 +521,6 @@ export const testimonials = {
   ],
   pending: PENDING.testimonials,
 } as const;
-
-/* -------------------------------------------------------------------------
-   SECTION 9 - INSIGHTS
-   Categories are real. No article or video titles are invented.
-   ------------------------------------------------------------------------- */
-
-export const insights = {
-  eyebrow: "Insights",
-  headline: "Ideas. Experiences. Perspectives.",
-  lede: "Writing and video on the subjects Lokesh works on daily: business, leadership, self development, transformation, stories and learning.",
-  /*
-    Category names only. An earlier draft carried a one line description per
-    category, but it was only ever surfaced through a title tooltip, which
-    sighted users rarely see and assistive tech does not reliably announce.
-    Unshown copy is dead copy, so it was removed rather than left hidden.
-    Restore the descriptions here as visible body copy when the section gets
-    real cards.
-  */
-  categories: [
-    "Business",
-    "Leadership",
-    "Self Development",
-    "Transformation",
-    "Stories",
-    "Learning",
-  ],
-  pending: PENDING.insights,
-  cta: { label: "Explore the Blog", href: "/blog" },
-} as const;
-
 
 /* -------------------------------------------------------------------------
    ABOUT PAGE COPY (staged for the next build pass)
