@@ -19,6 +19,16 @@ import { SiteSettings } from './globals/SiteSettings'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
+const connectionString =
+  process.env.DATABASE_URI ||
+  process.env.POSTGRES_URL ||
+  process.env.POSTGRES_PRISMA_URL ||
+  process.env.DATABASE_URL
+
+const sqlitePath =
+  process.env.SQLITE_URL ||
+  (process.env.VERCEL ? 'file:/tmp/payload.db' : 'file:./payload.db')
+
 export default buildConfig({
   admin: {
     user: Users.slug,
@@ -43,16 +53,16 @@ export default buildConfig({
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
-  db: process.env.DATABASE_URI
+  db: connectionString
     ? postgresAdapter({
         pool: {
-          connectionString: process.env.DATABASE_URI,
+          connectionString,
         },
         push: true,
       })
     : sqliteAdapter({
         client: {
-          url: process.env.SQLITE_URL || 'file:./payload.db',
+          url: sqlitePath,
         },
         push: true,
       }),
