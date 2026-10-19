@@ -43,6 +43,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# payload cms local database & media uploads
+payload.db*
+/public/media/uploads/*
+!/public/media/uploads/.gitkeep
+
 # Scratch directories that are NOT part of the website.
 #
 # `git add -A` swept both of these into a commit once, along with eight font
