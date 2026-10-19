@@ -65,7 +65,7 @@ export function ContactForm() {
     message: "",
   });
   const [errors, setErrors] = useState<Errors>({});
-  const [status, setStatus] = useState<"idle" | "submitting" | "not_connected">("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "sent" | "error">("idle");
 
   /*
     The summary, and a counter of failed submits.
@@ -109,12 +109,35 @@ export function ContactForm() {
 
     setStatus("submitting");
 
-    // No endpoint is wired yet. Show an honest notice rather than silently
-    // resetting, which leaves the visitor unsure whether anything happened.
-    // To go live: replace this block with the real fetch() call and set
-    // status to "sent" on success.
-    await new Promise((resolve) => setTimeout(resolve, 400));
-    setStatus("not_connected");
+    try {
+      const trackMap: Record<string, string> = {
+        business: "founder_breakthrough",
+        leadership: "executive_coaching",
+        personal: "general",
+      };
+
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: values.name.trim(),
+          email: values.email.trim(),
+          company: values.organisation.trim() || undefined,
+          type: "contact_inquiry",
+          track: trackMap[values.path] || "general",
+          message: values.message.trim(),
+          status: "new",
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to submit inquiry");
+      }
+
+      setStatus("sent");
+    } catch {
+      setStatus("error");
+    }
   };
 
   const errorEntries = Object.entries(errors) as [FieldName, string][];
@@ -300,31 +323,44 @@ export function ContactForm() {
         ) : null}
       </div>
 
-      {status === "not_connected" ? (
-        /* Honest not-connected notice. Shown instead of a fake success banner. */
-        <div role="alert" className="flex flex-col gap-4 rounded-card bg-sunk p-6">
-          <p className="text-sm font-bold text-ink">Your message was not sent.</p>
+      {status === "sent" ? (
+        <div role="alert" className="flex flex-col gap-4 rounded-card bg-sunk p-6 border border-hairline-strong">
+          <p className="text-base font-bold text-ink">Thank you, {values.name}!</p>
           <p className="text-sm leading-relaxed text-ink-muted">
-            The contact form is not yet connected to a mail provider, so nothing was
-            transmitted and your details were not stored. Please reach out directly
-            until the form is live.
+            Your message has been safely received and stored in our inbox. Lokesh and his team will review your inquiry and follow up with you at <strong className="text-ink">{values.email}</strong> shortly.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setValues({ path: "", name: "", email: "", organisation: "", message: "" });
+              setStatus("idle");
+            }}
+            className="self-start text-sm font-bold text-accent underline underline-offset-4 hover:opacity-75"
+          >
+            Send another message
+          </button>
+        </div>
+      ) : status === "error" ? (
+        <div role="alert" className="flex flex-col gap-4 rounded-card bg-sunk p-6 border border-accent/40">
+          <p className="text-sm font-bold text-accent">Unable to send message.</p>
+          <p className="text-sm leading-relaxed text-ink-muted">
+            Something went wrong saving your inquiry. Please try again or reach out directly at connect@lokeshrohilla.com.
           </p>
           <button
             type="button"
             onClick={() => setStatus("idle")}
             className="self-start text-sm font-bold text-accent underline underline-offset-4 hover:opacity-75"
           >
-            Edit and try again
+            Try again
           </button>
         </div>
       ) : (
         <div className="flex flex-col items-start gap-4">
           <Button type="submit" size="lg" disabled={status === "submitting"}>
-            {status === "submitting" ? "Checking details…" : "Send message"}
+            {status === "submitting" ? "Sending inquiry…" : "Send message"}
           </Button>
           <p className="max-w-md text-sm leading-relaxed text-ink-muted">
-            Form delivery is not yet connected. Nothing is transmitted until a mail
-            provider is set up.
+            Your inquiry goes directly to Lokesh Rohilla and his executive team.
           </p>
         </div>
       )}

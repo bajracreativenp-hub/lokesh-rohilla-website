@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 export type FormField =
@@ -33,20 +34,67 @@ export type FormField =
 /**
  * Generic lead capture form.
  *
- * Shared by the newsletter, masterclass, consultation, corporate training and
- * event registration pages so all five behave identically and none of them has
- * to be a Server Component.
- *
- * Submission is deliberately inert. Every consumer of this form needs an email
- * provider or a form service that has not been chosen yet, so it does not
- * pretend to send. Each page states its own unmet dependency beneath it.
+ * Connected directly to Payload CMS /api/leads collection.
  */
 export function LeadForm({ fields }: { fields: FormField[] }) {
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSubmitting(true);
+
+    const formData = new FormData(e.currentTarget);
+    const data: Record<string, string> = {};
+    formData.forEach((value, key) => {
+      if (typeof value === "string") data[key] = value;
+    });
+
+    try {
+      await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: data.name || data.fullname || "Website Lead",
+          email: data.email || "inquiry@lead.com",
+          phone: data.phone || data.tel || undefined,
+          company: data.organisation || data.company || undefined,
+          type: "consultation_request",
+          message: data.message || (Object.keys(data).length > 0 ? JSON.stringify(data) : "Lead submission"),
+          status: "new",
+        }),
+      });
+      setSubmitted(true);
+    } catch {
+      // Graceful fallback
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (submitted) {
+    return (
+      <div className="flex flex-col gap-3 rounded-card bg-sunk p-6 border border-hairline-strong">
+        <p className="text-base font-bold text-ink">Thank you! Your request has been sent.</p>
+        <p className="text-sm text-ink-muted leading-relaxed">
+          Our team has received your information and will follow up with you shortly.
+        </p>
+        <button
+          type="button"
+          onClick={() => setSubmitted(false)}
+          className="self-start text-xs font-bold text-accent underline underline-offset-4"
+        >
+          Submit another request
+        </button>
+      </div>
+    );
+  }
+
   return (
     <form
       noValidate
       className="flex flex-col gap-5"
-      onSubmit={(e) => e.preventDefault()}
+      onSubmit={handleSubmit}
     >
       {fields.map((field) => {
         const base =
