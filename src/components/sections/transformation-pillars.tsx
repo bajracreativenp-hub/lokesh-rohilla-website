@@ -26,37 +26,44 @@ export function TransformationPillars() {
         />
 
         <div className="mt-8 sm:mt-12 md:mt-16">
-          <RevealGroup className="grid gap-5 sm:gap-6 lg:grid-cols-3" stagger={0.08} distance={20}>
+          <RevealGroup className="grid gap-6 sm:gap-8 lg:grid-cols-2" stagger={0.08} distance={20}>
             {transformationPillars.items.map((pillar) => (
               <article
                 key={pillar.number}
-                className="group flex h-full flex-col justify-between rounded-panel border border-hairline bg-surface p-5 transition-all duration-300 ease-brand hover:border-hairline-strong hover:shadow-card sm:p-7 md:p-8"
+                className="group flex h-full flex-col justify-between rounded-panel border border-hairline bg-surface p-6 transition-all duration-300 ease-brand hover:border-hairline-strong hover:shadow-card sm:p-8 md:p-9"
               >
                 <div className="flex flex-col gap-5 sm:gap-6">
                   {/* Top indicator row */}
-                  <div className="flex items-center justify-between border-b border-hairline pb-3.5 sm:pb-4">
-                    <span className="font-mono text-xl font-black tracking-tight text-accent sm:text-2xl md:text-3xl">
-                      {pillar.number}
-                    </span>
-                    <span className="rounded-pill bg-canvas px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-ink-muted sm:text-xs">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-hairline pb-4">
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono text-2xl font-black tracking-tight text-accent sm:text-3xl">
+                        {pillar.number}
+                      </span>
+                      {"audience" in pillar ? (
+                        <span className="text-xs font-bold uppercase tracking-[0.14em] text-accent">
+                          {pillar.audience}
+                        </span>
+                      ) : null}
+                    </div>
+                    <span className="rounded-pill bg-canvas px-3 py-1 text-xs font-bold uppercase tracking-wider text-ink border border-hairline shadow-xs">
                       {pillar.subtitle}
                     </span>
                   </div>
 
                   {/* Title & Description */}
-                  <div className="flex flex-col gap-2 sm:gap-2.5">
-                    <h3 className="text-xl font-bold leading-tight text-ink sm:text-display-3">
+                  <div className="flex flex-col gap-2.5 sm:gap-3">
+                    <h3 className="text-xl sm:text-2xl font-bold leading-tight text-ink lg:text-display-3">
                       {pillar.title}
                     </h3>
-                    <p className="text-sm leading-relaxed text-ink-muted">
+                    <p className="text-sm leading-relaxed text-ink-muted sm:text-base">
                       {pillar.description}
                     </p>
                   </div>
 
                   {/* Highlights checklist */}
-                  <ul className="flex flex-col gap-2 sm:gap-2.5 pt-1 sm:pt-2">
+                  <ul className="flex flex-col gap-2.5 sm:gap-3 pt-1 sm:pt-2">
                     {pillar.highlights.map((point) => (
-                      <li key={point} className="flex items-start gap-2.5 text-xs text-ink-muted md:text-sm">
+                      <li key={point} className="flex items-start gap-3 text-xs text-ink-muted sm:text-sm">
                         <CheckCircle
                           weight="fill"
                           className="size-4 shrink-0 mt-0.5 text-accent"
@@ -69,10 +76,10 @@ export function TransformationPillars() {
                 </div>
 
                 {/* Card CTA */}
-                <div className="border-t border-hairline pt-5 mt-5 sm:pt-6 sm:mt-6">
+                <div className="border-t border-hairline pt-6 mt-6 sm:mt-8">
                   <Link
                     href={pillar.href}
-                    className="group/btn inline-flex h-11 min-h-[44px] w-full items-center justify-center gap-2 rounded-pill bg-ink px-5 text-sm font-bold text-canvas transition-[background-color,transform] duration-200 ease-brand hover:bg-accent hover:text-accent-ink active:translate-y-px"
+                    className="group/btn inline-flex h-12 min-h-[48px] w-full items-center justify-center gap-2 rounded-pill bg-ink px-6 text-sm font-bold text-canvas transition-[background-color,transform,box-shadow] duration-200 ease-brand hover:bg-accent hover:text-accent-ink hover:shadow-card active:translate-y-px"
                   >
                     <span>{pillar.cta}</span>
                     <ArrowRight
