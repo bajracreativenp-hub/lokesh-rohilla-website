@@ -7,7 +7,7 @@ import { Nav } from "@/components/site/nav";
 import { SITE_DESCRIPTION } from "@/lib/content";
 import { SITE_ORIGIN } from "@/lib/site";
 
-import "./globals.css";
+import "../globals.css";
 
 /**
  * TWO FAMILIES NOW, WHERE THERE WAS ONE.
