@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
 import {
+  ArrowRight,
   CaretDown,
   List,
   MagnifyingGlass,
@@ -61,6 +62,7 @@ export function Nav() {
 
   const [openEntry, setOpenEntry] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [diagnosticOpen, setDiagnosticOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const mobileId = useId();
@@ -69,6 +71,7 @@ export function Nav() {
   const triggerRefs = useRef<(HTMLElement | null)[]>([]);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const diagnosticRef = useRef<HTMLDivElement>(null);
 
   const isCurrent = useCallback(
     (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href)),
@@ -83,10 +86,31 @@ export function Nav() {
     setOpenEntry(null);
   }, []);
 
+  // Close menus on route change
+  useEffect(() => {
+    setDiagnosticOpen(false);
+    setMobileOpen(false);
+  }, [pathname]);
+
+  // Click outside closes diagnostic dropdown
+  useEffect(() => {
+    const onPointerDown = (e: MouseEvent) => {
+      if (diagnosticRef.current && !diagnosticRef.current.contains(e.target as Node)) {
+        setDiagnosticOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    return () => document.removeEventListener("mousedown", onPointerDown);
+  }, []);
+
   // Escape closes whichever surface is open.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
+      if (diagnosticOpen) {
+        setDiagnosticOpen(false);
+        return;
+      }
       if (searchOpen) {
         setSearchOpen(false);
         return;
@@ -100,7 +124,7 @@ export function Nav() {
 
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [openEntry, searchOpen, closeAll]);
+  }, [openEntry, searchOpen, diagnosticOpen, closeAll]);
 
   useEffect(
     () => () => {
@@ -356,12 +380,77 @@ export function Nav() {
               </span>
             </Link>
 
-            <Link
-              href="/services/business-consultation#health-checker"
-              className="ml-1 hidden h-11 items-center rounded-pill bg-accent px-6 text-sm font-bold text-accent-ink transition-[filter,transform] duration-200 ease-brand hover:brightness-110 active:translate-y-px lg:inline-flex"
-            >
-              Business Health Check
-            </Link>
+            <div className="relative ml-1 hidden lg:block" ref={diagnosticRef}>
+              <button
+                type="button"
+                onClick={() => setDiagnosticOpen((v) => !v)}
+                aria-expanded={diagnosticOpen}
+                aria-haspopup="true"
+                className="inline-flex h-11 items-center gap-2 rounded-pill bg-accent px-5 text-sm font-bold text-accent-ink transition-[filter,transform] duration-200 ease-brand hover:brightness-110 active:translate-y-px"
+              >
+                <span>Transformation Diagnostic</span>
+                <CaretDown
+                  weight="bold"
+                  className={`size-3.5 transition-transform duration-200 ease-brand ${
+                    diagnosticOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              <AnimatePresence>
+                {diagnosticOpen ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 6 }}
+                    transition={{ duration: 0.16 }}
+                    className="absolute right-0 top-[calc(100%_+_8px)] w-80 rounded-panel border border-hairline bg-canvas p-3 shadow-lift z-50"
+                  >
+                    <p className="px-3 pt-2 pb-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-muted">
+                      Select Diagnostic Track
+                    </p>
+
+                    <Link
+                      href="/?track=business#diagnostic"
+                      onClick={() => setDiagnosticOpen(false)}
+                      className="group/track flex flex-col gap-1 rounded-card p-3 transition-colors hover:bg-surface active:bg-surface-sunk"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-bold text-ink group-hover/track:text-accent transition-colors">
+                          For Your Business
+                        </span>
+                        <span className="rounded-pill bg-surface-sunk px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent border border-hairline">
+                          Business Doctor
+                        </span>
+                      </div>
+                      <span className="text-xs text-ink-muted leading-relaxed">
+                        Assess operations, systems, sales, and founder dependency
+                      </span>
+                    </Link>
+
+                    <div className="my-1 border-t border-hairline" />
+
+                    <Link
+                      href="/?track=self#diagnostic"
+                      onClick={() => setDiagnosticOpen(false)}
+                      className="group/track flex flex-col gap-1 rounded-card p-3 transition-colors hover:bg-surface active:bg-surface-sunk"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-bold text-ink group-hover/track:text-accent transition-colors">
+                          For Yourself
+                        </span>
+                        <span className="rounded-pill bg-surface-sunk px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent border border-hairline">
+                          Bookwishes Club
+                        </span>
+                      </div>
+                      <span className="text-xs text-ink-muted leading-relaxed">
+                        Assess public speaking, articulation, mindset & presence
+                      </span>
+                    </Link>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+            </div>
 
             <button
               type="button"
@@ -420,14 +509,37 @@ export function Nav() {
                 </li>
               ))}
             </ul>
-            <div className="mt-6 flex flex-col gap-3">
-              <Link
-                href="/services/business-consultation#health-checker"
-                onClick={() => setMobileOpen(false)}
-                className="inline-flex h-12 w-full items-center justify-center rounded-pill bg-accent px-6 text-sm font-bold text-accent-ink"
-              >
-                Business Health Check
-              </Link>
+            <div className="mt-6 flex flex-col gap-4">
+              <div className="flex flex-col gap-2.5">
+                <p className="px-1 text-xs font-bold uppercase tracking-wider text-ink-muted">
+                  Transformation Diagnostic
+                </p>
+                <div className="grid gap-2">
+                  <Link
+                    href="/?track=business#diagnostic"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center justify-between rounded-card bg-surface p-3.5 border border-hairline transition-colors active:bg-surface-sunk"
+                  >
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-ink">For Your Business</span>
+                      <span className="text-xs text-ink-muted">Powered by Business Doctor</span>
+                    </div>
+                    <ArrowRight weight="bold" className="size-4 text-accent" />
+                  </Link>
+                  <Link
+                    href="/?track=self#diagnostic"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center justify-between rounded-card bg-surface p-3.5 border border-hairline transition-colors active:bg-surface-sunk"
+                  >
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-ink">For Yourself</span>
+                      <span className="text-xs text-ink-muted">Powered by The Bookwishes Club</span>
+                    </div>
+                    <ArrowRight weight="bold" className="size-4 text-accent" />
+                  </Link>
+                </div>
+              </div>
+
               <div className="flex gap-3">
                 <Link
                   href="/account"

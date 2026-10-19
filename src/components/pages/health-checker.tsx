@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { ArrowLeft, ArrowRight } from "@phosphor-icons/react/dist/ssr";
 
@@ -9,26 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
 /**
- * BUSINESS HEALTH CHECKER
+ * TRANSFORMATION DIAGNOSTIC (formerly Business Health Checker)
  *
- * Ten questions about the visitor's company. Each answer scores 1 to 4, the
- * total is shown, and the lowest scoring area is named as the place to look
- * first.
+ * Diagnostic assessment covering two distinct tracks:
+ * 1. For Your Business (Powered by Business Doctor)
+ * 2. For Yourself (Powered by The Bookwishes Club)
  *
- * WHAT THIS IS NOT
- *
- * It is a self assessment. The only inputs are the visitor's own answers, so
- * nothing here is a claim about Lokesh's clients and nothing is fabricated. It
- * is deliberately NOT presented as an audit, a benchmark, or a score against
- * any industry. There are no industry norms on this page because none have been
- * confirmed, and inventing them would be the exact failure mode this project
- * avoids everywhere else.
- *
- * The result bands are worded as what to do next rather than as what your
- * business is, because a band with no confirmed calibration behind it should not
- * tell a business owner what kind of business they have.
- *
- * `prefers-reduced-motion` is honoured through `useProgressMotion`.
+ * Each answer scores 1 to 4, total is shown, and the lowest scoring area is
+ * identified as the primary focus area.
  */
 
 type Option = { label: string; score: number };
@@ -40,13 +28,12 @@ type Question = {
   options: Option[];
 };
 
+export type DiagnosticTrack = "business" | "self";
+
 /**
- * Ten questions across the six transformation areas, so the result can name an
- * area rather than only a number. Four options each, 1 to 4, no "not sure"
- * escape hatch: a neutral answer is scored 2, which is deliberate. A diagnostic
- * that lets you opt out of every question produces a score nobody trusts.
+ * Ten questions for business owners and leaders, powered by Business Doctor.
  */
-const QUESTIONS: Question[] = [
+const BUSINESS_QUESTIONS: Question[] = [
   {
     id: "clarity",
     area: "Strategy",
@@ -169,7 +156,131 @@ const QUESTIONS: Question[] = [
   },
 ];
 
-const MAX = QUESTIONS.length * 4;
+/**
+ * Ten questions for personal growth, public speaking, and mindset, powered by The Bookwishes Club.
+ */
+const SELF_QUESTIONS: Question[] = [
+  {
+    id: "spontaneous_speaking",
+    area: "Public Speaking",
+    prompt: "When asked to speak in front of a group with little or no notice, how do you typically respond?",
+    why: "Public Speaking. Spontaneous confidence comes from structured thinking frameworks, not memorized speeches.",
+    options: [
+      { label: "Calm and articulate; I structure my thoughts and deliver with ease", score: 4 },
+      { label: "A little nervous initially, but I find my rhythm and get my point across", score: 3 },
+      { label: "Anxious and rushed; I usually over-explain or hurry to finish", score: 2 },
+      { label: "Overwhelmed or frozen; I actively avoid speaking in front of groups", score: 1 },
+    ],
+  },
+  {
+    id: "articulation_clarity",
+    area: "Articulation",
+    prompt: "Do listeners quickly grasp the core point of your message without needing repeated explanations?",
+    why: "Articulation. Clarity of expression directly reflects clarity of thought. Verbosity usually conceals uncertainty.",
+    options: [
+      { label: "Yes, I communicate directly with structured conciseness", score: 4 },
+      { label: "Mostly, though I occasionally wander into tangents before landing the point", score: 3 },
+      { label: "Often takes several tries to communicate what I actually mean", score: 2 },
+      { label: "People frequently misunderstand or misinterpret what I say", score: 1 },
+    ],
+  },
+  {
+    id: "stage_presence",
+    area: "Executive Presence",
+    prompt: "In meetings or high-stakes discussions, how effectively do you command attention and hold the room?",
+    why: "Presence. Authority is communicated through vocal pacing, physical posture, and intentional pauses.",
+    options: [
+      { label: "Commanding and natural; others listen attentively when I speak", score: 4 },
+      { label: "Effective when speaking on topics I know intimately", score: 3 },
+      { label: "Easily talked over or sidelined by louder voices in the room", score: 2 },
+      { label: "Invisible; I stay quiet to avoid unwanted attention", score: 1 },
+    ],
+  },
+  {
+    id: "mindset_resilience",
+    area: "Mindset & Resilience",
+    prompt: "When faced with sharp criticism or unexpected pushback, what is your immediate internal response?",
+    why: "Mindset. Emotional regulation dictates whether feedback fuels rapid improvement or triggers defensiveness.",
+    options: [
+      { label: "Receptive and composed; I separate my personal worth from the critique", score: 4 },
+      { label: "Briefly stung, but I quickly refocus on what is actionable", score: 3 },
+      { label: "Defensive and frustrated; the interaction lingers for days", score: 2 },
+      { label: "Deeply discouraged; I view criticism as personal failure", score: 1 },
+    ],
+  },
+  {
+    id: "reading_learning",
+    area: "Learning & Knowledge",
+    prompt: "How disciplined and consistent is your habit of deep reading and intellectual development?",
+    why: "Knowledge. A structured reading practice is the single fastest way to expand mental models and strategic depth.",
+    options: [
+      { label: "Consistent daily habit; I actively extract and apply insights", score: 4 },
+      { label: "Regular reader, though I struggle to retain and systematically apply ideas", score: 3 },
+      { label: "Sporadic reading bursts followed by weeks of passive digital scrolling", score: 2 },
+      { label: "Rarely read books or structured self-development material", score: 1 },
+    ],
+  },
+  {
+    id: "personal_vision",
+    area: "Personal Vision",
+    prompt: "Can you clearly articulate your top 3 personal priorities and boundaries for the next 12 months?",
+    why: "Vision. Without clear self-direction, your calendar and energy get consumed by everyone else's priorities.",
+    options: [
+      { label: "Crystal clear, documented, and reviewed weekly", score: 4 },
+      { label: "Clear in my head, though not documented or strictly defended", score: 3 },
+      { label: "Vague and constantly shifting depending on immediate pressures", score: 2 },
+      { label: "No clear personal direction; completely reactive to day-to-day demands", score: 1 },
+    ],
+  },
+  {
+    id: "emotional_composure",
+    area: "Stress & Composure",
+    prompt: "When high pressure or conflict arises, how well do you maintain mental clarity and emotional control?",
+    why: "Composure. High performance requires an anchored nervous system capable of making sound decisions under fire.",
+    options: [
+      { label: "Anchored and clear-headed; pressure sharpens my focus", score: 4 },
+      { label: "Mostly composed, with occasional reactive slip-ups under peak stress", score: 3 },
+      { label: "Visibly tense and prone to hasty, emotionally driven reactions", score: 2 },
+      { label: "Overwhelmed by anxiety, leading to avoidance or burnout", score: 1 },
+    ],
+  },
+  {
+    id: "persuasion_influence",
+    area: "Storytelling & Influence",
+    prompt: "How effectively can you inspire, persuade, or rally others behind an idea using narrative and emotion?",
+    why: "Influence. People are moved to action by emotional conviction and story, not just logical bullet points.",
+    options: [
+      { label: "Very effectively; I use storytelling to create buy-in and alignment", score: 4 },
+      { label: "Good at explaining facts and logic, but less practiced with emotional narrative", score: 3 },
+      { label: "Struggle to persuade skeptics or build genuine excitement", score: 2 },
+      { label: "Unable to influence others without formal authority or title", score: 1 },
+    ],
+  },
+  {
+    id: "self_belief",
+    area: "Confidence & Self-Belief",
+    prompt: "When stepping into unfamiliar rooms with senior leaders or industry peers, how secure do you feel in your seat?",
+    why: "Self-Belief. Unchecked impostor syndrome handicaps your contribution before you even say a word.",
+    options: [
+      { label: "Fully grounded; I know my value and feel at home in any room", score: 4 },
+      { label: "Brief hesitation, but I quickly settle in and engage", score: 3 },
+      { label: "Frequent impostor syndrome; I constantly question if I belong", score: 2 },
+      { label: "Paralyzing self-doubt; I minimize my voice and stay unnoticed", score: 1 },
+    ],
+  },
+  {
+    id: "follow_through",
+    area: "Discipline & Consistency",
+    prompt: "How dependable is your follow-through on personal commitments when initial enthusiasm and motivation fade?",
+    why: "Discipline. Motivation is temporary; long-term personal authority is built on keeping promises to yourself.",
+    options: [
+      { label: "Uncompromising; my habits run on systems and discipline, not mood", score: 4 },
+      { label: "Generally reliable, with occasional drops when fatigue sets in", score: 3 },
+      { label: "Inconsistent; I start with high excitement but abandon momentum quickly", score: 2 },
+      { label: "Rarely sustain self-directed commitments past the first week", score: 1 },
+    ],
+  },
+];
 
 type Band = {
   floor: number;
@@ -178,22 +289,7 @@ type Band = {
   cta: { label: string; href: string };
 };
 
-/**
- * Result bands, ordered BEST to WORST, with `floor` being the minimum total to
- * land in that band. `BANDS.find((b) => total >= b.floor)` then returns the
- * highest band the score qualifies for.
- *
- * THE ORDER IS LOAD BEARING.
- *
- * The bands were originally written worst-first, so `find` returned the first
- * match and a perfect score landed in the worst band, which printed "Several of
- * these are structural" under a 40 out of 40. Nothing crashed, the probe still
- * saw a score, and the copy was simply the opposite of the meaning.
- *
- * Wording is deliberately about the next step rather than a verdict on the
- * business, because no band here has a confirmed calibration behind it.
- */
-const BANDS: Band[] = [
+const BUSINESS_BANDS: Band[] = [
   {
     floor: 34,
     headline: "Almost all of it is working.",
@@ -220,15 +316,73 @@ const BANDS: Band[] = [
   },
 ];
 
-/**
- * No reduced motion hook is needed here. `Progress` declares its transition in
- * CSS and switches it off with `motion-reduce:`, so the quiz ships no extra
- * JavaScript for something the stylesheet already handles.
- */
-export function BusinessHealthChecker() {
+const SELF_BANDS: Band[] = [
+  {
+    floor: 34,
+    headline: "High personal mastery with targeted growth edges.",
+    body: "You possess strong self-command, clear articulation, and grounded presence. Look at your lowest scoring area below to sharpen your edge and step into higher-leverage public influence.",
+    cta: { label: "Explore The Bookwishes Club", href: "/services/self-development" },
+  },
+  {
+    floor: 24,
+    headline: "Solid foundation with identifiable communication gaps.",
+    body: "You perform well in comfortable environments, but pressure, larger rooms, or spontaneous speaking expose hesitation. Strengthening your structured speaking frameworks will unlock immediate confidence.",
+    cta: { label: "Explore The Bookwishes Club", href: "/services/self-development" },
+  },
+  {
+    floor: 14,
+    headline: "Self-doubt and friction are holding back your potential.",
+    body: "Stage anxiety, conversational over-thinking, or inconsistent personal discipline are capping your impact. These are learned skills with proven training methods, not fixed personality traits.",
+    cta: { label: "Discover The Bookwishes Club", href: "/services/self-development" },
+  },
+  {
+    floor: 0,
+    headline: "Time for a structured communication and mindset reset.",
+    body: "Hesitation, fear of speaking, and lack of clarity are costing you career advancement and personal confidence. Beginning with a supportive community and structured practice creates rapid transformation.",
+    cta: { label: "Explore Self-Development Programs", href: "/services/self-development" },
+  },
+];
+
+export function BusinessHealthChecker({
+  initialTrack = "business",
+}: {
+  initialTrack?: DiagnosticTrack;
+} = {}) {
+  const [track, setTrack] = useState<DiagnosticTrack>(initialTrack);
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [done, setDone] = useState(false);
+
+  // Sync track with URL params or hash (?track=self, #track=self, etc.)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const updateFromUrl = () => {
+      const searchParams = new URLSearchParams(window.location.search);
+      let t = searchParams.get("track");
+      if (!t && window.location.hash) {
+        if (window.location.hash.includes("track=self")) t = "self";
+        else if (window.location.hash.includes("track=business")) t = "business";
+      }
+      if (t === "business" || t === "self") {
+        setTrack(t);
+        setIndex(0);
+        setAnswers({});
+        setDone(false);
+      }
+    };
+
+    updateFromUrl();
+    window.addEventListener("hashchange", updateFromUrl);
+    window.addEventListener("popstate", updateFromUrl);
+    return () => {
+      window.removeEventListener("hashchange", updateFromUrl);
+      window.removeEventListener("popstate", updateFromUrl);
+    };
+  }, []);
+
+  const questions = track === "business" ? BUSINESS_QUESTIONS : SELF_QUESTIONS;
+  const bands = track === "business" ? BUSINESS_BANDS : SELF_BANDS;
+  const maxScore = questions.length * 4;
 
   const total = useMemo(
     () => Object.values(answers).reduce((n, v) => n + v, 0),
@@ -238,7 +392,7 @@ export function BusinessHealthChecker() {
   /** Per area, so the result can name a place rather than only a number. */
   const byArea = useMemo(() => {
     const map = new Map<string, { sum: number; n: number }>();
-    for (const q of QUESTIONS) {
+    for (const q of questions) {
       const score = answers[q.id];
       if (score === undefined) continue;
       const entry = map.get(q.area) ?? { sum: 0, n: 0 };
@@ -249,13 +403,21 @@ export function BusinessHealthChecker() {
     return [...map.entries()]
       .map(([area, { sum, n }]) => ({ area, average: sum / n }))
       .sort((a, b) => a.average - b.average);
-  }, [answers]);
+  }, [answers, questions]);
 
-  const band = BANDS.find((b) => total >= b.floor) ?? BANDS[BANDS.length - 1];
+  const band = bands.find((b) => total >= b.floor) ?? bands[bands.length - 1];
 
-  const question = QUESTIONS[index];
+  const question = questions[index];
   const selected = question ? answers[question.id] : undefined;
   const answeredCount = Object.keys(answers).length;
+
+  const switchTrack = (nextTrack: DiagnosticTrack) => {
+    if (nextTrack === track) return;
+    setTrack(nextTrack);
+    setIndex(0);
+    setAnswers({});
+    setDone(false);
+  };
 
   if (done) {
     const weakest = byArea[0];
@@ -263,16 +425,53 @@ export function BusinessHealthChecker() {
     const allAreasTied = Boolean(
       weakest && strongest && Math.abs(weakest.average - strongest.average) < 0.001,
     );
-    const percent = Math.round((total / MAX) * 100);
+    const percent = Math.round((total / maxScore) * 100);
 
     return (
-      <div className="flex flex-col gap-8">
+      <div id="health-checker" className="flex flex-col gap-8">
+        {/* Track Switcher */}
+        <div className="flex flex-col gap-3 border-b border-hairline pb-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs font-bold uppercase tracking-wider text-accent">
+              {track === "business" ? "Powered by Business Doctor" : "Powered by The Bookwishes Club"}
+            </span>
+            <p className="text-sm font-bold text-ink">
+              {track === "business" ? "Business Systems & Growth Diagnostic" : "Self-Development & Speaking Diagnostic"}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 p-1 rounded-pill bg-surface-sunk border border-hairline w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={() => switchTrack("business")}
+              className={`px-4 py-2 rounded-pill text-xs font-bold transition-all duration-200 ${
+                track === "business"
+                  ? "bg-ink text-canvas shadow-xs"
+                  : "text-ink-muted hover:text-ink"
+              }`}
+            >
+              For Your Business
+            </button>
+            <button
+              type="button"
+              onClick={() => switchTrack("self")}
+              className={`px-4 py-2 rounded-pill text-xs font-bold transition-all duration-200 ${
+                track === "self"
+                  ? "bg-accent text-accent-ink shadow-xs"
+                  : "text-ink-muted hover:text-ink"
+              }`}
+            >
+              For Yourself
+            </button>
+          </div>
+        </div>
+
         <div className="flex flex-col gap-3">
           <p className="eyebrow">Your result</p>
           <p className="text-display-2 leading-display-2 text-balance">
-            {total} out of {MAX}
+            {total} out of {maxScore}
           </p>
-          <Progress value={percent} label="Health check score" />
+          <Progress value={percent} label="Diagnostic assessment score" />
         </div>
 
         <div className="flex flex-col gap-3">
@@ -282,52 +481,27 @@ export function BusinessHealthChecker() {
           <p className="measure text-base leading-relaxed text-ink-muted">{band.body}</p>
         </div>
 
-        {/*
-          COLOUR RULES ON A DARK BAND
-
-          `.band-dark` RE-SCOPES the colour tokens rather than adding a parallel
-          dark palette: `--canvas` becomes near black and `--ink` becomes near
-          white. So a hardcoded `text-canvas` here renders near-black text on a
-          near-black band and disappears, which is exactly what happened: the
-          ten answer labels were present in the DOM and invisible on screen, and
-          axe reported no contrast failure because it had no text to measure.
-
-          Every colour below is therefore semantic: `ink`, `ink-muted`, `surface`,
-          `hairline`. Those invert correctly inside the band and read correctly
-          outside it. Only `bg-accent` / `text-accent-ink` is a hardcoded pair,
-          which is safe because both halves invert together.
-        */}
         {weakest && strongest ? (
           <div className="grid gap-4 sm:grid-cols-2">
-            {/*
-              Both cards are `bg-surface`, and the emphasised one is separated by
-              an accent border rather than by a different background colour. On a
-              dark band `bg-ink` would be a near-white card, so an "emphasised"
-              dark card is not available; a border is the honest way to create
-              the hierarchy.
-            */}
             <div className="flex flex-col gap-2 rounded-card border border-accent bg-surface p-5">
               <p className="text-xs font-bold uppercase tracking-[0.14em] text-accent">
                 Look here first
               </p>
-              {/* When every area scores the same there is no weakest one, and
-                  naming an arbitrary area as the weak spot would be inventing a
-                  finding. Say so instead. */}
               {allAreasTied ? (
                 <>
                   <p className="font-display text-lg font-bold text-ink">No clear weak spot</p>
                   <p className="text-sm leading-relaxed text-ink-muted">
                     Every area scored the same, so there is nothing to single out.
                     Usually that means the answers were uniform rather than that
-                    the business is uniform.
+                    the business or performance is uniform.
                   </p>
                 </>
               ) : (
                 <>
                   <p className="font-display text-lg font-bold text-ink">{weakest.area}</p>
                   <p className="text-sm leading-relaxed text-ink-muted">
-                    Your lowest scoring area. This is where a diagnostic would
-                    spend its time.
+                    Your lowest scoring area. This is where targeted coaching or diagnosis would
+                    spend its time first.
                   </p>
                 </>
               )}
@@ -342,7 +516,7 @@ export function BusinessHealthChecker() {
               <p className="text-sm leading-relaxed text-ink-muted">
                 {allAreasTied
                   ? "For the same reason, no area stands out as working better than the rest."
-                  : "Working well. Worth protecting rather than spending attention on."}
+                  : "Working well. Worth protecting rather than spending all your attention on."}
               </p>
             </div>
           </div>
@@ -351,8 +525,8 @@ export function BusinessHealthChecker() {
         <div className="flex flex-col gap-4 rounded-panel bg-surface p-4 sm:p-6">
           <p className="text-sm leading-relaxed text-ink-muted">
             This is a self assessment of your own answers. It is not an audit and
-            not a benchmark against any industry. A real diagnosis involves
-            looking at the business, not asking its owner to grade it.
+            not a benchmark against any industry. A genuine transformation involves
+            examining the actual practice, not asking you to grade it.
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
             <Link
@@ -361,6 +535,13 @@ export function BusinessHealthChecker() {
             >
               {band.cta.label}
             </Link>
+            <button
+              type="button"
+              onClick={() => switchTrack(track === "business" ? "self" : "business")}
+              className="inline-flex h-12 min-h-[48px] w-full sm:w-auto items-center justify-center rounded-pill bg-surface-sunk border border-hairline px-6 text-sm font-bold text-ink transition-colors duration-200 ease-brand hover:border-accent hover:text-accent"
+            >
+              Assess {track === "business" ? "For Yourself" : "For Your Business"} &rarr;
+            </button>
             <button
               type="button"
               onClick={() => {
@@ -380,19 +561,56 @@ export function BusinessHealthChecker() {
 
   if (!question) return null;
 
-  const isLast = index === QUESTIONS.length - 1;
+  const isLast = index === questions.length - 1;
 
   return (
-    <div className="flex flex-col gap-8">
+    <div id="health-checker" className="flex flex-col gap-8">
+      {/* Track Switcher */}
+      <div className="flex flex-col gap-3 border-b border-hairline pb-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-xs font-bold uppercase tracking-wider text-accent">
+            {track === "business" ? "Powered by Business Doctor" : "Powered by The Bookwishes Club"}
+          </span>
+          <p className="text-sm font-bold text-ink">
+            {track === "business" ? "Business Systems & Growth Diagnostic" : "Self-Development & Speaking Diagnostic"}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 p-1 rounded-pill bg-surface-sunk border border-hairline w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={() => switchTrack("business")}
+            className={`px-4 py-2 rounded-pill text-xs font-bold transition-all duration-200 ${
+              track === "business"
+                ? "bg-ink text-canvas shadow-xs"
+                : "text-ink-muted hover:text-ink"
+            }`}
+          >
+            For Your Business
+          </button>
+          <button
+            type="button"
+            onClick={() => switchTrack("self")}
+            className={`px-4 py-2 rounded-pill text-xs font-bold transition-all duration-200 ${
+              track === "self"
+                ? "bg-accent text-accent-ink shadow-xs"
+                : "text-ink-muted hover:text-ink"
+            }`}
+          >
+            For Yourself
+          </button>
+        </div>
+      </div>
+
       <div className="flex flex-col gap-3">
         <div className="flex items-baseline justify-between gap-4">
           <p className="eyebrow">
-            Question {index + 1} of {QUESTIONS.length}
+            Question {index + 1} of {questions.length}
           </p>
           <p className="text-sm font-bold text-ink-muted">{question.area}</p>
         </div>
         <Progress
-          value={Math.round(((index + (selected ? 1 : 0)) / QUESTIONS.length) * 100)}
+          value={Math.round(((index + (selected ? 1 : 0)) / questions.length) * 100)}
           label="Questions answered"
         />
       </div>
@@ -461,10 +679,11 @@ export function BusinessHealthChecker() {
       </div>
 
       <p className="text-xs leading-relaxed text-ink-muted">
-        {answeredCount} of {QUESTIONS.length} answered. Answers stay in this
-        browser and are not transmitted anywhere, because there is nowhere to send
-        them yet.
+        {answeredCount} of {questions.length} answered. Answers stay in this
+        browser and are not transmitted anywhere.
       </p>
     </div>
   );
 }
+
+export { BusinessHealthChecker as TransformationDiagnostic };

@@ -13,7 +13,9 @@ import { diagnosticSection } from "@/lib/content";
  */
 export function DiagnosticSection() {
   return (
-    <section id="health-check" className="hairline-y bg-surface">
+    <section id="diagnostic" className="hairline-y bg-surface">
+      <div id="health-check" className="sr-only" aria-hidden="true" />
+      <div id="health-checker" className="sr-only" aria-hidden="true" />
       <Container className="section-y">
         <SectionHeading
           eyebrow={diagnosticSection.eyebrow}

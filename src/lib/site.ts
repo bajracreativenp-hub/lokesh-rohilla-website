@@ -38,8 +38,8 @@ export const allDestinations: NavItem[] = [
 ];
 
 export const navCta: NavItem = {
-  label: "Business Health Check",
-  href: "/services/business-consultation#health-checker",
+  label: "Transformation Diagnostic",
+  href: "/#diagnostic",
 };
 
 /**
