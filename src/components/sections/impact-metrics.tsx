@@ -1,5 +1,6 @@
 import { Star } from "@phosphor-icons/react/dist/ssr";
 
+import { CountUp } from "@/components/ui/count-up";
 import { Container } from "@/components/ui/layout";
 import { Reveal } from "@/components/ui/reveal";
 import { impactMetrics } from "@/lib/content";
@@ -28,8 +29,12 @@ export function ImpactMetrics() {
                 }`}
               >
                 <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
-                  <span className="text-2xl font-extrabold tracking-tight text-ink sm:text-display-2 md:text-display-1">
-                    {item.value}
+                  <span className="tabular-nums text-2xl font-extrabold tracking-tight text-ink sm:text-display-2 md:text-display-1">
+                    {item.value === "18+" ? (
+                      <CountUp from={1} to={18} suffix="+" duration={1.5} delay={0.15} />
+                    ) : (
+                      item.value
+                    )}
                   </span>
                   {"isRating" in item && item.isRating ? (
                     <span className="flex items-center text-amber-500" aria-label="Rating out of 5 stars">
