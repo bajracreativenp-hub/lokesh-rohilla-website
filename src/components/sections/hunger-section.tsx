@@ -107,9 +107,9 @@ export function HungerSection() {
               <div className="col-span-2 rounded-l-full bg-canvas" />
             </div>
 
-            {/* Row 2: Featured In on Left (2/3), Video on Right (1/3) */}
-            <div className="flex flex-col items-stretch md:flex-row">
-              {/* Video container on desktop is on the right */}
+            {/* Row 2: Video on Right (1/3) touching the bridge at 2/3 */}
+            <div className="flex flex-col items-stretch md:flex-row justify-end">
+              {/* Video container on desktop is on the right (1/3) */}
               <div className="flex h-auto w-full md:w-1/3 relative z-10">
                 <div
                   onClick={() => setVideoOpen(true)}
@@ -140,29 +140,6 @@ export function HungerSection() {
                   <div className="relative z-10 inline-flex items-center gap-2 rounded-pill bg-white/10 px-5 py-2.5 text-xs font-bold text-white backdrop-blur-md border border-white/20 shadow-lift transition-transform duration-200 group-hover:scale-105 group-hover:bg-white/20">
                     <Play weight="fill" className="size-4 text-white" />
                     <span>Watch video</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Featured in logos on desktop is on the left */}
-              <div className="relative z-10 order-last flex w-full flex-col justify-center md:order-first md:w-2/3">
-                <div className="py-8 md:pr-10">
-                  <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-ink-muted">
-                    Featured in:
-                  </h3>
-                  <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-4 items-center text-ink/70">
-                    <span className="font-serif text-xl sm:text-2xl font-black tracking-tight text-ink/80 hover:text-ink transition-colors flex items-center justify-center sm:justify-start">
-                      Forbes
-                    </span>
-                    <span className="font-sans text-lg sm:text-xl font-black uppercase tracking-widest text-ink/80 hover:text-ink transition-colors flex items-center justify-center sm:justify-start">
-                      FORTUNE
-                    </span>
-                    <span className="font-serif text-xl sm:text-2xl font-extrabold italic text-ink/80 hover:text-ink transition-colors flex items-center justify-center sm:justify-start">
-                      Inc.
-                    </span>
-                    <span className="font-sans text-lg sm:text-xl font-black uppercase tracking-wider text-ink/80 hover:text-ink transition-colors flex items-center justify-center sm:justify-start">
-                      SUCCESS
-                    </span>
                   </div>
                 </div>
               </div>
