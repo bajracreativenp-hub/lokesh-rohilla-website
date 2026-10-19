@@ -15,7 +15,8 @@ import puppeteer from "puppeteer-core";
 
 import { CHROME, probeOut } from "./browser.mjs";
 
-const URL = "http://localhost:3001/services/business-consultation#health-checker";
+const BASE = process.env.PROBE_URL ?? "http://localhost:3000";
+const URL = `${BASE}/services/business-consultation#health-checker`;
 const OUT = probeOut("lr-hc");
 
 const { mkdir } = await import("node:fs/promises");

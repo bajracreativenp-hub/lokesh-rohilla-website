@@ -22,9 +22,9 @@ export function DiagnosticSection() {
           size="lg"
         />
 
-        <div className="mt-12 md:mt-16">
+        <div className="mt-8 sm:mt-12 md:mt-16">
           <Reveal>
-            <div className="rounded-panel border border-hairline bg-canvas p-6 md:p-10 shadow-card">
+            <div className="rounded-panel border border-hairline bg-canvas p-4 sm:p-6 md:p-10 shadow-card">
               <BusinessHealthChecker />
             </div>
           </Reveal>

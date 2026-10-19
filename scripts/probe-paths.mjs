@@ -13,7 +13,7 @@ import puppeteer from "puppeteer-core";
 import { CHROME, probeOut } from "./browser.mjs";
 import { mkdir } from "node:fs/promises";
 
-const URL = "http://localhost:3001";
+const URL = process.env.PROBE_URL ?? "http://localhost:3000";
 const OUT = process.argv[2] ?? probeOut("lr-paths");
 
 await mkdir(OUT, { recursive: true });

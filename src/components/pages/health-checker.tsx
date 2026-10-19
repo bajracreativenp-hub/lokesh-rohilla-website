@@ -348,7 +348,7 @@ export function BusinessHealthChecker() {
           </div>
         ) : null}
 
-        <div className="flex flex-col gap-4 rounded-panel bg-surface p-6">
+        <div className="flex flex-col gap-4 rounded-panel bg-surface p-4 sm:p-6">
           <p className="text-sm leading-relaxed text-ink-muted">
             This is a self assessment of your own answers. It is not an audit and
             not a benchmark against any industry. A real diagnosis involves
@@ -357,7 +357,7 @@ export function BusinessHealthChecker() {
           <div className="flex flex-col gap-3 sm:flex-row">
             <Link
               href={band.cta.href}
-              className="inline-flex h-12 items-center justify-center rounded-pill bg-accent px-6 text-sm font-bold text-accent-ink transition-[filter,transform] duration-200 ease-brand hover:brightness-110 active:translate-y-px"
+              className="inline-flex h-12 min-h-[48px] w-full sm:w-auto items-center justify-center rounded-pill bg-accent px-6 text-sm font-bold text-accent-ink transition-[filter,transform] duration-200 ease-brand hover:brightness-110 active:translate-y-px"
             >
               {band.cta.label}
             </Link>
@@ -368,7 +368,7 @@ export function BusinessHealthChecker() {
                 setIndex(0);
                 setDone(false);
               }}
-              className="inline-flex h-12 items-center justify-center rounded-pill border border-hairline-strong px-6 text-sm font-bold transition-colors duration-200 ease-brand hover:border-accent hover:text-accent"
+              className="inline-flex h-12 min-h-[48px] w-full sm:w-auto items-center justify-center rounded-pill border border-hairline-strong px-6 text-sm font-bold transition-colors duration-200 ease-brand hover:border-accent hover:text-accent"
             >
               Start again
             </button>
@@ -413,10 +413,10 @@ export function BusinessHealthChecker() {
               <label
                 key={option.score}
                 htmlFor={id}
-                className={`flex cursor-pointer items-start gap-3 rounded-card border p-4 transition-colors duration-200 ease-brand ${
+                className={`flex cursor-pointer items-start gap-3 rounded-card border p-3.5 sm:p-4 min-h-[48px] transition-colors duration-200 ease-brand ${
                   isSelected
                     ? "border-accent bg-surface"
-                    : "border-hairline bg-surface-sunk hover:border-hairline-strong"
+                    : "border-hairline bg-surface-sunk hover:border-hairline-strong active:bg-surface"
                 }`}
               >
                 <input
@@ -436,13 +436,13 @@ export function BusinessHealthChecker() {
         </div>
       </fieldset>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center">
         {index > 0 ? (
           <Button
             type="button"
             variant="outline"
             onClick={() => setIndex((i) => i - 1)}
-            className="border-hairline-strong text-ink"
+            className="w-full sm:w-auto border-hairline-strong text-ink min-h-[44px]"
           >
             <ArrowLeft aria-hidden="true" className="size-4" weight="bold" />
             Previous
@@ -453,7 +453,7 @@ export function BusinessHealthChecker() {
           type="button"
           disabled={selected === undefined}
           onClick={() => (isLast ? setDone(true) : setIndex((i) => i + 1))}
-          className="sm:ml-auto"
+          className="w-full sm:w-auto sm:ml-auto min-h-[44px]"
         >
           {isLast ? "See the result" : "Next question"}
           <ArrowRight aria-hidden="true" className="size-4" weight="bold" />
