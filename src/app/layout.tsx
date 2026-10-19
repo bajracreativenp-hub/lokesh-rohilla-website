@@ -131,6 +131,7 @@ export default function RootLayout({
     // navigation, which no longer patches scroll-behavior automatically.
     <html
       lang="en"
+      suppressHydrationWarning
       data-scroll-behavior="smooth"
       className={`${sans.variable} ${serif.variable} ${figure.variable}`}
     >
@@ -145,7 +146,7 @@ export default function RootLayout({
           <style>{`[data-reveal]{opacity:1!important;transform:none!important}`}</style>
         </noscript>
       </head>
-      <body className="min-h-[100dvh] bg-canvas text-ink antialiased">
+      <body suppressHydrationWarning className="min-h-[100dvh] bg-canvas text-ink antialiased">
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[var(--z-skip)] focus:h-auto focus:w-auto focus:bg-ink focus:px-5 focus:py-3 focus:text-sm focus:font-semibold focus:text-canvas"
