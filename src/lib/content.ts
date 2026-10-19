@@ -36,13 +36,7 @@
 export const UNSPLASH = "https://images.unsplash.com/photo-";
 
 export const PENDING = {
-  vision: "[FINAL VISION STATEMENT TO BE PROVIDED]",
-  mission: "[FINAL MISSION STATEMENT TO BE PROVIDED]",
-  testimonials: "[REAL TESTIMONIALS AND GOOGLE REVIEWS TO BE PROVIDED]",
-  events: "[CONFIRMED UPCOMING DATES TO BE PROVIDED]",
   contact: "[EMAIL, PHONE AND LOCATION TO BE PROVIDED]",
-  scale:
-    "Scale of reach through The Bookwishes Club is awaiting client confirmation and is deliberately not stated.",
 } as const;
 
 /* -------------------------------------------------------------------------
@@ -519,7 +513,6 @@ export const testimonials = {
       alt: "A lit stage with a microphone stand and a dark auditorium",
     },
   ],
-  pending: PENDING.testimonials,
   googleReviews: {
     businessName: "The Bookwishes Club",
     rating: 4.6,
@@ -555,65 +548,3 @@ export const testimonials = {
   },
 } as const;
 
-/* -------------------------------------------------------------------------
-   ABOUT PAGE COPY (staged for the next build pass)
-   Present here so the About page has an approved source of truth waiting,
-   including the two statements the client has not yet supplied.
-   ------------------------------------------------------------------------- */
-
-export const about = {
-  hero: {
-    wordmark: "Lokesh Rohilla",
-    role: "Business Consultant. Mentor. Transformation Leader.",
-    headline: "The journey so far.",
-  },
-  chapters: [
-    {
-      key: "story",
-      title: "The Story",
-      note: "Full biography, written as editorial narrative with visual breaks rather than a wall of text.",
-    },
-    {
-      key: "early-career",
-      title: "Early Career, Dubai",
-      note: "Began in Dubai's hospitality industry with Hyatt International and Qatar Airways. Focus on systems, service, hospitality, operational excellence, and understanding people and processes.",
-    },
-    {
-      key: "transition",
-      title: "The Transition",
-      note: "Moved from hospitality into broader business consulting. Started with hotels, restaurants and premium guesthouses, then expanded into retail, logistics, education and other organizations.",
-    },
-    {
-      key: "major-experiences",
-      title: "Major Experiences",
-      note: "Hard Rock Hotel India, City Mall, QSR outlets, meat processing factory setup, and the International Hospital in Delhi. No dates or job titles are stated, because none have been supplied.",
-    },
-    {
-      key: "turning-point",
-      title: "A Different Kind of Transformation",
-      note: "The 2021 turning point. A personal transformation during lockdown that led to the founding of The Bookwishes Club. This is where the story moves from business transformation into personal development.",
-    },
-    {
-      key: "recent-work",
-      title: "Recent Work",
-      note: "Corporate leadership mentoring, Siddharth Hospitality, Hamsa Wears, Kshipra Attire, Center for Leadership and Entrepreneurship, Kalpa Internet Ventures, and Omega International College. Documented as engagements only. No results stated.",
-    },
-  ],
-  philosophy: {
-    headline: "Listen. Understand. Simplify. Transform.",
-    body: "The listening leader. Clarity before prescription, always.",
-  },
-  vision: PENDING.vision,
-  mission: PENDING.mission,
-  timelineLabels: [
-    "Early Career",
-    "Transition",
-    "Major Projects",
-    "2021",
-    "Recent and Ongoing",
-  ],
-  closing: {
-    headline: "The journey continues.",
-    cta: { label: "Work With Lokesh", href: "/contact" },
-  },
-} as const;

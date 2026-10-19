@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { BlockView } from "@/components/pages/block-view";
 import { Container } from "@/components/ui/layout";
 import { Reveal } from "@/components/ui/reveal";
@@ -127,15 +129,10 @@ export function ContentPage({ page }: { page: PageDef }) {
 
       {/* Where to next, so no page is a dead end */}
       {/*
-          `section-y-tight`, not the main rhythm. This is a closing strip that
-          belongs to the last section above it rather than standing as a band of
-          its own, so giving it the full step left a hole under the final content.
-        */}
-        {/*
-          `section-y-tight`, not the main rhythm. This is a closing strip that
-          belongs to the last section above it rather than standing as a band of
-          its own, so giving it the full step left a hole under the final content.
-        */}
+        `section-y-tight`, not the main rhythm. This is a closing strip that
+        belongs to the last section above it rather than standing as a band of
+        its own, so giving it the full step left a hole under the final content.
+      */}
       <section className="hairline-t section-y-tight">
         <Container>
           <div className="flex flex-col gap-5">
@@ -143,12 +140,12 @@ export function ContentPage({ page }: { page: PageDef }) {
             <ul className="flex flex-wrap gap-2">
               {NEXT_LINKS.filter((link) => link.href !== page.href).map((link) => (
                 <li key={link.href}>
-                  <a
+                  <Link
                     href={link.href}
                     className="inline-flex items-center rounded-pill border border-hairline-strong px-4 py-2 text-sm font-semibold text-ink transition-colors duration-200 ease-brand hover:border-accent hover:text-accent"
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

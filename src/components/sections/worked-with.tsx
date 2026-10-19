@@ -224,6 +224,7 @@ export function WorkedWith() {
     <section aria-labelledby={labelId}>
       <Container className="section-y">
         <SectionHeading
+          id={labelId}
           eyebrow={workedWith.eyebrow}
           headline={<SerifText text={workedWith.headline} />}
           lede={workedWith.lede}

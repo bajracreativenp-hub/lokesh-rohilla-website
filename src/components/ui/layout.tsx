@@ -66,6 +66,7 @@ export function Section({
  * not used because it produces a templated rhythm across a long page.
  */
 export function SectionHeading({
+  id,
   eyebrow,
   headline,
   lede,
@@ -74,6 +75,7 @@ export function SectionHeading({
   align = "left",
   rule = true,
 }: {
+  id?: string;
   eyebrow?: string;
   /**
    * `ReactNode`, not `string`, because headlines now carry the serif-letter
@@ -118,7 +120,7 @@ export function SectionHeading({
           <span className="eyebrow">{eyebrow}</span>
         </p>
       ) : null}
-      <h2 className={`${sizes[size]} max-w-[22ch] text-balance`}>{headline}</h2>
+      <h2 id={id} className={`${sizes[size]} max-w-[22ch] text-balance`}>{headline}</h2>
       {lede ? <p className="measure text-base leading-relaxed text-ink-muted md:text-lg">{lede}</p> : null}
     </div>
   );

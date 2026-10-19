@@ -25,6 +25,53 @@ export type FormPreset = {
   pending: string;
 };
 
+export const contactPage = {
+  form: {
+    path: {
+      label: "What is this about?",
+      type: "radio" as const,
+      required: true,
+      options: [
+        { value: "business", label: "My business", hint: "Strategy, operations, systems, sales or marketing." },
+        { value: "leadership", label: "My team", hint: "Leadership, communication, performance or culture." },
+        { value: "personal", label: "Myself", hint: "Mindset, career, confidence or personal growth." },
+      ],
+    },
+    name: {
+      label: "Name",
+      type: "text" as const,
+      required: true,
+      autoComplete: "name" as const,
+    },
+    email: {
+      label: "Email",
+      type: "email" as const,
+      required: true,
+      autoComplete: "email" as const,
+    },
+    organisation: {
+      label: "Organization",
+      type: "text" as const,
+      required: false,
+      autoComplete: "organization" as const,
+      help: "Optional. Useful if this is about a team or a company.",
+    },
+    message: {
+      label: "What is happening?",
+      type: "textarea" as const,
+      required: true,
+      help: "The more concrete this is, the more useful the first reply will be.",
+    },
+  },
+
+  validation: {
+    name: "Please enter your name.",
+    email: "Please enter a valid email address.",
+    message: "Please describe what is happening, even briefly.",
+    path: "Please choose which of the three this is about.",
+  },
+} as const;
+
 export const formPresets: Record<string, FormPreset> = {
   contact: {
     pending:

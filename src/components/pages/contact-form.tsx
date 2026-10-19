@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { contactPage } from "@/lib/pages";
+import { contactPage } from "@/lib/forms";
 
 /**
  * CONTACT FORM
