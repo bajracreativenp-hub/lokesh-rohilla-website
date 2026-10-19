@@ -520,6 +520,39 @@ export const testimonials = {
     },
   ],
   pending: PENDING.testimonials,
+  googleReviews: {
+    businessName: "The Bookwishes Club",
+    rating: 4.6,
+    reviewCount: "318+",
+    url: "https://share.google/MNnpINkRvgzdZAJTH",
+    note: "Public Speaking & Self-Development Center",
+    reviews: [
+      {
+        author: "Anit Shakya",
+        rating: 5,
+        text: "Attending the public speaking classes at The Bookwishes Club has been a transformative experience! The sessions are well-structured, engaging, and full of practical exercises that really helped boost my confidence.",
+        time: "Google Review",
+      },
+      {
+        author: "Bivan Tulachan",
+        rating: 5,
+        text: "Joining Book Wishes Club has been very rewarding. It improved my speaking ability and made me more confident. The classes are fun and encouraging, and the instructors are very helpful and friendly.",
+        time: "Google Review",
+      },
+      {
+        author: "Chandani Shah",
+        rating: 5,
+        text: "I am truly grateful for the incredible classes. Joining these sessions was one of the best decisions I have made and now, I am proud to say I have gained real confidence.",
+        time: "Google Review",
+      },
+      {
+        author: "Nirakar God",
+        rating: 5,
+        text: "After joining I have a clear vision about what it takes to be a successful person who is able to handle any situation. I genuinely suggest people to be a member of Bookwishes Club.",
+        time: "Google Review",
+      },
+    ],
+  },
 } as const;
 
 /* -------------------------------------------------------------------------
