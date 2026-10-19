@@ -53,7 +53,7 @@ import { hero } from "@/lib/content";
 export function Hero() {
   return (
     <section
-      className="relative isolate overflow-hidden -mt-[78px] sm:-mt-[88px]"
+      className="relative isolate overflow-hidden"
       data-hero-art=""
       /*
         `solidify-scrim` tells `probe-contrast` to measure this hero against the
