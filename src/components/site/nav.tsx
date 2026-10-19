@@ -17,7 +17,7 @@ import {
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import { useCart } from "@/components/commerce/cart-context";
-import { LiquidGlassButton } from "@/components/ui/apple-tahoe-liquid-glass-button";
+import { LiquidGlass, LiquidGlassButton } from "@/components/ui/apple-tahoe-liquid-glass-button";
 import { DESTINATIONS, NAV, ROUTES } from "@/lib/ia";
 
 /**
@@ -221,19 +221,28 @@ export function Nav() {
   return (
     <>
       <header
-        className="sticky top-0 z-[var(--z-nav)] border-b border-hairline bg-canvas/85 backdrop-blur-md"
+        className="sticky top-0 z-[var(--z-nav)] w-full px-3 pt-3.5 pb-2 sm:px-6 sm:pt-4 pointer-events-none transition-all duration-300"
         onMouseLeave={scheduleClose}
         onMouseEnter={cancelClose}
       >
-        <div className="mx-auto flex h-[72px] w-full max-w-[1400px] items-center justify-between gap-4 px-5 md:px-8 lg:px-12">
-          <Link href="/" className="flex shrink-0 items-center gap-2.5">
+        <LiquidGlass
+          material="regular"
+          appearance="dark"
+          refraction={22}
+          bezel={24}
+          blur={2}
+          saturation={1.3}
+          brightness={1.05}
+          className="pointer-events-auto mx-auto flex h-14 md:h-16 w-full max-w-[1240px] items-center justify-between gap-2.5 sm:gap-4 px-3 sm:px-5 md:px-6 rounded-full border border-white/20 bg-[#0B1730]/85 backdrop-blur-2xl shadow-[0_16px_40px_-10px_rgba(0,0,0,0.45),0_0_0_1px_rgba(255,255,255,0.12)_inset]"
+        >
+          <Link href="/" className="group flex shrink-0 items-center gap-2.5">
             <span
               aria-hidden="true"
-              className="grid size-9 place-items-center rounded-[10px] bg-ink text-[0.8125rem] font-extrabold text-canvas"
+              className="grid size-9 place-items-center rounded-xl bg-white/10 border border-white/20 text-[0.8125rem] font-extrabold text-white shadow-sm transition-transform duration-200 group-hover:scale-105"
             >
               LR
             </span>
-            <span className="hidden text-[0.9375rem] font-extrabold tracking-[-0.01em] sm:block">
+            <span className="hidden text-[0.9375rem] font-extrabold tracking-[-0.01em] text-white sm:block">
               Lokesh Rohilla
             </span>
           </Link>
@@ -267,8 +276,10 @@ export function Nav() {
                           setOpenEntry(entry.label);
                         }}
                         onKeyDown={(e) => onTriggerKeyDown(e, index)}
-                        className={`flex items-center gap-1.5 rounded-input px-4 py-2.5 text-sm font-semibold transition-colors duration-200 ease-brand hover:text-accent ${
-                          current || open ? "text-accent" : "text-ink-muted"
+                        className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold transition-all duration-200 ${
+                          current || open
+                            ? "bg-white/15 text-white shadow-sm"
+                            : "text-white/80 hover:bg-white/10 hover:text-white"
                         }`}
                       >
                         {entry.label}
@@ -289,8 +300,10 @@ export function Nav() {
                         aria-current={current ? "page" : undefined}
                         onMouseEnter={cancelClose}
                         onKeyDown={(e) => onTriggerKeyDown(e, index)}
-                        className={`flex items-center rounded-input px-4 py-2.5 text-sm font-semibold transition-colors duration-200 ease-brand hover:text-accent ${
-                          current ? "text-accent" : "text-ink-muted"
+                        className={`flex items-center rounded-full px-3.5 py-1.5 text-sm font-semibold transition-all duration-200 ${
+                          current
+                            ? "bg-white/15 text-white shadow-sm"
+                            : "text-white/80 hover:bg-white/10 hover:text-white"
                         }`}
                       >
                         {entry.label}
@@ -309,7 +322,7 @@ export function Nav() {
                               ? { duration: 0 }
                               : { duration: 0.2, ease: [0.16, 1, 0.3, 1] }
                           }
-                          className="absolute left-0 top-[calc(100%_+_8px)] z-10 w-[21rem] max-h-[calc(100dvh_-_7rem)] overflow-y-auto overscroll-contain rounded-card bg-canvas p-5 shadow-lift"
+                          className="absolute left-0 top-[calc(100%_+_14px)] z-50 w-[21rem] max-h-[calc(100dvh_-_7rem)] overflow-y-auto overscroll-contain rounded-2xl border border-white/15 bg-[#0B1730]/95 backdrop-blur-2xl p-5 shadow-2xl text-white"
                           onMouseEnter={cancelClose}
                         >
                           <ul id={panelId} aria-label={entry.label} className="flex flex-col gap-4">
@@ -322,13 +335,15 @@ export function Nav() {
                                   className="group flex flex-col gap-0.5"
                                 >
                                   <span
-                                    className={`font-display text-base font-bold ${
-                                      isCurrent(child.href) ? "text-accent" : "text-ink"
+                                    className={`font-display text-base font-bold transition-colors ${
+                                      isCurrent(child.href)
+                                        ? "text-[#608bfa]"
+                                        : "text-white group-hover:text-[#608bfa]"
                                     }`}
                                   >
                                     {child.label}
                                   </span>
-                                  <span className="text-xs leading-relaxed text-ink-muted">
+                                  <span className="text-xs leading-relaxed text-white/60">
                                     {child.hint}
                                   </span>
                                 </Link>
@@ -344,38 +359,38 @@ export function Nav() {
             </ul>
           </nav>
 
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="flex shrink-0 items-center gap-1.5">
             <button
               type="button"
               onClick={() => setSearchOpen(true)}
               aria-expanded={searchOpen}
               aria-controls={searchId}
-              className="inline-flex size-11 items-center justify-center rounded-pill text-ink-muted transition-colors duration-200 ease-brand hover:bg-sunk hover:text-ink"
+              className="inline-flex size-10 items-center justify-center rounded-full text-white/80 transition-all duration-200 hover:bg-white/10 hover:text-white"
             >
               <span className="sr-only">Search</span>
-              <MagnifyingGlass aria-hidden="true" className="size-5" weight="bold" />
+              <MagnifyingGlass aria-hidden="true" className="size-4.5" weight="bold" />
             </button>
 
             <Link
               href="/account"
-              className="hidden size-11 items-center justify-center rounded-pill text-ink-muted transition-colors duration-200 ease-brand hover:bg-sunk hover:text-ink lg:inline-flex"
+              className="hidden size-10 items-center justify-center rounded-full text-white/80 transition-all duration-200 hover:bg-white/10 hover:text-white lg:inline-flex"
             >
               <span className="sr-only">My account</span>
-              <UserCircle aria-hidden="true" className="size-5" weight="bold" />
+              <UserCircle aria-hidden="true" className="size-4.5" weight="bold" />
             </Link>
 
             <Link
               href="/cart"
-              className="relative inline-flex size-11 items-center justify-center rounded-pill text-ink-muted transition-colors duration-200 ease-brand hover:bg-sunk hover:text-ink"
+              className="relative inline-flex size-10 items-center justify-center rounded-full text-white/80 transition-all duration-200 hover:bg-white/10 hover:text-white"
             >
               <span className="sr-only">
                 Cart{ready && itemCount > 0 ? `, ${itemCount} items` : ""}
               </span>
-              <ShoppingBag aria-hidden="true" className="size-5" weight="bold" />
+              <ShoppingBag aria-hidden="true" className="size-4.5" weight="bold" />
               {/* aria-live so a quantity change is announced, not just seen. */}
               <span
                 aria-live="polite"
-                className="absolute right-1 top-1 grid min-w-4 place-items-center rounded-pill bg-accent px-1 text-[0.625rem] font-extrabold leading-4 text-accent-ink"
+                className="absolute right-0.5 top-0.5 grid min-w-4 place-items-center rounded-full bg-accent px-1 text-[0.625rem] font-extrabold leading-4 text-white"
               >
                 {ready && itemCount > 0 ? itemCount : null}
               </span>
@@ -388,11 +403,10 @@ export function Nav() {
                 aria-expanded={diagnosticOpen}
                 aria-haspopup="true"
                 interactive
-                appearance="dark"
+                appearance="light"
                 material="regular"
-                tint="#3B5FCC"
-                refraction={18}
-                className="!h-11 !px-5 !py-0 !rounded-pill !text-white font-bold inline-flex items-center gap-2 shadow-sm transition-[filter,transform] duration-200 ease-brand hover:brightness-110 active:translate-y-px"
+                refraction={14}
+                className="!h-10 !px-5 !py-0 !rounded-full !bg-white !text-neutral-950 font-bold inline-flex items-center gap-1.5 shadow-md hover:!bg-white/95 active:scale-95 transition-all text-sm"
               >
                 <span>Growth Path Tool</span>
                 <CaretDown
@@ -410,46 +424,46 @@ export function Nav() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 6 }}
                     transition={{ duration: 0.16 }}
-                    className="absolute right-0 top-[calc(100%_+_8px)] w-80 rounded-panel border border-hairline bg-canvas p-3 shadow-lift z-50"
+                    className="absolute right-0 top-[calc(100%_+_14px)] w-80 rounded-2xl border border-white/15 bg-[#0B1730]/95 backdrop-blur-2xl p-3.5 shadow-2xl z-50 text-white"
                   >
-                    <p className="px-3 pt-2 pb-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-muted">
+                    <p className="px-3 pt-2 pb-1.5 text-[11px] font-bold uppercase tracking-wider text-white/50">
                       Select Your Growth Track
                     </p>
 
                     <Link
                       href="/?track=business#diagnostic"
                       onClick={() => setDiagnosticOpen(false)}
-                      className="group/track flex flex-col gap-1 rounded-card p-3 transition-colors hover:bg-surface active:bg-surface-sunk"
+                      className="group/track flex flex-col gap-1 rounded-xl p-3 transition-colors hover:bg-white/10 active:bg-white/15"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-bold text-ink group-hover/track:text-accent transition-colors">
+                        <span className="text-sm font-bold text-white group-hover/track:text-[#608bfa] transition-colors">
                           For Your Business
                         </span>
-                        <span className="rounded-pill bg-surface-sunk px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent border border-hairline">
+                        <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#608bfa] border border-white/15">
                           Business Doctor
                         </span>
                       </div>
-                      <span className="text-xs text-ink-muted leading-relaxed">
+                      <span className="text-xs text-white/65 leading-relaxed">
                         Assess operations, systems, sales, and founder dependency
                       </span>
                     </Link>
 
-                    <div className="my-1 border-t border-hairline" />
+                    <div className="my-1 border-t border-white/10" />
 
                     <Link
                       href="/?track=self#diagnostic"
                       onClick={() => setDiagnosticOpen(false)}
-                      className="group/track flex flex-col gap-1 rounded-card p-3 transition-colors hover:bg-surface active:bg-surface-sunk"
+                      className="group/track flex flex-col gap-1 rounded-xl p-3 transition-colors hover:bg-white/10 active:bg-white/15"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-bold text-ink group-hover/track:text-accent transition-colors">
+                        <span className="text-sm font-bold text-white group-hover/track:text-[#608bfa] transition-colors">
                           For Yourself
                         </span>
-                        <span className="rounded-pill bg-surface-sunk px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent border border-hairline">
+                        <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#608bfa] border border-white/15">
                           Bookwishes Club
                         </span>
                       </div>
-                      <span className="text-xs text-ink-muted leading-relaxed">
+                      <span className="text-xs text-white/65 leading-relaxed">
                         Assess public speaking, articulation, mindset & presence
                       </span>
                     </Link>
@@ -463,7 +477,7 @@ export function Nav() {
               onClick={() => setMobileOpen((v) => !v)}
               aria-expanded={mobileOpen}
               aria-controls={mobileId}
-              className="inline-flex size-11 items-center justify-center rounded-pill border border-hairline-strong text-ink transition-colors duration-200 ease-brand hover:border-accent hover:text-accent xl:hidden"
+              className="inline-flex size-10 items-center justify-center rounded-full border border-white/20 text-white transition-colors duration-200 hover:bg-white/10 xl:hidden"
             >
               <span className="sr-only">{mobileOpen ? "Close menu" : "Open menu"}</span>
               {mobileOpen ? (
@@ -473,37 +487,36 @@ export function Nav() {
               )}
             </button>
           </div>
-        </div>
+        </LiquidGlass>
 
-        {/* Mobile: every destination flat, because dropdowns are unusable on a
-            small screen. */}
+        {/* Mobile: every destination flat, inside floating liquid glass card */}
         <div
           id={mobileId}
           hidden={!mobileOpen}
-          className="max-h-[calc(100dvh_-_72px)] overflow-y-auto border-t border-hairline bg-canvas xl:hidden"
+          className="pointer-events-auto mt-2.5 mx-auto w-full max-w-[1240px] max-h-[calc(100dvh_-_6rem)] overflow-y-auto rounded-3xl border border-white/20 bg-[#0B1730]/95 backdrop-blur-2xl p-5 md:p-6 shadow-2xl text-white xl:hidden"
         >
-          <nav aria-label="Primary mobile" className="mx-auto max-w-[1400px] px-5 py-6 md:px-8">
+          <nav aria-label="Primary mobile" className="flex flex-col">
             <ul className="flex flex-col">
               {NAV.map((entry) => (
-                <li key={entry.label} className="border-b border-hairline py-4">
+                <li key={entry.label} className="border-b border-white/10 py-3.5">
                   <Link
                     href={entry.href}
                     onClick={() => setMobileOpen(false)}
                     className={`block font-display text-lg font-bold ${
-                      isCurrent(entry.href) ? "text-accent" : "text-ink"
+                      isCurrent(entry.href) ? "text-[#608bfa]" : "text-white"
                     }`}
                   >
                     {entry.label}
                   </Link>
                   {entry.children ? (
-                    <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+                    <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1.5">
                       {entry.children.map((child) => (
                         <li key={child.href}>
                           <Link
                             href={child.href}
                             onClick={() => setMobileOpen(false)}
                             className={`text-sm ${
-                              isCurrent(child.href) ? "text-accent" : "text-ink-muted"
+                              isCurrent(child.href) ? "text-[#608bfa]" : "text-white/70 hover:text-white"
                             }`}
                           >
                             {child.label}
@@ -517,31 +530,31 @@ export function Nav() {
             </ul>
             <div className="mt-6 flex flex-col gap-4">
               <div className="flex flex-col gap-2.5">
-                <p className="px-1 text-xs font-bold uppercase tracking-wider text-ink-muted">
+                <p className="px-1 text-xs font-bold uppercase tracking-wider text-white/50">
                   Growth Path Tool
                 </p>
                 <div className="grid gap-2">
                   <Link
                     href="/?track=business#diagnostic"
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center justify-between rounded-card bg-surface p-3.5 border border-hairline transition-colors active:bg-surface-sunk"
+                    className="flex items-center justify-between rounded-2xl bg-white/5 p-3.5 border border-white/10 transition-colors active:bg-white/10"
                   >
                     <div className="flex flex-col">
-                      <span className="text-sm font-bold text-ink">For Your Business</span>
-                      <span className="text-xs text-ink-muted">Powered by Business Doctor</span>
+                      <span className="text-sm font-bold text-white">For Your Business</span>
+                      <span className="text-xs text-white/60">Powered by Business Doctor</span>
                     </div>
-                    <ArrowRight weight="bold" className="size-4 text-accent" />
+                    <ArrowRight weight="bold" className="size-4 text-[#608bfa]" />
                   </Link>
                   <Link
                     href="/?track=self#diagnostic"
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center justify-between rounded-card bg-surface p-3.5 border border-hairline transition-colors active:bg-surface-sunk"
+                    className="flex items-center justify-between rounded-2xl bg-white/5 p-3.5 border border-white/10 transition-colors active:bg-white/10"
                   >
                     <div className="flex flex-col">
-                      <span className="text-sm font-bold text-ink">For Yourself</span>
-                      <span className="text-xs text-ink-muted">Powered by The Bookwishes Club</span>
+                      <span className="text-sm font-bold text-white">For Yourself</span>
+                      <span className="text-xs text-white/60">Powered by The Bookwishes Club</span>
                     </div>
-                    <ArrowRight weight="bold" className="size-4 text-accent" />
+                    <ArrowRight weight="bold" className="size-4 text-[#608bfa]" />
                   </Link>
                 </div>
               </div>
@@ -550,14 +563,14 @@ export function Nav() {
                 <Link
                   href="/account"
                   onClick={() => setMobileOpen(false)}
-                  className="inline-flex h-12 flex-1 items-center justify-center rounded-pill border border-hairline-strong text-sm font-bold"
+                  className="inline-flex h-11 flex-1 items-center justify-center rounded-full border border-white/20 text-sm font-bold text-white hover:bg-white/10 transition-colors"
                 >
                   My account
                 </Link>
                 <Link
                   href="/cart"
                   onClick={() => setMobileOpen(false)}
-                  className="inline-flex h-12 flex-1 items-center justify-center rounded-pill border border-hairline-strong text-sm font-bold"
+                  className="inline-flex h-11 flex-1 items-center justify-center rounded-full border border-white/20 text-sm font-bold text-white hover:bg-white/10 transition-colors"
                 >
                   Cart
                 </Link>
