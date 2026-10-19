@@ -38,7 +38,7 @@ export const allDestinations: NavItem[] = [
 ];
 
 export const navCta: NavItem = {
-  label: "Transformation Diagnostic",
+  label: "Growth Path Tool",
   href: "/#diagnostic",
 };
 

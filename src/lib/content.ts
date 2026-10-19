@@ -630,9 +630,9 @@ export const transformationPillars = {
    ------------------------------------------------------------------------- */
 
 export const diagnosticSection = {
-  eyebrow: "Transformation Diagnostic",
+  eyebrow: "Growth Path Tool",
   headline: "Find out what is actually |s|lowing you down.",
-  lede: "Choose an assessment for your business or yourself. Ten focused questions to pinpoint friction and uncover your highest-leverage growth priority in 3 minutes.",
+  lede: "Choose a growth path for your business or yourself. Ten focused questions to pinpoint friction and uncover your highest-leverage priority in 3 minutes.",
 } as const;
 
 

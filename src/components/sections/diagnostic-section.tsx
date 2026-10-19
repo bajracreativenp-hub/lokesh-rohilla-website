@@ -14,6 +14,8 @@ import { diagnosticSection } from "@/lib/content";
 export function DiagnosticSection() {
   return (
     <section id="diagnostic" className="hairline-y bg-surface">
+      <div id="growth-path-tool" className="sr-only" aria-hidden="true" />
+      <div id="growth-path" className="sr-only" aria-hidden="true" />
       <div id="health-check" className="sr-only" aria-hidden="true" />
       <div id="health-checker" className="sr-only" aria-hidden="true" />
       <Container className="section-y">

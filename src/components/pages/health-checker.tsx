@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
 /**
- * TRANSFORMATION DIAGNOSTIC (formerly Business Health Checker)
+ * GROWTH PATH TOOL (formerly Business Health Checker)
  *
  * Diagnostic assessment covering two distinct tracks:
  * 1. For Your Business (Powered by Business Doctor)
@@ -436,7 +436,7 @@ export function BusinessHealthChecker({
               {track === "business" ? "Powered by Business Doctor" : "Powered by The Bookwishes Club"}
             </span>
             <p className="text-sm font-bold text-ink">
-              {track === "business" ? "Business Systems & Growth Diagnostic" : "Self-Development & Speaking Diagnostic"}
+              {track === "business" ? "Business Systems & Growth Path" : "Self-Development & Speaking Growth Path"}
             </p>
           </div>
 
@@ -572,7 +572,7 @@ export function BusinessHealthChecker({
             {track === "business" ? "Powered by Business Doctor" : "Powered by The Bookwishes Club"}
           </span>
           <p className="text-sm font-bold text-ink">
-            {track === "business" ? "Business Systems & Growth Diagnostic" : "Self-Development & Speaking Diagnostic"}
+            {track === "business" ? "Business Systems & Growth Path" : "Self-Development & Speaking Growth Path"}
           </p>
         </div>
 
@@ -686,4 +686,4 @@ export function BusinessHealthChecker({
   );
 }
 
-export { BusinessHealthChecker as TransformationDiagnostic };
+export { BusinessHealthChecker as GrowthPathTool, BusinessHealthChecker as TransformationDiagnostic };

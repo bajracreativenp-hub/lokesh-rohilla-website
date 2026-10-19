@@ -388,7 +388,7 @@ export function Nav() {
                 aria-haspopup="true"
                 className="inline-flex h-11 items-center gap-2 rounded-pill bg-accent px-5 text-sm font-bold text-accent-ink transition-[filter,transform] duration-200 ease-brand hover:brightness-110 active:translate-y-px"
               >
-                <span>Transformation Diagnostic</span>
+                <span>Growth Path Tool</span>
                 <CaretDown
                   weight="bold"
                   className={`size-3.5 transition-transform duration-200 ease-brand ${
@@ -407,7 +407,7 @@ export function Nav() {
                     className="absolute right-0 top-[calc(100%_+_8px)] w-80 rounded-panel border border-hairline bg-canvas p-3 shadow-lift z-50"
                   >
                     <p className="px-3 pt-2 pb-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-muted">
-                      Select Diagnostic Track
+                      Select Your Growth Track
                     </p>
 
                     <Link
@@ -512,7 +512,7 @@ export function Nav() {
             <div className="mt-6 flex flex-col gap-4">
               <div className="flex flex-col gap-2.5">
                 <p className="px-1 text-xs font-bold uppercase tracking-wider text-ink-muted">
-                  Transformation Diagnostic
+                  Growth Path Tool
                 </p>
                 <div className="grid gap-2">
                   <Link
