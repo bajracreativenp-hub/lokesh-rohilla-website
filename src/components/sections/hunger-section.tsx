@@ -3,12 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { CaretLeft, CaretRight, Play } from "@phosphor-icons/react/dist/ssr";
+import { CaretLeft, CaretRight, Play, Star } from "@phosphor-icons/react/dist/ssr";
 import { AnimatePresence, motion } from "motion/react";
 
+import { CountUp } from "@/components/ui/count-up";
 import { Container } from "@/components/ui/layout";
 import { Reveal } from "@/components/ui/reveal";
 import { VideoModal } from "@/components/ui/video-modal";
+import { impactMetrics } from "@/lib/content";
 
 const SLIDES = [
   {
@@ -107,8 +109,8 @@ export function HungerSection() {
               <div className="col-span-2 rounded-l-full bg-canvas" />
             </div>
 
-            {/* Row 2: Video on Right (1/3) touching the bridge at 2/3 */}
-            <div className="flex flex-col items-stretch md:flex-row justify-end">
+            {/* Row 2: Impact Metrics on Left (2/3), Video on Right (1/3) */}
+            <div className="flex flex-col items-stretch md:flex-row">
               {/* Video container on desktop is on the right (1/3) */}
               <div className="flex h-auto w-full md:w-1/3 relative z-10">
                 <div
@@ -141,6 +143,51 @@ export function HungerSection() {
                     <Play weight="fill" className="size-4 text-white" />
                     <span>Watch video</span>
                   </div>
+                </div>
+              </div>
+
+              {/* Impact Metrics on desktop is on the left (2/3) */}
+              <div className="relative z-10 order-last flex w-full flex-col justify-center md:order-first md:w-2/3 py-6 pr-4 sm:pr-8 md:pr-10 lg:pr-12">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:gap-6 lg:grid-cols-4 lg:gap-6">
+                  {impactMetrics.map((item, index) => (
+                    <div
+                      key={item.label}
+                      className={`flex flex-col gap-1.5 ${
+                        index % 2 === 1
+                          ? "border-l border-hairline pl-3 sm:pl-4 lg:pl-5"
+                          : index > 0
+                          ? "lg:border-l lg:border-hairline lg:pl-5"
+                          : ""
+                      }`}
+                    >
+                      <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+                        <span className="tabular-nums text-2xl sm:text-3xl lg:text-3xl font-extrabold tracking-tight text-ink">
+                          {item.value === "18+" ? (
+                            <CountUp from={1} to={18} suffix="+" duration={1.5} delay={0.15} />
+                          ) : (
+                            item.value
+                          )}
+                        </span>
+                        {"isRating" in item && item.isRating ? (
+                          <span className="flex items-center text-amber-500" aria-label="Rating out of 5 stars">
+                            <Star weight="fill" className="size-4 sm:size-5 text-amber-500" />
+                          </span>
+                        ) : (
+                          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-accent">
+                            {item.unit}
+                          </span>
+                        )}
+                      </div>
+
+                      <h3 className="text-xs font-bold text-ink leading-snug sm:text-sm">
+                        {item.label}
+                      </h3>
+
+                      <p className="text-[11px] leading-relaxed text-ink-muted">
+                        {item.sub}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
