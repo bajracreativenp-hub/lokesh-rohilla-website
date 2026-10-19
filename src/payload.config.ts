@@ -29,39 +29,7 @@ const sqlitePath =
   process.env.SQLITE_URL ||
   (process.env.VERCEL ? 'file:/tmp/payload.db' : 'file:./payload.db')
 
-const createSmartPostgresAdapter = (args: Parameters<typeof postgresAdapter>[0]) => {
-  const base = postgresAdapter(args)
-  const baseInit = base.init
-  return {
-    ...base,
-    init: (payloadArgs: any) => {
-      const adapterInstance: any = baseInit(payloadArgs)
-      const originalConnect = adapterInstance.connect
-      adapterInstance.connect = async function (this: any, options: any) {
-        if (originalConnect) {
-          await originalConnect.call(this, options)
-        }
-        try {
-          const check = await this.execute({
-            raw: `SELECT to_regclass('public.users') as exists;`,
-          })
-          if (!check?.rows?.[0]?.exists) {
-            this.payload.logger.info('Neon: Initializing database tables...')
-            const { pushDevSchema } = await import('@payloadcms/drizzle')
-            await pushDevSchema(this as any)
-            this.payload.logger.info('Neon: Database tables created successfully!')
-          }
-        } catch (err) {
-          this.payload.logger.warn({
-            err,
-            msg: 'Database schema verification completed',
-          })
-        }
-      }
-      return adapterInstance
-    },
-  }
-}
+import { migrations } from './migrations'
 
 export default buildConfig({
   admin: {
@@ -89,11 +57,11 @@ export default buildConfig({
   },
   debug: true,
   db: connectionString
-    ? createSmartPostgresAdapter({
+    ? postgresAdapter({
         pool: {
           connectionString,
         },
-        push: true,
+        prodMigrations: migrations,
       })
     : sqliteAdapter({
         client: {
