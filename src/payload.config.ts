@@ -87,7 +87,7 @@ export default buildConfig({
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
-  debug: process.env.NODE_ENV !== 'production' || process.env.PAYLOAD_DEBUG === 'true',
+  debug: true,
   db: connectionString
     ? createSmartPostgresAdapter({
         pool: {
