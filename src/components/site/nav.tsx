@@ -17,6 +17,7 @@ import {
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import { useCart } from "@/components/commerce/cart-context";
+import { LiquidGlassButton } from "@/components/ui/apple-tahoe-liquid-glass-button";
 import { DESTINATIONS, NAV, ROUTES } from "@/lib/ia";
 
 /**
@@ -381,12 +382,17 @@ export function Nav() {
             </Link>
 
             <div className="relative ml-1 hidden lg:block" ref={diagnosticRef}>
-              <button
+              <LiquidGlassButton
                 type="button"
                 onClick={() => setDiagnosticOpen((v) => !v)}
                 aria-expanded={diagnosticOpen}
                 aria-haspopup="true"
-                className="inline-flex h-11 items-center gap-2 rounded-pill bg-accent px-5 text-sm font-bold text-accent-ink transition-[filter,transform] duration-200 ease-brand hover:brightness-110 active:translate-y-px"
+                interactive
+                appearance="dark"
+                material="regular"
+                tint="#3B5FCC"
+                refraction={18}
+                className="!h-11 !px-5 !py-0 !rounded-pill !text-white font-bold inline-flex items-center gap-2 shadow-sm transition-[filter,transform] duration-200 ease-brand hover:brightness-110 active:translate-y-px"
               >
                 <span>Growth Path Tool</span>
                 <CaretDown
@@ -395,7 +401,7 @@ export function Nav() {
                     diagnosticOpen ? "rotate-180" : ""
                   }`}
                 />
-              </button>
+              </LiquidGlassButton>
 
               <AnimatePresence>
                 {diagnosticOpen ? (

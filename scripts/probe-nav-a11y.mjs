@@ -22,7 +22,7 @@ const browser = await puppeteer.launch({
 
 const page = await browser.newPage();
 await page.setViewport({ width: 1440, height: 900 });
-await page.goto("http://localhost:3001", { waitUntil: "networkidle0" });
+await page.goto(`http://localhost:${process.env.PORT ?? "3000"}`, { waitUntil: "networkidle0" });
 await page.evaluate(() => new Promise((r) => setTimeout(r, 900)));
 
 const focused = () =>

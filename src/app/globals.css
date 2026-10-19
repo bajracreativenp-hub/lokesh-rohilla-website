@@ -229,6 +229,8 @@ Fluid rather than stepped, so there is no breakpoint at which the rhythm
   --color-surface: var(--surface);
   --color-sunk: var(--surface-sunk);
   --color-ink: var(--ink);
+  --color-foreground: var(--ink);
+  --color-background: var(--canvas);
   --color-ink-muted: var(--ink-muted);
   --color-ink-faint: var(--ink-faint);
   --color-accent: var(--accent);
