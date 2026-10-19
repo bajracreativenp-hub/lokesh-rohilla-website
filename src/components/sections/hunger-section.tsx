@@ -69,20 +69,12 @@ export function HungerSection() {
                 {/* Photo Card */}
                 <div className="relative z-10 flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl md:aspect-video bg-[#1e5ae6] shadow-none border-0">
                   <Image
-                    src="/hero-artwork.jpg"
+                    src="/lokesh-hunger.png"
                     alt="Lokesh Rohilla"
                     fill
                     sizes="(min-width: 768px) 66vw, 100vw"
-                    className="object-cover object-top mix-blend-luminosity brightness-105 contrast-110"
-                  />
-                  {/* Soft bottom tint so the white desk retains a clean card boundary against the white canvas */}
-                  <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#1e5ae6]/60 via-[#1e5ae6]/20 to-transparent pointer-events-none" />
-                  {/* Desktop smooth gradient dissolving into solid royal blue at bottom-right to connect with bridge */}
-                  <div
-                    className="absolute inset-0 hidden md:block pointer-events-none"
-                    style={{
-                      background: "radial-gradient(circle at 100% 100%, #1e5ae6 0%, #1e5ae6 25%, transparent 65%)",
-                    }}
+                    className="object-cover object-left-top sm:object-center"
+                    priority
                   />
                 </div>
               </div>
