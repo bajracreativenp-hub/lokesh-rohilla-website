@@ -548,3 +548,103 @@ export const testimonials = {
   },
 } as const;
 
+/* -------------------------------------------------------------------------
+   RESULTS & IMPACT METRICS (Tony Robbins-inspired proof strip)
+   Verified claims grounded in 18+ years, 318+ Google reviews, and 2 core arms.
+   ------------------------------------------------------------------------- */
+
+export const impactMetrics = [
+  {
+    value: "18+",
+    unit: "Years",
+    label: "Transformation Experience",
+    sub: "Hospitality, retail, manufacturing, logistics and enterprise consulting.",
+  },
+  {
+    value: "4.6",
+    unit: "★",
+    label: "Google Review Rating",
+    sub: "Rated 4.6 across 318+ verified reviews for The Bookwishes Club.",
+    isRating: true,
+  },
+  {
+    value: "2",
+    unit: "Practices",
+    label: "Core Transformation Arms",
+    sub: "Business Doctor (Turnaround & Systems) and The Bookwishes Club (Self-Development).",
+  },
+  {
+    value: "100%",
+    unit: "Grounded",
+    label: "Diagnostic Before Prescription",
+    sub: "Pinpoint root causes before touching budget, team, or processes.",
+  },
+] as const;
+
+/* -------------------------------------------------------------------------
+   CORE TRANSFORMATION PILLARS
+   Framed around clear results: Business Systems, Leadership, and Self-Mastery.
+   ------------------------------------------------------------------------- */
+
+export const transformationPillars = {
+  eyebrow: "Pillars of Impact",
+  headline: "Three ways to accelerate |r|esults.",
+  lede: "Whether restructuring a business, aligning an executive team, or mastering articulation and mindset. Choose the pillar that matches your immediate goal.",
+  items: [
+    {
+      number: "01",
+      title: "Business Systems & Growth",
+      subtitle: "Powered by Business Doctor",
+      description: "Turning operational chaos and founder dependency into structured, repeatable systems. From cash flow management to sales handoffs and organizational design.",
+      highlights: [
+        "Eliminating single points of founder failure",
+        "Pipeline clarity & sales handoff accountability",
+        "Standard operating workflows that actually stick",
+        "Focus on 1 needle-moving priority rather than 5",
+      ],
+      href: "/services/business-consultation",
+      cta: "Explore Business Advisory",
+    },
+    {
+      number: "02",
+      title: "Leadership & Team Execution",
+      subtitle: "Executive & Team Mentoring",
+      description: "Closing the gap between what leaders communicate and what teams deliver. Establishing clear decision rights, accountable roles, and high-trust team cultures.",
+      highlights: [
+        "Accountability vs. general responsibility",
+        "Streamlining meeting load & communication drag",
+        "Conflict resolution and executive alignment",
+        "Transitioning from operational fire fighting to strategic steering",
+      ],
+      href: "/services/leaders-teams",
+      cta: "Explore Leadership Programs",
+    },
+    {
+      number: "03",
+      title: "Public Speaking & Mindset",
+      subtitle: "The Bookwishes Club",
+      description: "Mastering the art of public speaking, executive presence, and continuous learning. Helping individuals move past self-doubt and articulate ideas with unwavering confidence.",
+      highlights: [
+        "Transforming stage fright into commanding presence",
+        "Structured impromptu speaking and articulation",
+        "Deep reading culture & practical habit formation",
+        "318+ graduates and active community members",
+      ],
+      href: "/services/self-development",
+      cta: "Explore Speaking & Mindset",
+    },
+  ],
+} as const;
+
+/* -------------------------------------------------------------------------
+   HOMEPAGE DIAGNOSTIC SECTION
+   Tony Robbins-style interactive assessment callout.
+   ------------------------------------------------------------------------- */
+
+export const diagnosticSection = {
+  eyebrow: "Interactive Assessment",
+  headline: "Find out what is actually |s|lowing you down.",
+  lede: "Ten focused diagnostic questions across strategy, operations, systems, sales, marketing, and leadership. Discover which area requires your immediate attention in three minutes.",
+} as const;
+
+
