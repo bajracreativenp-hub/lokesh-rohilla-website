@@ -157,7 +157,7 @@ export function Hero() {
       */}
       <Container
         data-hero-text
-        className="relative z-[var(--z-content)] flex min-h-svh flex-col justify-end pb-10 pt-28 md:pb-14"
+        className="relative z-[var(--z-content)] flex min-h-[calc(100svh_-_var(--header-h))] flex-col justify-end pb-10 pt-20 md:pb-14"
       >
         {/*
           The wordmark takes the wider track and the copy the narrower one, which is

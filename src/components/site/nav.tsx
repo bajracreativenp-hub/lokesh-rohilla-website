@@ -17,7 +17,6 @@ import {
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import { useCart } from "@/components/commerce/cart-context";
-import { LiquidGlass, LiquidGlassButton } from "@/components/ui/apple-tahoe-liquid-glass-button";
 import { DESTINATIONS, NAV, ROUTES } from "@/lib/ia";
 
 /**
@@ -62,7 +61,6 @@ export function Nav() {
   const { itemCount, ready } = useCart();
 
   const [openEntry, setOpenEntry] = useState<string | null>(null);
-  const [hoveredEntry, setHoveredEntry] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [diagnosticOpen, setDiagnosticOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -222,37 +220,29 @@ export function Nav() {
   return (
     <>
       <header
-        className="navbar-container pointer-events-none transition-all duration-300"
-        onMouseLeave={() => {
-          scheduleClose();
-          setHoveredEntry(null);
-        }}
+        className="sticky top-0 z-[var(--z-nav)] border-b border-hairline bg-canvas/85 backdrop-blur-md"
+        onMouseLeave={scheduleClose}
         onMouseEnter={cancelClose}
       >
-        <div className="liquid-navbar pointer-events-auto">
-          <span className="glass-shine" aria-hidden="true" />
-
-          {/* LR Brand Mark */}
-          <Link href="/" className="group relative z-10 flex shrink-0 items-center gap-2 pl-1.5 pr-2">
+        <div className="mx-auto flex h-[72px] w-full max-w-[1400px] items-center justify-between gap-4 px-5 md:px-8 lg:px-12">
+          <Link href="/" className="flex shrink-0 items-center gap-2.5">
             <span
               aria-hidden="true"
-              className="grid size-8 place-items-center rounded-full bg-white/20 text-white text-[0.8125rem] font-extrabold shadow-sm backdrop-blur-md border border-white/40 transition-transform duration-200 group-hover:scale-105"
+              className="grid size-9 place-items-center rounded-[10px] bg-ink text-[0.8125rem] font-extrabold text-canvas"
             >
               LR
             </span>
-            <span className="hidden text-[0.9375rem] font-bold tracking-tight text-white sm:block">
+            <span className="hidden text-[0.9375rem] font-extrabold tracking-[-0.01em] sm:block">
               Lokesh Rohilla
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav aria-label="Primary" className="hidden xl:block relative z-10">
+          <nav aria-label="Primary" className="hidden xl:block">
             <ul className="flex items-center gap-1">
               {NAV.map((entry, index) => {
                 const open = openEntry === entry.label;
                 const current = isCurrent(entry.href);
                 const panelId = `${navId}-${index}`;
-                const isPillActive = hoveredEntry ? hoveredEntry === entry.label : (open || current);
 
                 return (
                   <li key={entry.label} className="relative">
@@ -274,22 +264,16 @@ export function Nav() {
                         onMouseEnter={() => {
                           cancelClose();
                           setOpenEntry(entry.label);
-                          setHoveredEntry(entry.label);
                         }}
                         onKeyDown={(e) => onTriggerKeyDown(e, index)}
-                        className="nav-item flex items-center gap-1.5"
+                        className={`flex items-center gap-1.5 rounded-input px-4 py-2.5 text-sm font-semibold transition-colors duration-200 ease-brand hover:text-accent ${
+                          current || open ? "text-accent" : "text-ink-muted"
+                        }`}
                       >
-                        {isPillActive && (
-                          <motion.span
-                            layoutId="liquid-pill"
-                            className="liquid-pill"
-                            transition={{ type: "spring", bounce: 0.2, duration: 0.35 }}
-                          />
-                        )}
-                        <span className="nav-label">{entry.label}</span>
+                        {entry.label}
                         <CaretDown
                           aria-hidden="true"
-                          className={`size-3.5 text-white/80 transition-transform duration-200 ease-brand relative z-[2] ${
+                          className={`size-3.5 transition-transform duration-200 ease-brand ${
                             open ? "rotate-180" : ""
                           }`}
                           weight="bold"
@@ -302,21 +286,13 @@ export function Nav() {
                         }}
                         href={entry.href}
                         aria-current={current ? "page" : undefined}
-                        onMouseEnter={() => {
-                          cancelClose();
-                          setHoveredEntry(entry.label);
-                        }}
+                        onMouseEnter={cancelClose}
                         onKeyDown={(e) => onTriggerKeyDown(e, index)}
-                        className="nav-item flex items-center"
+                        className={`flex items-center rounded-input px-4 py-2.5 text-sm font-semibold transition-colors duration-200 ease-brand hover:text-accent ${
+                          current ? "text-accent" : "text-ink-muted"
+                        }`}
                       >
-                        {isPillActive && (
-                          <motion.span
-                            layoutId="liquid-pill"
-                            className="liquid-pill"
-                            transition={{ type: "spring", bounce: 0.2, duration: 0.35 }}
-                          />
-                        )}
-                        <span className="nav-label">{entry.label}</span>
+                        {entry.label}
                       </Link>
                     )}
 
@@ -332,7 +308,7 @@ export function Nav() {
                               ? { duration: 0 }
                               : { duration: 0.2, ease: [0.16, 1, 0.3, 1] }
                           }
-                          className="absolute left-0 top-[calc(100%_+_12px)] z-50 w-[21rem] max-h-[calc(100dvh_-_7rem)] overflow-y-auto overscroll-contain rounded-2xl border border-white/40 bg-slate-950/85 backdrop-blur-2xl p-5 shadow-2xl text-white"
+                          className="absolute left-0 top-[calc(100%_+_8px)] z-10 w-[21rem] max-h-[calc(100dvh_-_7rem)] overflow-y-auto overscroll-contain rounded-card bg-canvas p-5 shadow-lift"
                           onMouseEnter={cancelClose}
                         >
                           <ul id={panelId} aria-label={entry.label} className="flex flex-col gap-4">
@@ -345,15 +321,13 @@ export function Nav() {
                                   className="group flex flex-col gap-0.5"
                                 >
                                   <span
-                                    className={`font-display text-base font-bold transition-colors ${
-                                      isCurrent(child.href)
-                                        ? "text-blue-400"
-                                        : "text-white group-hover:text-blue-300"
+                                    className={`font-display text-base font-bold ${
+                                      isCurrent(child.href) ? "text-accent" : "text-ink"
                                     }`}
                                   >
                                     {child.label}
                                   </span>
-                                  <span className="text-xs leading-relaxed text-slate-300">
+                                  <span className="text-xs leading-relaxed text-ink-muted">
                                     {child.hint}
                                   </span>
                                 </Link>
@@ -369,64 +343,59 @@ export function Nav() {
             </ul>
           </nav>
 
-          {/* Right Action Icons & Controls */}
-          <div className="flex shrink-0 items-center gap-1 relative z-10 pl-1">
+          <div className="flex shrink-0 items-center gap-1">
             <button
               type="button"
               onClick={() => setSearchOpen(true)}
               aria-expanded={searchOpen}
               aria-controls={searchId}
-              className="inline-flex size-9 items-center justify-center rounded-full text-white/80 transition-all duration-200 hover:bg-white/20 hover:text-white"
+              className="inline-flex size-11 items-center justify-center rounded-pill text-ink-muted transition-colors duration-200 ease-brand hover:bg-sunk hover:text-ink"
             >
               <span className="sr-only">Search</span>
-              <MagnifyingGlass aria-hidden="true" className="size-4" weight="bold" />
+              <MagnifyingGlass aria-hidden="true" className="size-5" weight="bold" />
             </button>
 
             <Link
               href="/account"
-              className="hidden size-9 items-center justify-center rounded-full text-white/80 transition-all duration-200 hover:bg-white/20 hover:text-white lg:inline-flex"
+              className="hidden size-11 items-center justify-center rounded-pill text-ink-muted transition-colors duration-200 ease-brand hover:bg-sunk hover:text-ink lg:inline-flex"
             >
               <span className="sr-only">My account</span>
-              <UserCircle aria-hidden="true" className="size-4" weight="bold" />
+              <UserCircle aria-hidden="true" className="size-5" weight="bold" />
             </Link>
 
             <Link
               href="/cart"
-              className="relative inline-flex size-9 items-center justify-center rounded-full text-white/80 transition-all duration-200 hover:bg-white/20 hover:text-white"
+              className="relative inline-flex size-11 items-center justify-center rounded-pill text-ink-muted transition-colors duration-200 ease-brand hover:bg-sunk hover:text-ink"
             >
               <span className="sr-only">
                 Cart{ready && itemCount > 0 ? `, ${itemCount} items` : ""}
               </span>
-              <ShoppingBag aria-hidden="true" className="size-4" weight="bold" />
+              <ShoppingBag aria-hidden="true" className="size-5" weight="bold" />
+              {/* aria-live so a quantity change is announced, not just seen. */}
               <span
                 aria-live="polite"
-                className="absolute right-0.5 top-0.5 grid min-w-4 place-items-center rounded-full bg-white px-1 text-[0.625rem] font-extrabold leading-4 text-slate-950"
+                className="absolute right-1 top-1 grid min-w-4 place-items-center rounded-pill bg-accent px-1 text-[0.625rem] font-extrabold leading-4 text-accent-ink"
               >
                 {ready && itemCount > 0 ? itemCount : null}
               </span>
             </Link>
 
-            {/* Diagnostic dropdown */}
             <div className="relative ml-1 hidden lg:block" ref={diagnosticRef}>
-              <LiquidGlassButton
+              <button
                 type="button"
                 onClick={() => setDiagnosticOpen((v) => !v)}
                 aria-expanded={diagnosticOpen}
                 aria-haspopup="true"
-                interactive
-                appearance="light"
-                material="clear"
-                refraction={14}
-                className="!h-9 !px-4 !py-0 !rounded-full !bg-white !text-slate-950 font-bold inline-flex items-center gap-1.5 shadow-md hover:bg-white/90 active:scale-95 transition-all text-xs tracking-wide"
+                className="inline-flex h-11 items-center gap-2 rounded-pill bg-accent px-5 text-sm font-bold text-accent-ink transition-[filter,transform] duration-200 ease-brand hover:brightness-110 active:translate-y-px"
               >
                 <span>Growth Path Tool</span>
                 <CaretDown
                   weight="bold"
-                  className={`size-3 transition-transform duration-200 ease-brand ${
+                  className={`size-3.5 transition-transform duration-200 ease-brand ${
                     diagnosticOpen ? "rotate-180" : ""
                   }`}
                 />
-              </LiquidGlassButton>
+              </button>
 
               <AnimatePresence>
                 {diagnosticOpen ? (
@@ -435,46 +404,46 @@ export function Nav() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 6 }}
                     transition={{ duration: 0.16 }}
-                    className="absolute right-0 top-[calc(100%_+_12px)] w-80 rounded-2xl border border-white/40 bg-slate-950/90 backdrop-blur-2xl p-3.5 shadow-2xl z-50 text-white"
+                    className="absolute right-0 top-[calc(100%_+_8px)] w-80 rounded-panel border border-hairline bg-canvas p-3 shadow-lift z-50"
                   >
-                    <p className="px-3 pt-2 pb-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    <p className="px-3 pt-2 pb-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-muted">
                       Select Your Growth Track
                     </p>
 
                     <Link
                       href="/?track=business#diagnostic"
                       onClick={() => setDiagnosticOpen(false)}
-                      className="group/track flex flex-col gap-1 rounded-xl p-3 transition-colors hover:bg-white/10 active:bg-white/15"
+                      className="group/track flex flex-col gap-1 rounded-card p-3 transition-colors hover:bg-surface active:bg-surface-sunk"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-bold text-white group-hover/track:text-blue-300 transition-colors">
+                        <span className="text-sm font-bold text-ink group-hover/track:text-accent transition-colors">
                           For Your Business
                         </span>
-                        <span className="rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white border border-white/20">
+                        <span className="rounded-pill bg-surface-sunk px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent border border-hairline">
                           Business Doctor
                         </span>
                       </div>
-                      <span className="text-xs text-slate-300 leading-relaxed">
+                      <span className="text-xs text-ink-muted leading-relaxed">
                         Assess operations, systems, sales, and founder dependency
                       </span>
                     </Link>
 
-                    <div className="my-1 border-t border-white/15" />
+                    <div className="my-1 border-t border-hairline" />
 
                     <Link
                       href="/?track=self#diagnostic"
                       onClick={() => setDiagnosticOpen(false)}
-                      className="group/track flex flex-col gap-1 rounded-xl p-3 transition-colors hover:bg-white/10 active:bg-white/15"
+                      className="group/track flex flex-col gap-1 rounded-card p-3 transition-colors hover:bg-surface active:bg-surface-sunk"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-bold text-white group-hover/track:text-blue-300 transition-colors">
+                        <span className="text-sm font-bold text-ink group-hover/track:text-accent transition-colors">
                           For Yourself
                         </span>
-                        <span className="rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white border border-white/20">
+                        <span className="rounded-pill bg-surface-sunk px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent border border-hairline">
                           Bookwishes Club
                         </span>
                       </div>
-                      <span className="text-xs text-slate-300 leading-relaxed">
+                      <span className="text-xs text-ink-muted leading-relaxed">
                         Assess public speaking, articulation, mindset & presence
                       </span>
                     </Link>
@@ -483,52 +452,52 @@ export function Nav() {
               </AnimatePresence>
             </div>
 
-            {/* Mobile menu trigger */}
             <button
               type="button"
               onClick={() => setMobileOpen((v) => !v)}
               aria-expanded={mobileOpen}
               aria-controls={mobileId}
-              className="inline-flex size-9 items-center justify-center rounded-full border border-white/30 text-white transition-colors duration-200 hover:bg-white/20 xl:hidden"
+              className="inline-flex size-11 items-center justify-center rounded-pill border border-hairline-strong text-ink transition-colors duration-200 ease-brand hover:border-accent hover:text-accent xl:hidden"
             >
               <span className="sr-only">{mobileOpen ? "Close menu" : "Open menu"}</span>
               {mobileOpen ? (
-                <X aria-hidden="true" className="size-4.5" weight="bold" />
+                <X aria-hidden="true" className="size-5" weight="bold" />
               ) : (
-                <List aria-hidden="true" className="size-4.5" weight="bold" />
+                <List aria-hidden="true" className="size-5" weight="bold" />
               )}
             </button>
           </div>
         </div>
 
-        {/* Mobile flat menu: positioned relative to floating header */}
+        {/* Mobile: every destination flat, because dropdowns are unusable on a
+            small screen. */}
         <div
           id={mobileId}
           hidden={!mobileOpen}
-          className="pointer-events-auto mt-2.5 mx-auto w-[calc(100vw-32px)] max-w-[420px] max-h-[calc(100dvh_-_6rem)] overflow-y-auto rounded-3xl border border-white/40 bg-slate-950/90 backdrop-blur-2xl p-5 md:p-6 shadow-2xl text-white xl:hidden"
+          className="max-h-[calc(100dvh_-_72px)] overflow-y-auto border-t border-hairline bg-canvas xl:hidden"
         >
-          <nav aria-label="Primary mobile" className="flex flex-col">
+          <nav aria-label="Primary mobile" className="mx-auto max-w-[1400px] px-5 py-6 md:px-8">
             <ul className="flex flex-col">
               {NAV.map((entry) => (
-                <li key={entry.label} className="border-b border-white/15 py-3">
+                <li key={entry.label} className="border-b border-hairline py-4">
                   <Link
                     href={entry.href}
                     onClick={() => setMobileOpen(false)}
-                    className={`block font-display text-base font-bold ${
-                      isCurrent(entry.href) ? "text-blue-400" : "text-white"
+                    className={`block font-display text-lg font-bold ${
+                      isCurrent(entry.href) ? "text-accent" : "text-ink"
                     }`}
                   >
                     {entry.label}
                   </Link>
                   {entry.children ? (
-                    <ul className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1">
+                    <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
                       {entry.children.map((child) => (
                         <li key={child.href}>
                           <Link
                             href={child.href}
                             onClick={() => setMobileOpen(false)}
-                            className={`text-xs ${
-                              isCurrent(child.href) ? "text-blue-300" : "text-slate-300"
+                            className={`text-sm ${
+                              isCurrent(child.href) ? "text-accent" : "text-ink-muted"
                             }`}
                           >
                             {child.label}
@@ -540,33 +509,33 @@ export function Nav() {
                 </li>
               ))}
             </ul>
-            <div className="mt-5 flex flex-col gap-4">
+            <div className="mt-6 flex flex-col gap-4">
               <div className="flex flex-col gap-2.5">
-                <p className="px-1 text-xs font-bold uppercase tracking-wider text-slate-400">
+                <p className="px-1 text-xs font-bold uppercase tracking-wider text-ink-muted">
                   Growth Path Tool
                 </p>
                 <div className="grid gap-2">
                   <Link
                     href="/?track=business#diagnostic"
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center justify-between rounded-2xl bg-white/10 p-3.5 border border-white/15 transition-colors active:bg-white/15"
+                    className="flex items-center justify-between rounded-card bg-surface p-3.5 border border-hairline transition-colors active:bg-surface-sunk"
                   >
                     <div className="flex flex-col">
-                      <span className="text-sm font-bold text-white">For Your Business</span>
-                      <span className="text-xs text-slate-300">Powered by Business Doctor</span>
+                      <span className="text-sm font-bold text-ink">For Your Business</span>
+                      <span className="text-xs text-ink-muted">Powered by Business Doctor</span>
                     </div>
-                    <ArrowRight weight="bold" className="size-4 text-blue-400" />
+                    <ArrowRight weight="bold" className="size-4 text-accent" />
                   </Link>
                   <Link
                     href="/?track=self#diagnostic"
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center justify-between rounded-2xl bg-white/10 p-3.5 border border-white/15 transition-colors active:bg-white/15"
+                    className="flex items-center justify-between rounded-card bg-surface p-3.5 border border-hairline transition-colors active:bg-surface-sunk"
                   >
                     <div className="flex flex-col">
-                      <span className="text-sm font-bold text-white">For Yourself</span>
-                      <span className="text-xs text-slate-300">Powered by The Bookwishes Club</span>
+                      <span className="text-sm font-bold text-ink">For Yourself</span>
+                      <span className="text-xs text-ink-muted">Powered by The Bookwishes Club</span>
                     </div>
-                    <ArrowRight weight="bold" className="size-4 text-blue-400" />
+                    <ArrowRight weight="bold" className="size-4 text-accent" />
                   </Link>
                 </div>
               </div>
@@ -575,14 +544,14 @@ export function Nav() {
                 <Link
                   href="/account"
                   onClick={() => setMobileOpen(false)}
-                  className="inline-flex h-10 flex-1 items-center justify-center rounded-full border border-white/30 text-sm font-bold text-white hover:bg-white/10 transition-colors"
+                  className="inline-flex h-12 flex-1 items-center justify-center rounded-pill border border-hairline-strong text-sm font-bold"
                 >
                   My account
                 </Link>
                 <Link
                   href="/cart"
                   onClick={() => setMobileOpen(false)}
-                  className="inline-flex h-10 flex-1 items-center justify-center rounded-full border border-white/30 text-sm font-bold text-white hover:bg-white/10 transition-colors"
+                  className="inline-flex h-12 flex-1 items-center justify-center rounded-pill border border-hairline-strong text-sm font-bold"
                 >
                   Cart
                 </Link>
