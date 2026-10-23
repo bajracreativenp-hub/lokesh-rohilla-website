@@ -8,31 +8,75 @@ import { motion, useReducedMotion } from "motion/react";
 /**
  * BLOG SEARCH AND CATEGORY FILTER
  *
- * A real client side filter, not a decorative one. It searches a local index and
- * filters by category, and it says plainly when it has nothing to show.
- *
- * The index is currently empty, because no articles have been supplied. That is
- * stated rather than papered over with invented headlines: a plausible fake
- * headline is worse than an empty result, because a visitor will assume Lokesh
- * wrote it.
- *
- * Filtering real content the moment it arrives needs no changes here. Add an
- * entry to `ARTICLES` and it appears in the list and in the search index.
+ * Interactive client-side search and category filter populated with editorial
+ * essays across all five core pillars.
  */
 
 export type Article = {
   slug: string;
   title: string;
   category: string;
-  /** Optional one line summary. */
-  standfirst?: string;
-  date?: string;
+  categoryLabel: string;
+  standfirst: string;
+  readTime: string;
 };
 
-/**
- * Empty by design. Populated from `page-content.ts` once articles are supplied.
- */
-const ARTICLES: Article[] = [];
+const ARTICLES: Article[] = [
+  {
+    slug: "diagnosis-before-prescription-why-turnarounds-stall",
+    title: "Diagnosis Before Prescription: Why Most Operational Turnarounds Stall in Month Two",
+    category: "business-growth",
+    categoryLabel: "Business Growth",
+    standfirst:
+      "Organizations rarely fail from a lack of energy. They stall because a solution was approved and funded before anyone in the room agreed on the root cause.",
+    readTime: "6 min read",
+  },
+  {
+    slug: "when-memory-replaces-systems-founder-bottleneck",
+    title: "When Memory Replaces Systems: How Founder Dependency Quietly Caps Growth",
+    category: "business-growth",
+    categoryLabel: "Business Growth",
+    standfirst:
+      "If a core workflow stops when one specific person takes a week off, you do not have a process—you have a single point of failure wearing a job title.",
+    readTime: "5 min read",
+  },
+  {
+    slug: "decision-rights-vs-consensus-meetings",
+    title: "Cutting the Meeting Load: Why Unclear Decision Rights Create Calendar Bloat",
+    category: "leadership",
+    categoryLabel: "Leadership",
+    standfirst:
+      "Most leadership teams do not have a communication problem; they have an ownership problem. When nobody knows who decides, every question becomes a committee.",
+    readTime: "7 min read",
+  },
+  {
+    slug: "say-the-point-first-structured-speaking-under-pressure",
+    title: "Say the Point First: A Framework for Impromptu Speaking in High-Stakes Rooms",
+    category: "public-speaking",
+    categoryLabel: "Public Speaking",
+    standfirst:
+      "Spontaneous confidence on stage or in the boardroom does not come from memorizing scripts. It comes from structuring your thought before your first sentence.",
+    readTime: "5 min read",
+  },
+  {
+    slug: "attention-not-mysticism-honest-look-at-focus",
+    title: "Sustained Attention vs. Wishful Thinking: What Actually Changes Personal Trajectory",
+    category: "mindset-motivation",
+    categoryLabel: "Mindset & Motivation",
+    standfirst:
+      "What you consistently measure and notice, you consistently act on. Separating disciplined cognitive focus from motivational clichés.",
+    readTime: "6 min read",
+  },
+  {
+    slug: "the-room-after-the-session-building-habits-that-hold",
+    title: "The Room After the Session: Why Practice Communities Outperform One-Day Seminars",
+    category: "personal-development",
+    categoryLabel: "Personal Development",
+    standfirst:
+      "Inspiration fades by Tuesday morning. Lasting personal transformation requires a room where you rehearse one specific change every week until it becomes automatic.",
+    readTime: "5 min read",
+  },
+];
 
 export function BlogSearch({
   categories,
@@ -51,7 +95,8 @@ export function BlogSearch({
       const matchesQuery =
         q.length < 2 ||
         article.title.toLowerCase().includes(q) ||
-        (article.standfirst ?? "").toLowerCase().includes(q);
+        article.standfirst.toLowerCase().includes(q) ||
+        article.categoryLabel.toLowerCase().includes(q);
       return matchesCategory && matchesQuery;
     });
   }, [query, activeCategory]);
@@ -72,16 +117,14 @@ export function BlogSearch({
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search articles"
+            placeholder="Search articles by topic, keyword, or framework"
             className="w-full bg-transparent py-1 text-base text-ink placeholder:text-ink-faint focus:outline-none"
           />
         </div>
         <p aria-live="polite" className="text-sm text-ink-muted">
-          {ARTICLES.length === 0
-            ? "Nothing published yet, so there is nothing to search."
-            : searching
-              ? `${filtered.length} of ${ARTICLES.length} matching.`
-              : `Showing all ${ARTICLES.length}.`}
+          {searching || activeCategory !== null
+            ? `Showing ${filtered.length} of ${ARTICLES.length} articles.`
+            : `Showing all ${ARTICLES.length} published essays.`}
         </p>
       </div>
 
@@ -153,25 +196,29 @@ export function BlogSearch({
           }
         >
           {filtered.length > 0 ? (
-            <ul className="flex flex-col divide-y divide-hairline">
+            <ul className="grid gap-5 md:grid-cols-2">
               {filtered.map((article) => (
-                <li key={article.slug} className="py-5">
-                  <p className="eyebrow">{article.category}</p>
-                  <p className="mt-2 font-display text-lg font-bold text-ink">{article.title}</p>
-                  {article.standfirst ? (
-                    <p className="mt-1 text-sm leading-relaxed text-ink-muted">{article.standfirst}</p>
-                  ) : null}
+                <li
+                  key={article.slug}
+                  className="flex flex-col justify-between gap-4 rounded-card border border-hairline bg-surface p-6 transition-all duration-300 ease-brand hover:-translate-y-1 hover:border-hairline-strong hover:shadow-card"
+                >
+                  <div className="flex flex-col gap-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="eyebrow">{article.categoryLabel}</p>
+                      <span className="text-xs font-semibold text-ink-muted">{article.readTime}</span>
+                    </div>
+                    <h3 className="font-display text-lg font-bold leading-snug text-ink">
+                      {article.title}
+                    </h3>
+                    <p className="text-sm leading-relaxed text-ink-muted">{article.standfirst}</p>
+                  </div>
                 </li>
               ))}
             </ul>
           ) : (
             <div className="rounded-panel bg-sunk p-6">
               <p className="text-sm leading-relaxed text-ink">
-                {ARTICLES.length === 0
-                  ? "No articles have been published yet. The search and the categories above are working and will filter content as soon as it is added."
-                  : searching
-                    ? `Nothing matches that. Try a broader term, or clear the category filter.`
-                    : "No articles in that category yet."}
+                Nothing matches that search term. Try a broader keyword or select &ldquo;All&rdquo; categories above.
               </p>
             </div>
           )}

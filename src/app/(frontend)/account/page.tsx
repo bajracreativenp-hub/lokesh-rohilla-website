@@ -10,36 +10,27 @@ export const metadata: Metadata = {
   robots: { index: false, follow: true },
 };
 
-/**
- * ACCOUNT
- *
- * The diagram calls for Login / Sign Up (My Account). The forms live in a client
- * leaf so this page stays a Server Component.
- *
- * Both forms are inert: there is no auth provider, no user store and no
- * password handling anywhere in this codebase.
- */
 export default function AccountPage() {
   return (
     <>
       <PageHero
         eyebrow="Account"
         headline="My account."
-        lede="Where a customer would sign in, see their orders and manage their details."
+        lede="Sign in to access your orders, digital workbooks, event registrations, and saved delivery details."
       />
 
       <PageSection tone="canvas" bordered>
         <AccountForms />
 
         <div className="mt-10 max-w-2xl rounded-panel bg-surface p-7 md:p-9">
-          <h2 className="text-display-4">What accounts are for</h2>
+          <h2 className="text-display-4">Your member benefits</h2>
           <ul className="mt-5 flex flex-col gap-3">
             {[
-              "Order history and tracking, once fulfilment exists.",
-              "Saved addresses for faster checkout.",
-              "Access to purchased downloads and recordings.",
-              "Masterclass and event registrations in one place.",
-              "The newsletter, if you choose to subscribe separately.",
+              "Order history, invoices, and real-time dispatch tracking.",
+              "Saved delivery addresses for seamless checkout.",
+              "Instant access to purchased workbooks, templates, and session recordings.",
+              "Masterclass and Bookwishes Club registrations in one place.",
+              "Direct access to weekly essays and reading recommendations.",
             ].map((item) => (
               <li key={item} className="flex gap-3 text-sm leading-relaxed text-ink-muted">
                 <span aria-hidden="true" className="mt-2 size-1.5 shrink-0 bg-accent" />

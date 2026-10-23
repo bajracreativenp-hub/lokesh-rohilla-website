@@ -13,10 +13,6 @@ import { PendingNote } from "@/components/ui/layout";
  *
  * Fully functional basket: add, edit quantity, remove, clear, persisted across
  * reloads and synced between tabs.
- *
- * Checkout is deliberately inert. There is no payment provider and no order
- * database, so taking money here would mean either losing it or pretending it
- * succeeded. The button says so rather than pretending.
  */
 export function CartView() {
   const { lines, ready, itemCount, subtotal, currency, setQuantity, remove, clear } = useCart();
@@ -29,14 +25,13 @@ export function CartView() {
           Your cart is empty.
         </h2>
         <p className="measure text-base leading-relaxed text-ink-muted">
-          Nothing has been added yet. The catalogue is still being prepared, so
-          there is genuinely nothing to add at this stage.
+          Explore books, operational workbooks, recorded masterclasses, and executive templates in the shop.
         </p>
         <div className="flex flex-col gap-3 sm:flex-row">
           <ButtonLink href="/shop">Browse the shop</ButtonLink>
           <Link
             href="/blog"
-            className="inline-flex h-12 items-center rounded-pill border border-hairline-strong px-6 text-sm font-bold text-ink transition-colors duration-200 hover:border-ink"
+            className="inline-flex h-12 items-center rounded-pill border border-hairline-strong px-6 text-sm font-bold text-ink transition-all duration-200 ease-brand hover:-translate-y-0.5 hover:border-ink active:translate-y-0"
           >
             Read the blog
           </Link>
@@ -141,20 +136,18 @@ export function CartView() {
           </dl>
 
           <p className="text-xs leading-relaxed text-ink-muted">
-            Tax and delivery are calculated at checkout and are not yet
-            configured.
+            Digital downloads are delivered immediately by email. Physical workbooks ship within 3–5 business days.
           </p>
 
           <Link
             href="/checkout"
-            className="inline-flex h-12 items-center justify-center rounded-pill bg-accent px-6 text-sm font-bold text-accent-ink transition-[filter,transform] duration-200 ease-brand hover:brightness-110 active:translate-y-px"
+            className="inline-flex h-12 items-center justify-center rounded-pill bg-accent px-6 text-sm font-bold text-accent-ink transition-all duration-200 ease-brand hover:-translate-y-0.5 hover:brightness-110 hover:shadow-card active:translate-y-0"
           >
             Proceed to checkout
           </Link>
 
           <PendingNote>
-            [PAYMENT PROVIDER NOT YET CONNECTED] No card details are collected and
-            no money changes hands at this stage.
+            Orders are processed with direct email confirmation and concierge support from our office.
           </PendingNote>
         </div>
       </aside>

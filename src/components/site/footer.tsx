@@ -57,7 +57,7 @@ export function Footer() {
 
         <div className="mt-14 rounded-card bg-surface px-5 py-4">
           <p className="text-xs text-ink-muted">
-            <span className="eyebrow mr-2">Pending</span>
+            <span className="eyebrow mr-2">Contact</span>
             {PENDING.contact}
           </p>
         </div>

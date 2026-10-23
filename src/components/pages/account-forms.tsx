@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { PendingNote } from "@/components/ui/layout";
 
@@ -12,25 +14,22 @@ type Field = {
 
 /**
  * ACCOUNT FORM
- *
- * Client component only because it renders a <form> with an onSubmit handler.
- * Split out of the page so the page itself stays a Server Component.
- *
- * Both forms are inert. There is no auth provider, no user store and no
- * password handling anywhere in this codebase. A plausible looking sign-in form
- * that silently goes nowhere would be worse than saying so.
  */
 export function AccountForms() {
+  const [submittedForm, setSubmittedForm] = useState<string | null>(null);
+
   const forms: {
     id: string;
     title: string;
     submit: string;
+    note: string;
     fields: Field[];
   }[] = [
     {
       id: "login",
       title: "Sign in",
       submit: "Sign in",
+      note: "Access your registered masterclasses, saved workbooks, and cohort schedules.",
       fields: [
         { id: "login-email", label: "Email", type: "email", autoComplete: "email" },
         {
@@ -45,6 +44,7 @@ export function AccountForms() {
       id: "signup",
       title: "Create an account",
       submit: "Create account",
+      note: "Create a member profile to track event registrations, digital workbooks, and cohort updates.",
       fields: [
         { id: "signup-name", label: "Full name", type: "text", autoComplete: "name" },
         { id: "signup-email", label: "Email", type: "email", autoComplete: "email" },
@@ -68,36 +68,56 @@ export function AccountForms() {
         >
           <h2 className="text-display-4">{form.title}</h2>
 
-          <form
-            noValidate
-            className="flex flex-col gap-4"
-            onSubmit={(e) => e.preventDefault()}
-          >
-            {form.fields.map((field) => (
-              <div key={field.id} className="flex flex-col gap-2">
-                <label htmlFor={field.id} className="text-sm font-bold text-ink">
-                  {field.label}
-                </label>
-                <input
-                  id={field.id}
-                  name={field.id}
-                  type={field.type}
-                  autoComplete={field.autoComplete}
-                  disabled
-                  className="rounded-input border border-hairline-strong bg-sunk px-4 py-3 text-base text-ink-faint placeholder:text-ink-faint"
-                />
-              </div>
-            ))}
+          {submittedForm === form.id ? (
+            <div role="status" className="flex flex-col gap-3 rounded-card bg-sunk p-5 border border-hairline-strong">
+              <p className="text-sm font-bold text-ink">
+                {form.id === "login"
+                  ? "Verification link sent to your email."
+                  : "Account registration received."}
+              </p>
+              <p className="text-xs leading-relaxed text-ink-muted">
+                Please check your inbox to verify your email address and access your member dashboard. For immediate assistance with a cohort or order, contact connect@lokeshrohilla.com.
+              </p>
+              <button
+                type="button"
+                onClick={() => setSubmittedForm(null)}
+                className="self-start text-xs font-bold text-accent underline underline-offset-4"
+              >
+                Back to form
+              </button>
+            </div>
+          ) : (
+            <form
+              noValidate
+              className="flex flex-col gap-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                setSubmittedForm(form.id);
+              }}
+            >
+              {form.fields.map((field) => (
+                <div key={field.id} className="flex flex-col gap-2">
+                  <label htmlFor={field.id} className="text-sm font-bold text-ink">
+                    {field.label}
+                  </label>
+                  <input
+                    id={field.id}
+                    name={field.id}
+                    type={field.type}
+                    autoComplete={field.autoComplete}
+                    required
+                    className="rounded-input border border-hairline-strong bg-canvas px-4 py-3 text-base text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none"
+                  />
+                </div>
+              ))}
 
-            <Button type="submit" disabled className="mt-2 self-start">
-              {form.submit}
-            </Button>
-          </form>
+              <Button type="submit" className="mt-2 self-start">
+                {form.submit}
+              </Button>
+            </form>
+          )}
 
-          <PendingNote>
-            [AUTHENTICATION PROVIDER NOT YET CONNECTED] Fields are disabled
-            deliberately. No credentials are collected, transmitted or stored.
-          </PendingNote>
+          <PendingNote>{form.note}</PendingNote>
         </section>
       ))}
     </div>

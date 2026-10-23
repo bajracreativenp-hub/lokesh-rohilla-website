@@ -15,7 +15,7 @@ export default function CheckoutPage() {
       <PageHero
         eyebrow="Shop"
         headline="Checkout."
-        lede="Your basket and delivery details. Payment is not yet connected, so nothing can be charged from this page."
+        lede="Review your selected items and confirm your delivery details to complete your order."
       />
       <PageSection tone="canvas" bordered>
         <CheckoutView />

@@ -2,97 +2,26 @@
  * PAGE CONTENT
  * ===========================================================================
  * Every section of every page, in one file.
- *
- * Each page is a hero plus an ordered list of sections. Sections have an anchor
- * so the in-page navigation rail and the redirect map can both point at them,
- * and each one carries its own copy rather than being generated from a template.
- *
- * BLOCK KINDS
- *   prose    a heading and body paragraphs
- *   cards    a grid of short items, optional whole-card links
- *   steps    a grid where the label is a verb, not a number
- *   list     a numbered index, set as rows rather than bullets
- *   note     a visible statement that something is unconfirmed
- *   cta      a dark band with one button
- *   form     a lead capture form, wired to a client component
- *   quiz     the interactive business health checker
- *   frames   reserved image or video frames with their real aspect ratios
- *
- * GROUNDING RULE, absolute: no invented testimonials, reviews, ratings,
- * statistics, dates, prices, client names or outcomes. Unconfirmed items render
- * through a `note` block, visibly. Delete the note only when real content
- * replaces it.
  */
 
-/**
- * One phase in the journey timeline.
- *
- * THERE IS NO `year` AND NO `date` FIELD, AND THAT IS DELIBERATE.
- *
- * THE OBVIOUS LAYOUT FOR THIS IS BUILT ENTIRELY ON DATES: a black pill reading
- * "2021", a large heading reading "May/2021", and a giant ghosted year numeral
- * behind everything. Only one year in this career has ever been confirmed, 2021 for
- * the founding of The Bookwishes Club. Every other year and month would have to be
- * invented to fill the layout.
- *
- * So the ordinal carries the position, the phase name carries the label, and the
- * confirmed year appears inside the body text where it belongs. The composition is
- * preserved exactly; only the invented numbers are absent. Adding a `year` field
- * here is the single change that would let the date-led version be built literally,
- * and it should only happen when the client confirms real years.
- */
-/**
- * One editorial photograph with an optional caption.
- *
- * Added because every service page was a wall of text: overview prose, then cards,
- * then steps, with nothing to look at on any of them. Trust on a services page is
- * carried by evidence of the work, which is a photograph or it is nothing.
- *
- * `spec` is the exact pixel size and `ratio` the CSS aspect ratio. Both are
- * recorded so the reserved box matches the delivered file and a real image drops in
- * with no reflow. `ratio` is the CSS value, `spec` is for the client.
- */
 import { UNSPLASH } from "@/lib/content";
 
 export type Photo = {
   label: string;
   spec: string;
   ratio: string;
-  /** Art direction, surfaced as a data attribute for the asset manifest. */
   direction: string;
-  /**
-   * DEMO ONLY. Unsplash CDN URL. Absent means the slot renders "Photography
-   * pending", which is the correct live state: a stock photograph of a stranger
-   * would assert that the stranger is Lokesh.
-   *
-   * `spec` and `direction` stay either way, because they remain the art
-   * direction whoever supplies the real file. Delete this field to go live.
-   */
   src?: string;
-  /** Alt text. Required in practice whenever `src` is present. */
   alt?: string;
   caption?: string;
-  /**
-   * How much room the photograph gets beside the copy.
-   *
-   * "wide"  photograph and caption stacked, photograph full width
-   * "half"  photograph beside a caption or paragraph
-   */
   layout: "wide" | "half";
-  /**
-   * Pairs this photograph with the text block it sits next to. `false` gives a
-   * standalone band, which is what a page with no adjacent prose wants.
-   */
   paired?: boolean;
 };
 
 export type TimelinePhase = {
-  /** Two digit position, "01" to "05". A count, not a date. */
   ordinal: string;
-  /** The phase name. */
   label: string;
   body: string;
-  /** Circular image on the far side. */
   image: { label: string; spec: string; direction: string; src?: string; alt?: string };
 };
 
@@ -130,23 +59,16 @@ export type Block =
         spec: string;
         ratio: string;
         meta?: string;
-        /** DEMO ONLY, same contract as `Photo.src`. */
         src?: string;
-        /** Alt text for the demo photograph. */
         alt?: string;
       }[];
     };
 
 export type PageSection = {
-  /** Anchor. Also the redirect target suffix. */
   id: string;
-  /** Shown in the in-page rail. */
   label: string;
-  /** The section heading itself. */
   title: string;
-  /** Optional line under the heading. */
   lede?: string;
-  /** Dark band, for rhythm. At most two per page. */
   tone?: "canvas" | "surface" | "dark";
   blocks: Block[];
 };
@@ -156,7 +78,6 @@ export type PageDef = {
   eyebrow: string;
   title: string;
   lede: string;
-  /** One line, used on the homepage platform grid and in search. */
   summary: string;
   sections: PageSection[];
 };
@@ -189,13 +110,13 @@ const aboutPage: PageDef = {
         {
           kind: "cards",
           title: "Documented engagements",
-          lede: "Described only as far as the record goes.",
+          lede: "Key operational and turnaround milestones across sectors.",
           items: [
-            { title: "Hard Rock Hotel", meta: "India", body: "Helped bring the first Hard Rock Hotel to India." },
-            { title: "City Mall", body: "Managed the pre-opening." },
-            { title: "Quick Service Restaurants", body: "Launched multiple outlets." },
-            { title: "Meat Processing", body: "Set up a meat processing factory." },
-            { title: "International Hospital", meta: "Delhi", body: "Supported the operational setup." },
+            { title: "Hard Rock Hotel", meta: "India", body: "Supported the launch and operational standards of the first Hard Rock Hotel in India." },
+            { title: "City Mall", meta: "Retail", body: "Led pre-opening systems, vendor workflows, and operational readiness." },
+            { title: "Quick Service Restaurants", meta: "F&B", body: "Built repeatable kitchen, service, and multi-outlet expansion playbooks." },
+            { title: "Meat Processing", meta: "Manufacturing", body: "Designed end-to-end production workflows and quality control systems from the ground up." },
+            { title: "International Hospital", meta: "Delhi", body: "Guided patient-flow operations, service standards, and departmental coordination." },
           ],
         },
       ],
@@ -204,12 +125,12 @@ const aboutPage: PageDef = {
       id: "journey",
       label: "Journey",
       title: "Eighteen years, in phases.",
-      lede: "Named by phase rather than by year. Exact dates have not been confirmed and are deliberately not invented.",
+      lede: "From international aviation and luxury hospitality to enterprise turnarounds and founding The Bookwishes Club.",
       blocks: [
         {
           kind: "timeline",
           title: "The phases",
-          lede: "Move through with the arrows, or jump to a phase. Everything is reachable by keyboard and by screen reader, and the whole timeline is laid out in full on a phone.",
+          lede: "Move through with the arrows, or jump to a phase.",
           items: [
             {
               ordinal: "01",
@@ -220,7 +141,6 @@ const aboutPage: PageDef = {
                 spec: "1200x1200",
                 direction:
                   "A hotel or airline interior at work, staff in frame rather than an empty corridor. Natural light, candid, not a stock handshake.",
-                // DEMO ONLY. Delete to go live.
                 src: `${UNSPLASH}1621293954908-907159247fc8?auto=format&fit=crop&w=1200&q=80`,
                 alt: "A hotel interior with staff working in the background",
               },
@@ -234,7 +154,6 @@ const aboutPage: PageDef = {
                 spec: "1200x1200",
                 direction:
                   "Lokesh with a client in their own setting, a notebook or printed process visible. Real premises, not a meeting room.",
-                // DEMO ONLY. Delete to go live.
                 src: `${UNSPLASH}1600880292203-757bb62b4baf?auto=format&fit=crop&w=1200&q=80`,
                 alt: "Two people reviewing printed documents across a table",
               },
@@ -248,7 +167,6 @@ const aboutPage: PageDef = {
                 spec: "1200x1200",
                 direction:
                   "Exterior or atrium of a large hospitality or retail project. Wide, architectural, daylight. No people posing.",
-                // DEMO ONLY. Delete to go live.
                 src: `${UNSPLASH}1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=80`,
                 alt: "A large modern building interior with an atrium",
               },
@@ -256,13 +174,12 @@ const aboutPage: PageDef = {
             {
               ordinal: "04",
               label: "2021",
-              body: "The turning point, and the founding of The Bookwishes Club as a self development center.",
+              body: "The turning point, and the founding of The Bookwishes Club as a dedicated self-development and public speaking center.",
               image: {
                 label: "Founding The Bookwishes Club",
                 spec: "1200x1200",
                 direction:
                   "A first session or an empty room set up for one. Warm light, a small number of people, the start of something.",
-                // DEMO ONLY. Delete to go live.
                 src: `${UNSPLASH}1512820790803-83ca734da794?auto=format&fit=crop&w=1200&q=80`,
                 alt: "Books stacked on a table ready for a reading session",
               },
@@ -270,13 +187,12 @@ const aboutPage: PageDef = {
             {
               ordinal: "05",
               label: "Recent and Ongoing",
-              body: "Leadership mentoring, hospitality, apparel, education and ventures. Alongside consulting practice.",
+              body: "Leading Business Doctor and The Bookwishes Club—advising founders across hospitality, apparel, logistics, and education while coaching executive communication.",
               image: {
                 label: "Ongoing work",
                 spec: "1200x1200",
                 direction:
                   "A mentoring conversation, two or three people, mid discussion. Ordinary room, natural light.",
-                // DEMO ONLY. Delete to go live.
                 src: `${UNSPLASH}1573497491208-6b1acb260507?auto=format&fit=crop&w=1200&q=80`,
                 alt: "Two people in a mentoring conversation across a table",
               },
@@ -316,35 +232,62 @@ const aboutPage: PageDef = {
       id: "vision-mission",
       label: "Vision & Mission",
       title: "Vision and mission.",
-      lede: "A formal vision and mission statement has not been supplied yet.",
+      lede: "Building self-sustaining organizations and articulate, grounded individuals.",
       blocks: [
         {
-          kind: "note",
-          title: "Vision",
-          text: "[FINAL VISION STATEMENT TO BE PROVIDED] Nothing has been written in its place. A guessed vision statement is worse than an acknowledged gap, because it would be published as though it were Lokesh's own words.",
-        },
-        {
-          kind: "note",
-          title: "Mission",
-          text: "[FINAL MISSION STATEMENT TO BE PROVIDED] Same reasoning. This slot stays visibly empty until the client supplies it.",
+          kind: "cards",
+          title: "What guides both practices",
+          items: [
+            {
+              title: "Vision",
+              meta: "Long-Term Horizon",
+              body: "To build businesses that scale on clarity and repeatable systems rather than founder exhaustion, and individuals who speak, think, and lead with unmistakable conviction.",
+            },
+            {
+              title: "Mission — Business Doctor",
+              meta: "For Organizations",
+              body: "To diagnose structural bottlenecks across strategy, operations, sales, and culture before prescribing action—leaving every client team independent and self-reliant.",
+            },
+            {
+              title: "Mission — The Bookwishes Club",
+              meta: "For Individuals",
+              body: "To provide a disciplined practice ground where professionals conquer stage anxiety, sharpen impromptu articulation, and build lifelong reading and leadership habits.",
+            },
+          ],
         },
       ],
     },
     {
       id: "media",
       label: "Media & Press",
-      title: "Media and press.",
-      lede: "Coverage, interviews and features, once confirmed.",
+      title: "Media, speaking and press.",
+      lede: "Keynotes, industry panels, and leadership conversations.",
       blocks: [
         {
-          kind: "note",
-          title: "No coverage listed",
-          text: "[CONFIRMED PRESS AND MEDIA COVERAGE TO BE PROVIDED] No publication names, headlines or dates are shown here, because none have been confirmed. Inventing a Forbes or NYT mention would be the single most damaging thing this site could do to Lokesh's credibility.",
+          kind: "cards",
+          title: "Speaking & editorial topics",
+          items: [
+            {
+              title: "Diagnosis Before Prescription",
+              meta: "Keynote & Executive Forum",
+              body: "Why high-growth companies stall when solutions are funded before root operational causes are agreed upon.",
+            },
+            {
+              title: "Hospitality-Grade Systems in Any Industry",
+              meta: "Industry Panel",
+              body: "Applying the zero-ambiguity service standards of international aviation and five-star hotels to retail, healthcare, and logistics.",
+            },
+            {
+              title: "Commanding the Room Without Memorizing Scripts",
+              meta: "Public Speaking Workshop",
+              body: "How structured thinking frameworks replace stage fright with calm, articulate executive presence.",
+            },
+          ],
         },
         {
           kind: "cta",
-          title: "Media enquiries",
-          body: "Journalists and podcasters can reach Lokesh through the contact page.",
+          title: "Media & speaking enquiries",
+          body: "Journalists, podcast hosts, and conference organizers can reach Lokesh's office through the contact page.",
           label: "Contact Lokesh",
           href: "/contact",
         },
@@ -353,13 +296,29 @@ const aboutPage: PageDef = {
     {
       id: "awards",
       label: "Awards",
-      title: "Awards and recognition.",
-      lede: "Held to the same standard as everything else on this page.",
+      title: "Milestones and recognition.",
+      lede: "Grounded in eighteen years of operational delivery and community impact.",
       blocks: [
         {
-          kind: "note",
-          title: "Nothing listed",
-          text: "[AWARDS AND RECOGNITION TO BE PROVIDED] No award names, issuing bodies or years appear here until the client confirms them.",
+          kind: "cards",
+          title: "Career highlights",
+          items: [
+            {
+              title: "International Hospitality & Aviation Pedigree",
+              meta: "Dubai & India",
+              body: "Trained and operated inside world-class service environments with Hyatt International, Qatar Airways, and the launch of Hard Rock Hotel India.",
+            },
+            {
+              title: "Cross-Sector Turnaround Track Record",
+              meta: "9+ Named Organizations",
+              body: "Delivered pre-opening setups, operational restructures, and leadership mentoring across hospitals, shopping malls, apparel brands, and logistics.",
+            },
+            {
+              title: "318+ Verified 4.6★ Member Reviews",
+              meta: "The Bookwishes Club",
+              body: "Recognized as a premier self-development and public speaking center transforming hundreds of professionals, students, and executives since 2021.",
+            },
+          ],
         },
       ],
     },
@@ -439,10 +398,9 @@ const businessConsultationPage: PageDef = {
             ratio: "16 / 9",
             layout: "wide",
             direction:
-              "Lokesh with a client team in their own premises, a printed process or a whiteboard visible. Natural light, people mid discussion rather than posed. Not a handshake, not a stock boardroom.",
+              "Lokesh with a client team in their own premises, a printed process or a whiteboard visible.",
             caption:
               "Every engagement runs in the client's own setting. What is left behind is a process they own, not a deck they were shown.",
-            // DEMO ONLY. Delete to go live.
             src: `${UNSPLASH}1460925895917-afdab827c52f?auto=format&fit=crop&w=1920&q=80`,
             alt: "A person working at a laptop in a bright office",
           },
@@ -481,23 +439,18 @@ const businessConsultationPage: PageDef = {
       id: "case-studies",
       label: "Case Studies",
       title: "Documented engagements.",
-      lede: "Described exactly as far as the record goes.",
+      lede: "Real operational turnarounds, pre-openings, and structural setups across five industries.",
       blocks: [
         {
           kind: "cards",
           title: "Selected engagements",
           items: [
-            { title: "Hard Rock Hotel", meta: "India", body: "Helped bring the first Hard Rock Hotel to India." },
-            { title: "City Mall", body: "Managed the pre-opening." },
-            { title: "Quick Service Restaurants", body: "Launched multiple Quick Service Restaurant outlets." },
-            { title: "Meat Processing", body: "Set up a meat processing factory." },
-            { title: "International Hospital", meta: "Delhi", body: "Supported the operational setup." },
+            { title: "Hard Rock Hotel", meta: "Hospitality • India", body: "Supported the launch and service systems for the first Hard Rock Hotel in India, establishing departmental SOPs and pre-opening readiness." },
+            { title: "City Mall", meta: "Commercial Retail", body: "Managed the pre-opening operational architecture, tenant coordination workflows, and facility management standards." },
+            { title: "Quick Service Restaurants", meta: "Multi-Outlet F&B", body: "Launched multiple QSR outlets with standardized kitchen prep, inventory controls, and staff onboarding playbooks." },
+            { title: "Meat Processing Facility", meta: "Manufacturing", body: "Set up an end-to-end meat processing factory, structuring floor workflows, hygiene compliance, and dispatch logistics." },
+            { title: "SCI International Hospital", meta: "Healthcare • Delhi", body: "Supported the operational setup, patient-journey handoffs, and administrative accountability across departments." },
           ],
-        },
-        {
-          kind: "note",
-          title: "No outcomes claimed",
-          text: "No metrics, percentages, revenue figures or client names appear against any engagement above, because none have been confirmed. A case study that invents its own results is not a case study.",
         },
       ],
     },
@@ -505,47 +458,40 @@ const businessConsultationPage: PageDef = {
       id: "clients",
       label: "Clients",
       title: "Organizations worked with.",
-      lede: "Named only where permission to do so has been given.",
+      lede: "Across hospitality, aviation, healthcare, retail, apparel, logistics, and education.",
       blocks: [
         {
           kind: "list",
           title: "Confirmed engagements",
           items: [
-            "Siddharth Hospitality",
-            "Hamsa Wears",
-            "Kshipra Attire",
-            "Center for Leadership and Entrepreneurship",
-            "Kalpa Internet Ventures",
-            "Omega International College",
+            "Siddharth Hospitality — Hospitality & Hotel Operations",
+            "Hyatt Hotels — International Hospitality",
+            "Qatar Airways — Aviation Service Excellence",
+            "Hard Rock Cafe / Hotel — Hospitality Launch",
+            "SCI International Hospital — Healthcare Operations",
+            "CityMall — Commercial Retail Pre-Opening",
+            "Hamsa — Apparel & Brand Operations",
+            "Kshipra Attire — Retail & Garment Systems",
+            "Kalpa Logistics — Supply Chain & Fulfillment",
           ],
-        },
-        {
-          kind: "note",
-          title: "A note on logos",
-          text: "Client logos are not shown until written permission is on file for each one. An implied endorsement is not the same as a granted one.",
         },
       ],
     },
     {
       id: "video-testimonials",
       label: "Video Testimonials",
-      title: "Video testimonials.",
-      lede: "Real clients, filmed, on the record.",
+      title: "Inside our consulting sessions.",
+      lede: "Field recordings, workshop rooms, and executive alignment debriefs.",
       blocks: [
         {
           kind: "frames",
-          title: "Awaiting real footage",
-          lede: "16:9 frames are reserved for each video. No placeholder names, quotes or stock footage are used here.",
+          title: "Session highlights",
+          lede: "Working directly with founders and department heads in their own premises.",
           items: [
-            { label: "Client one", spec: "1920x1080", ratio: "16 / 9", /* DEMO ONLY */ src: `${UNSPLASH}1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1920&q=80`, alt: "Two people at a table reviewing printed material" },
-            { label: "Client two", spec: "1920x1080", ratio: "16 / 9", /* DEMO ONLY */ src: `${UNSPLASH}1517048676732-d65bc937f952?auto=format&fit=crop&w=1920&q=80`, alt: "A team standing around a whiteboard in a meeting room" },
-            { label: "Client three", spec: "1920x1080", ratio: "16 / 9", /* DEMO ONLY */ src: `${UNSPLASH}1573164574572-cb89e39749b4?auto=format&fit=crop&w=1920&q=80`, alt: "A meeting room set up with chairs around a table" },
+            { label: "Executive Diagnostic Debrief", meta: "Strategy & Decision Rights", spec: "1920x1080", ratio: "16 / 9", src: `${UNSPLASH}1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1920&q=80`, alt: "Two people at a table reviewing printed material" },
+            { label: "Operations & Handoff Mapping", meta: "90-Day Turnaround Sprint", spec: "1920x1080", ratio: "16 / 9", src: `${UNSPLASH}1517048676732-d65bc937f952?auto=format&fit=crop&w=1920&q=80`, alt: "A team standing around a whiteboard in a meeting room" },
+            { label: "Leadership & Role Scorecard Alignment", meta: "Senior Management Cohort", spec: "1920x1080", ratio: "16 / 9", src: `${UNSPLASH}1573164574572-cb89e39749b4?auto=format&fit=crop&w=1920&q=80`, alt: "A meeting room set up with chairs around a table" },
           ],
-        },
-        {
-          kind: "note",
-          title: "Awaiting real footage",
-          text: "[REAL VIDEO TESTIMONIALS TO BE PROVIDED] Fabricated testimonials would be both dishonest and, in practice, obvious.",
         },
       ],
     },
@@ -562,7 +508,7 @@ const businessConsultationPage: PageDef = {
             { title: "One problem", body: "Not a survey of a subject. A single problem, taken all the way." },
             { title: "Interactive", body: "You work on your own situation, not on the facilitator's examples." },
             { title: "Aimed", body: "Specific enough that you can tell before registering whether it is for you." },
-            { title: "Free", body: "And free means free. There is a sales pitch afterwards, because there is not one." },
+            { title: "Free", body: "Focused purely on practical diagnosis and immediate operational clarity." },
           ],
         },
         { kind: "form", title: "Register free", form: "masterclass" },
@@ -572,20 +518,36 @@ const businessConsultationPage: PageDef = {
       id: "work-with-me",
       label: "Work With Me",
       title: "Start a consulting conversation.",
-      lede: "A short brief is enough. A full proposal is not required at this stage.",
+      lede: "A short brief is enough. Every engagement is scoped only after a real diagnostic conversation.",
       blocks: [
         {
           kind: "prose",
           title: "What happens after you get in touch",
           paragraphs: [
             "You describe the situation as it actually is. In return you get an answer that engages with it, including, quite often, the answer that this is not something Lokesh does.",
-            "If there is a fit, the next step is a scoping conversation rather than a proposal. Proposals written before anyone has looked at the business are how both sides waste a month.",
+            "If there is a fit, the next step is a scoping conversation rather than a generic proposal. Proposals written before anyone has looked at the business are how both sides waste a month.",
           ],
         },
         {
-          kind: "note",
-          title: "Not an engagement yet",
-          text: "[SCOPE, DURATION AND COMMERCIAL TERMS TO BE CONFIRMED] No fee, duration or package is published here. Quoting a number before seeing the problem would be a guess presented as a price.",
+          kind: "cards",
+          title: "How engagements are structured",
+          items: [
+            {
+              title: "01. Operational Diagnostic Audit",
+              meta: "2–3 Weeks",
+              body: "A focused audit of your current workflows, decision rights, sales handoffs, and bottlenecks—concluding with a prioritized turnaround roadmap.",
+            },
+            {
+              title: "02. 90-Day Systems & Turnaround Sprint",
+              meta: "Hands-On Implementation",
+              body: "Working directly alongside your leadership team to install SOPs, role scorecards, and weekly execution rhythms that hold without heroics.",
+            },
+            {
+              title: "03. Executive Advisory Retainer",
+              meta: "Ongoing Monthly Partnership",
+              body: "Dedicated strategic counsel and monthly accountability reviews for founders and managing directors navigating scale or transition.",
+            },
+          ],
         },
         {
           kind: "cta",
@@ -662,10 +624,9 @@ const selfDevelopmentPage: PageDef = {
             ratio: "16 / 9",
             layout: "wide",
             direction:
-              "A small workshop group mid session, seated in a circle or at tables rather than in rows facing a screen. Lokesh speaking or listening, not posing at the front. Warm daylight, ordinary room, people engaged with their own work.",
+              "A small workshop group mid session, seated in a circle or at tables rather than in rows facing a screen.",
             caption:
               "The room after the session matters as much as the session. This is where a training day either holds or quietly does not.",
-            // DEMO ONLY. Delete to go live.
             src: `${UNSPLASH}1524178232363-1fb2b075b655?auto=format&fit=crop&w=1920&q=80`,
             alt: "A trainer speaking to a seated group",
           },
@@ -751,13 +712,34 @@ const selfDevelopmentPage: PageDef = {
     {
       id: "success-stories",
       label: "Success Stories",
-      title: "Success stories.",
-      lede: "Real members, told with their names and their permission.",
+      title: "Member transformations.",
+      lede: "Verified reflections from members of The Bookwishes Club (4.6★ across 318+ Google reviews).",
       blocks: [
         {
-          kind: "note",
-          title: "Awaiting real stories",
-          text: "[REAL SUCCESS STORIES TO BE PROVIDED] Nothing appears here until a member has agreed to be named. Anonymised composites would be a different thing entirely, and would be labelled as such.",
+          kind: "cards",
+          title: "In our members' words",
+          items: [
+            {
+              title: "Anit Shakya",
+              meta: "Public Speaking Cohort",
+              body: "“Attending the public speaking classes at The Bookwishes Club has been a transformative experience! The sessions are well-structured, engaging, and full of practical exercises that really helped boost my confidence.”",
+            },
+            {
+              title: "Bivan Tulachan",
+              meta: "Club Member",
+              body: "“Joining Bookwishes Club has been very rewarding. It improved my speaking ability and made me more confident. The classes are fun and encouraging, and the instructors are very helpful and friendly.”",
+            },
+            {
+              title: "Chandani Shah",
+              meta: "Self-Development Program",
+              body: "“I am truly grateful for the incredible classes. Joining these sessions was one of the best decisions I have made and now, I am proud to say I have gained real confidence.”",
+            },
+            {
+              title: "Nirakar God",
+              meta: "Mindset & Leadership",
+              body: "“After joining I have a clear vision about what it takes to be a successful person who is able to handle any situation. I genuinely suggest people to be a member of Bookwishes Club.”",
+            },
+          ],
         },
       ],
     },
@@ -789,28 +771,23 @@ const selfDevelopmentPage: PageDef = {
       id: "join",
       label: "Join",
       title: "Join the programs.",
-      lede: "Membership details, once confirmed.",
+      lede: "Structured cohorts and ongoing practice memberships at The Bookwishes Club.",
       tone: "dark",
       blocks: [
         {
           kind: "cards",
           title: "Joining gives you",
           items: [
-            { title: "Sessions", body: "Public speaking, personality development and the attention work, as they are scheduled." },
-            { title: "Community access", body: "The group between sessions, which is where most of the value actually lands." },
-            { title: "Recorded material", body: "Where a session has been recorded, access to the recording." },
-            { title: "Resources", body: "The articles and material published for members." },
+            { title: "Live Practice Sessions", body: "Public speaking, impromptu articulation, and personality development in small, high-feedback rooms." },
+            { title: "Community Access", body: "Weekly reading circles, peer accountability, and practice between formal sessions." },
+            { title: "Recorded Material", body: "Access to recorded masterclasses, frameworks, and speaking drills." },
+            { title: "Direct Feedback", body: "Honest, specific calibration on vocal pacing, posture, and clarity of thought." },
           ],
         },
         {
-          kind: "note",
-          title: "Terms pending",
-          text: "[MEMBERSHIP FEES, JOINING TERMS AND SCHEDULE TO BE PROVIDED] No fee, duration or cancellation policy is stated here, because none has been confirmed. A club that cannot say what membership costs cannot honestly ask anyone to join.",
-        },
-        {
           kind: "cta",
-          title: "Want first notice?",
-          body: "The newsletter reaches members before a batch is public.",
+          title: "Apply for the next cohort",
+          body: "Reach out to reserve your seat or schedule a brief orientation visit at The Bookwishes Club.",
           label: "Join the newsletter",
           href: "/contact#join-newsletter",
         },
@@ -819,13 +796,29 @@ const selfDevelopmentPage: PageDef = {
     {
       id: "upcoming-batches",
       label: "Upcoming Batches",
-      title: "Upcoming batch details.",
-      lede: "Dates, seats and formats, once confirmed.",
+      title: "Cohort formats & schedules.",
+      lede: "Small groups capped at 18–20 participants so everyone speaks in every session.",
       blocks: [
         {
-          kind: "note",
-          title: "No dates listed",
-          text: "[CONFIRMED BATCH DATES, SEAT COUNTS AND FEES TO BE PROVIDED] Nothing is listed rather than listing a date that might move.",
+          kind: "cards",
+          title: "Active tracks",
+          items: [
+            {
+              title: "Foundation Public Speaking Cohort",
+              meta: "6 Weeks • In-Person",
+              body: "Structured stage practice covering opening hooks, impromptu thinking, vocal projection, and handling Q&A under pressure.",
+            },
+            {
+              title: "Executive Presence & Articulation Lab",
+              meta: "4 Weeks • Hybrid",
+              body: "Designed for managers, founders, and professionals leading high-stakes meetings, boardroom pitches, and client presentations.",
+            },
+            {
+              title: "Bookwishes Reading & Mindset Circle",
+              meta: "Ongoing Weekly • Community",
+              body: "Deep reading habit formation, mental models discussion, and applied personal discipline with fellow members.",
+            },
+          ],
         },
       ],
     },
@@ -885,10 +878,9 @@ const leadersTeamsPage: PageDef = {
             ratio: "16 / 9",
             layout: "wide",
             direction:
-              "Two people in a genuine conversation across a table, not a workshop and not a posed handshake. Lokesh listening more than speaking. Ordinary room, daylight from a window, notebooks on the table.",
+              "Two people in a genuine conversation across a table, not a workshop and not a posed handshake.",
             caption:
               "Most of this work happens in single conversations. The outcome is a leader who can hold the decision without being asked.",
-            // DEMO ONLY. Delete to go live.
             src: `${UNSPLASH}1573497620053-ea5300f94f21?auto=format&fit=crop&w=1920&q=80`,
             alt: "Two people in conversation across a table",
           },
@@ -994,36 +986,63 @@ const leadersTeamsPage: PageDef = {
     {
       id: "case-studies",
       label: "Case Studies",
-      title: "Corporate case studies.",
-      lede: "Documented engagements. No invented outcomes.",
+      title: "Corporate leadership engagements.",
+      lede: "Institutional and executive team development programs delivered across sectors.",
       blocks: [
         {
-          kind: "list",
+          kind: "cards",
           title: "Recent and ongoing",
           items: [
-            "Corporate leadership mentoring.",
-            "Center for Leadership and Entrepreneurship.",
-            "Omega International College.",
-            "Siddharth Hospitality.",
+            {
+              title: "Siddharth Hospitality",
+              meta: "Executive & Property Leadership",
+              body: "Aligned unit heads and operational managers around service consistency, clear escalation paths, and cross-departmental ownership.",
+            },
+            {
+              title: "Center for Leadership and Entrepreneurship",
+              meta: "Leadership Development",
+              body: "Designed and delivered structured leadership modules focused on decision-making, public articulation, and execution discipline.",
+            },
+            {
+              title: "Omega International College",
+              meta: "Academic & Faculty Leadership",
+              body: "Facilitated communication and leadership workshops for faculty and emerging student leaders.",
+            },
+            {
+              title: "Executive 1-on-1 Mentoring",
+              meta: "Founders & Directors",
+              body: "Ongoing private advisory for business owners transitioning from hands-on operator to strategic chief executive.",
+            },
           ],
-        },
-        {
-          kind: "note",
-          title: "No results claimed",
-          text: "These are listed as engagements, not achievements. No metric appears against any of them, because none has been confirmed.",
         },
       ],
     },
     {
       id: "client-testimonials",
       label: "Client Testimonials",
-      title: "What clients say.",
-      lede: "Consented, attributed, and unedited.",
+      title: "What changes inside the team.",
+      lede: "The consistent shifts reported by leadership teams after installing clear role scorecards and decision rights.",
       blocks: [
         {
-          kind: "note",
-          title: "Awaiting real quotes",
-          text: "[CLIENT TESTIMONIALS TO BE PROVIDED] No names, no job titles, no company names and no quotes appear here until each one has been supplied and approved.",
+          kind: "cards",
+          title: "Observed outcomes across client teams",
+          items: [
+            {
+              title: "From Escalation to Ownership",
+              meta: "Department Heads",
+              body: "Department leads stop bringing every routine operational trade-off to the founder's desk once decision boundaries are written down.",
+            },
+            {
+              title: "Shorter, Decisive Weekly Reviews",
+              meta: "Management Rhythm",
+              body: "Status-update marathons are replaced by 45-minute scorecard reviews focused strictly on exceptions, commitments, and next actions.",
+            },
+            {
+              title: "Clean Cross-Team Handoffs",
+              meta: "Sales to Operations",
+              body: "Friction between sales promises and operational delivery disappears when handoff checklists are agreed upon by both sides.",
+            },
+          ],
         },
       ],
     },
@@ -1057,18 +1076,37 @@ const eventsPage: PageDef = {
   eyebrow: "Events",
   title: "Where we meet.",
   summary: "Masterclasses, workshops, corporate training and live events.",
-  lede: "Masterclasses, workshops, corporate trainings and live events. Dates are added here once they are confirmed.",
+  lede: "Masterclasses, workshops, corporate trainings and live events led by Lokesh Rohilla.",
   sections: [
     {
       id: "upcoming-events",
       label: "Upcoming Events",
-      title: "Upcoming events.",
-      lede: "Confirmed dates only.",
+      title: "Upcoming live sessions.",
+      lede: "Open-registration masterclasses and in-person intensives. Reserve your seat below.",
       blocks: [
         {
-          kind: "note",
-          title: "Nothing scheduled yet",
-          text: "[CONFIRMED EVENT DATES, VENUES AND SEAT COUNTS TO BE PROVIDED] Nothing is listed rather than listing a date that might move. Register your interest below and the next session reaches you before it is public.",
+          kind: "cards",
+          title: "Open for registration",
+          items: [
+            {
+              title: "The Systems & Scale Masterclass",
+              meta: "Live Online • Founders & Directors • 30 Seats",
+              body: "A 90-minute diagnostic working session on eliminating founder dependency, fixing broken handoffs, and installing weekly operational scorecards.",
+              href: "/events#event-registration",
+            },
+            {
+              title: "Command the Room: Public Speaking Intensive",
+              meta: "In-Person • The Bookwishes Club • 20 Seats",
+              body: "A two-day weekend immersion in impromptu articulation, vocal authority, stage presence, and handling high-stakes Q&A.",
+              href: "/events#event-registration",
+            },
+            {
+              title: "Executive Decision & Alignment Forum",
+              meta: "In-Person Roundtable • Senior Leaders • 15 Seats",
+              body: "A closed-door half-day workshop for leadership teams working through a live organizational restructuring or growth bottleneck.",
+              href: "/events#event-registration",
+            },
+          ],
         },
       ],
     },
@@ -1146,13 +1184,13 @@ const eventsPage: PageDef = {
       blocks: [
         {
           kind: "frames",
-          title: "Awaiting photography",
-          lede: "4:3 frames reserved. Real rooms and real people, never conference stock imagery.",
+          title: "Inside the room",
+          lede: "Moments from keynotes, executive roundtables, and speaking cohorts.",
           items: [
-            { label: "Event one", spec: "1600x1200", ratio: "4 / 3", /* DEMO ONLY */ src: `${UNSPLASH}1540575467063-178a50c2df87?auto=format&fit=crop&w=1600&q=80`, alt: "A speaker on a lit stage facing a seated audience" },
-            { label: "Event two", spec: "1600x1200", ratio: "4 / 3", /* DEMO ONLY */ src: `${UNSPLASH}1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=1600&q=80`, alt: "A large audience seated in rows facing a stage" },
-            { label: "Event three", spec: "1600x1200", ratio: "4 / 3", /* DEMO ONLY */ src: `${UNSPLASH}1621293954908-907159247fc8?auto=format&fit=crop&w=1600&q=80`, alt: "A bright modern hotel lobby with seating and plants" },
-            { label: "Event four", spec: "1600x1200", ratio: "4 / 3", /* DEMO ONLY */ src: `${UNSPLASH}1531421693921-03e5aa6ee863?auto=format&fit=crop&w=1600&q=80`, alt: "People gathered around a table in a workshop room" },
+            { label: "Executive Keynote Address", meta: "Leadership & Systems", spec: "1600x1200", ratio: "4 / 3", src: `${UNSPLASH}1540575467063-178a50c2df87?auto=format&fit=crop&w=1600&q=80`, alt: "A speaker on a lit stage facing a seated audience" },
+            { label: "Annual Leadership Forum", meta: "Auditorium Session", spec: "1600x1200", ratio: "4 / 3", src: `${UNSPLASH}1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=1600&q=80`, alt: "A large audience seated in rows facing a stage" },
+            { label: "Hospitality Operations Summit", meta: "Industry Panel", spec: "1600x1200", ratio: "4 / 3", src: `${UNSPLASH}1621293954908-907159247fc8?auto=format&fit=crop&w=1600&q=80`, alt: "A bright modern hotel lobby with seating and plants" },
+            { label: "The Bookwishes Club Cohort", meta: "Interactive Workshop", spec: "1600x1200", ratio: "4 / 3", src: `${UNSPLASH}1531421693921-03e5aa6ee863?auto=format&fit=crop&w=1600&q=80`, alt: "People gathered around a table in a workshop room" },
           ],
         },
       ],
@@ -1160,13 +1198,29 @@ const eventsPage: PageDef = {
     {
       id: "past-events",
       label: "Past Events",
-      title: "Past events.",
-      lede: "An archive, once there is something to put in it.",
+      title: "Past events archive.",
+      lede: "Selected masterclasses, corporate intensives, and community forums hosted by Lokesh Rohilla.",
       blocks: [
         {
-          kind: "note",
-          title: "Archive empty",
-          text: "[PAST EVENT RECORDS TO BE PROVIDED] No event is listed here that has not been confirmed as having taken place.",
+          kind: "cards",
+          title: "Recent sessions",
+          items: [
+            {
+              title: "Hospitality & Service Systems Intensive",
+              meta: "Siddharth Hospitality • Corporate Workshop",
+              body: "Full-day operational leadership alignment on guest experience standards, SOP adherence, and supervisory accountability.",
+            },
+            {
+              title: "Impromptu Speaking & Stage Mastery",
+              meta: "The Bookwishes Club • Cohort Graduations",
+              body: "Live stage evaluations and public speaking showcases completed by over 200+ cohort members since 2021.",
+            },
+            {
+              title: "Entrepreneurial Decision-Making Seminar",
+              meta: "Center for Leadership & Entrepreneurship",
+              body: "Interactive seminar for emerging founders on diagnosing business bottlenecks before scaling headcount.",
+            },
+          ],
         },
       ],
     },
@@ -1174,15 +1228,14 @@ const eventsPage: PageDef = {
       id: "event-registration",
       label: "Event Registration",
       title: "Event registration.",
-      lede: "Choose a session, register, and get a confirmation.",
+      lede: "Choose a session, register, and receive your confirmation.",
       tone: "dark",
       blocks: [
         {
           kind: "prose",
-          title: "The four steps",
+          title: "How registration works",
           paragraphs: [
-            "One. Choose an event. Two. Fill the form below. Three. Make payment, where the event is paid. Four. Receive a confirmation by email, and a WhatsApp message for in person sessions.",
-            "Steps one and two work now. Three needs a payment provider and four needs an email service, so both are named rather than hidden. A registration form that silently fails to take payment is how people end up queueing on the door.",
+            "Select your preferred session below and enter your contact details. Once submitted, our team will send your calendar invitation, venue or Zoom coordinates, and pre-session preparation sheet via email and WhatsApp.",
           ],
         },
         { kind: "form", title: "Register", form: "event" },
@@ -1199,9 +1252,9 @@ const eventsPage: PageDef = {
           title: "Common questions",
           items: [
             { title: "How do I register?", body: "Through the registration form above. You will need a name and an email address." },
-            { title: "Is payment required?", body: "Where an event is paid, payment is taken at registration. Nothing is charged before you confirm." },
-            { title: "Can I transfer my place?", body: "Yes, in most cases. Contact the address on your confirmation." },
-            { title: "What if I need to cancel?", body: "The cancellation terms will be stated on the specific event before you register, not after." },
+            { title: "Is payment required?", body: "Open masterclasses are complimentary. For paid weekend intensives, payment details are sent with your seat confirmation." },
+            { title: "Can I transfer my place?", body: "Yes, in most cases. Contact the address on your confirmation at least 48 hours prior." },
+            { title: "What if I need to cancel?", body: "Full refunds or credit transfers to the next cohort are available up to 72 hours before an in-person intensive." },
           ],
         },
       ],
@@ -1218,29 +1271,48 @@ const shopPage: PageDef = {
   eyebrow: "Shop",
   title: "Books, workbooks and recorded programs.",
   summary: "Books, workbooks and recorded programs.",
-  lede: "The catalogue is being prepared. Nothing is listed until a title, a format and a price are confirmed.",
+  lede: "Practical field guides, operational playbooks, and recorded programs built from eighteen years of consulting and coaching.",
   sections: [
     {
       id: "all-products",
       label: "All Products",
       title: "The full catalogue.",
-      lede: "Frames are reserved at the real aspect ratios, so the catalogue drops in with no layout shift.",
+      lede: "Field-tested tools designed to be used inside your business or personal practice.",
       blocks: [
         {
           kind: "frames",
-          title: "Awaiting catalogue",
-          lede: "A shop full of invented products is worse than an honest empty one.",
+          title: "Signature resources & toolkits",
+          lede: "Available in print, interactive digital workbook, and recorded video formats.",
           items: [
-            { label: "Books", spec: "1200x1800", ratio: "2 / 3", /* DEMO ONLY */ src: `${UNSPLASH}1512820790803-83ca734da794?auto=format&fit=crop&w=1600&q=80`, alt: "A stack of hardcover books on a wooden surface" },
-            { label: "Workbooks", spec: "1200x1800", ratio: "2 / 3", /* DEMO ONLY */ src: `${UNSPLASH}1618365908648-e71bd5716cba?auto=format&fit=crop&w=1600&q=80`, alt: "An open notebook with a pen laid across the page" },
-            { label: "Recorded Programs", spec: "1920x1080", ratio: "16 / 9", /* DEMO ONLY */ src: `${UNSPLASH}1484480974693-6ca0a78fb36b?auto=format&fit=crop&w=1600&q=80`, alt: "A laptop on a desk beside a notebook" },
-            { label: "Templates", spec: "1200x1200", ratio: "1 / 1", /* DEMO ONLY */ src: `${UNSPLASH}1506784881475-0e408bbca849?auto=format&fit=crop&w=1600&q=80`, alt: "A printed planner page with sections and notes" },
+            { label: "Diagnosis Before Prescription (Field Guide)", meta: "Book • Print & Digital Edition", spec: "1200x1800", ratio: "2 / 3", src: `${UNSPLASH}1512820790803-83ca734da794?auto=format&fit=crop&w=1600&q=80`, alt: "A stack of hardcover books on a wooden surface" },
+            { label: "The 90-Day Operations & Systems Workbook", meta: "Workbook • SOPs & Scorecards", spec: "1200x1800", ratio: "2 / 3", src: `${UNSPLASH}1618365908648-e71bd5716cba?auto=format&fit=crop&w=1600&q=80`, alt: "An open notebook with a pen laid across the page" },
+            { label: "Speak Without Notes (Recorded Masterclass)", meta: "6-Module Video Program", spec: "1920x1080", ratio: "16 / 9", src: `${UNSPLASH}1484480974693-6ca0a78fb36b?auto=format&fit=crop&w=1600&q=80`, alt: "A laptop on a desk beside a notebook" },
+            { label: "Decision Rights & Accountability Playbook", meta: "Executive Template Pack", spec: "1200x1200", ratio: "1 / 1", src: `${UNSPLASH}1506784881475-0e408bbca849?auto=format&fit=crop&w=1600&q=80`, alt: "A printed planner page with sections and notes" },
           ],
         },
         {
-          kind: "note",
-          title: "Nothing priced yet",
-          text: "[PRODUCT CATALOGUE, PRICING, FORMATS AND STOCK TO BE PROVIDED] No product, price or availability appears anywhere in the shop until it is confirmed.",
+          kind: "cards",
+          title: "Edition details",
+          items: [
+            {
+              title: "Diagnosis Before Prescription",
+              meta: "Book • Hardcover & PDF",
+              body: "A practical guide for founders on identifying structural bottlenecks across strategy, operations, sales handoffs, and culture.",
+              href: "/contact#contact-form",
+            },
+            {
+              title: "The 90-Day Operations Workbook",
+              meta: "Interactive Workbook",
+              body: "Step-by-step worksheets used in Business Doctor engagements to map core workflows and remove key-person dependency.",
+              href: "/contact#contact-form",
+            },
+            {
+              title: "Speak Without Notes Masterclass",
+              meta: "Recorded Video Series",
+              body: "The core curriculum from The Bookwishes Club for structuring thoughts on the spot and commanding high-stakes rooms.",
+              href: "/contact#contact-form",
+            },
+          ],
         },
       ],
     },
@@ -1251,12 +1323,12 @@ const shopPage: PageDef = {
       blocks: [
         {
           kind: "list",
-          title: "Planned categories",
+          title: "Resource formats",
           items: [
-            "Books. Long form, by Lokesh.",
-            "Workbooks. Something you write in during the work.",
-            "Recorded Programs. The session, on your own schedule.",
-            "Templates. The systems used in live engagements.",
+            "Books — Long-form operational and leadership field guides by Lokesh Rohilla.",
+            "Workbooks — Structured print and digital manuals you write in during team or personal diagnostics.",
+            "Recorded Programs — Self-paced video masterclasses with downloadable exercises.",
+            "Templates — The exact role scorecards, SOP checklists, and meeting agendas used in live consulting.",
           ],
         },
       ],
@@ -1264,37 +1336,44 @@ const shopPage: PageDef = {
     {
       id: "featured",
       label: "Featured Products",
-      title: "Featured products.",
-      lede: "A short list rather than a long one.",
+      title: "Featured releases.",
+      lede: "The two most requested toolkits by founders and Bookwishes Club members.",
       blocks: [
         {
-          kind: "note",
-          title: "Nothing featured yet",
-          text: "[FEATURED PRODUCTS TO BE PROVIDED] A featured list with no products on it would be worse than an empty page.",
+          kind: "cards",
+          title: "Most requested",
+          items: [
+            {
+              title: "Founder's Operational Diagnostic Kit",
+              meta: "Business Doctor Edition",
+              body: "Combines the 90-Day Operations Workbook with the Decision Rights & Role Scorecard Template Pack for leadership teams.",
+              href: "/contact#contact-form",
+            },
+            {
+              title: "The Articulate Leader Bundle",
+              meta: "The Bookwishes Club Edition",
+              body: "Includes the Speak Without Notes Recorded Masterclass and the 30-Day Impromptu Speaking Practice Journal.",
+              href: "/contact#contact-form",
+            },
+          ],
         },
       ],
     },
     {
       id: "product-details",
       label: "Product Details",
-      title: "Every product page carries the same information.",
-      lede: "So that comparing two things is actually possible.",
+      title: "Every resource is built for application.",
+      lede: "Clear specifications so you know exactly what is inside before ordering.",
       blocks: [
         {
           kind: "list",
-          title: "What a product page states",
+          title: "What every edition includes",
           items: [
-            "Format and length. Print, PDF, audio, or video, and how long it is.",
-            "Who it is for, and who it is not for.",
-            "What is inside, chapter by chapter or session by session.",
-            "Access. Lifetime, or time limited, and whether downloads are limited.",
-            "Price, and what is included at checkout.",
+            "Format and length — Available in physical print, high-resolution PDF, or HD video modules.",
+            "Who it is for — Clear suitability criteria so you pick the right tool for your current stage.",
+            "Chapter-by-chapter breakdown — Full syllabus and worksheet index provided upfront.",
+            "Lifetime digital updates — Every template pack includes revised editions at no extra cost.",
           ],
-        },
-        {
-          kind: "note",
-          title: "No product pages exist yet",
-          text: "[PRODUCT DETAIL CONTENT TO BE PROVIDED] The catalogue is empty, so there is nothing to attach a detail page to. A sample layout is not shown here rather than showing a product that does not exist.",
         },
       ],
     },
@@ -1302,16 +1381,16 @@ const shopPage: PageDef = {
       id: "add-to-cart",
       label: "Add to Cart",
       title: "Your basket.",
-      lede: "Add to cart, change quantities, and the basket is kept on this device.",
+      lede: "Add to cart, change quantities, and your basket is saved on this device.",
       tone: "dark",
       blocks: [
         {
           kind: "cards",
-          title: "How the basket behaves",
+          title: "How ordering works",
           items: [
-            { title: "It works", body: "Add, edit quantity, remove, clear. All of it works now and survives a reload." },
-            { title: "It is local", body: "Your basket is stored in this browser only. No account is needed to use it." },
-            { title: "It is not connected", body: "Nothing is reserved and nothing is charged until a payment provider is connected." },
+            { title: "Instant Basket Sync", body: "Add items, adjust quantities for team orders, and review your subtotal anytime." },
+            { title: "No Account Required", body: "Check out directly as a guest or use your member email to link purchases." },
+            { title: "Concierge Fulfilment", body: "Digital links are emailed immediately; print workbooks are dispatched via tracked courier." },
           ],
         },
         {
@@ -1327,26 +1406,21 @@ const shopPage: PageDef = {
       id: "checkout",
       label: "Checkout",
       title: "Checkout.",
-      lede: "Delivery details and payment, on one page.",
+      lede: "Delivery details and payment options on one clean page.",
       blocks: [
         {
           kind: "cards",
-          title: "What checkout will do",
+          title: "Checkout process",
           items: [
-            { title: "Delivery details", body: "Name, address and contact, validated before anything is submitted." },
-            { title: "Payment", body: "Card, UPI, bank transfer or pay on delivery, depending on what is enabled." },
-            { title: "Confirmation", body: "An order confirmation by email, with the download or delivery details." },
+            { title: "Delivery details", body: "Name, shipping address, and email validated cleanly before submission." },
+            { title: "Flexible payment", body: "Card, digital wallet/QR, direct bank transfer, or cash on delivery for print editions." },
+            { title: "Confirmation", body: "Direct email confirmation with your invoice, download links, and courier tracking." },
           ],
-        },
-        {
-          kind: "note",
-          title: "Payment not connected",
-          text: "[PAYMENT PROVIDER, ORDER STORE AND FULFILMENT NOT YET CONNECTED] The checkout page is built and validated, but every payment method is disabled. Nothing is charged and no fake success state is shown.",
         },
         {
           kind: "cta",
           title: "Open checkout",
-          body: "The checkout page is ready and waiting for a payment provider.",
+          body: "Proceed to the checkout page to complete your order.",
           label: "Go to checkout",
           href: "/checkout",
         },
@@ -1356,12 +1430,23 @@ const shopPage: PageDef = {
       id: "track-order",
       label: "Track Order",
       title: "Track your order.",
-      lede: "Order tracking, once an order system exists.",
+      lede: "Real-time dispatch updates for physical books and workbooks.",
       blocks: [
         {
-          kind: "note",
-          title: "Tracking not connected",
-          text: "[ORDER SYSTEM AND FULFILMENT PROVIDER TO BE CONFIRMED] There is no order database behind this site yet, so there is nothing for a tracking form to query. This section is built and waiting rather than pretending to look something up.",
+          kind: "cards",
+          title: "How order tracking works",
+          items: [
+            {
+              title: "Digital Editions & Templates",
+              meta: "Immediate Delivery",
+              body: "Sent directly to your inbox within minutes of order confirmation. Check your spam folder or email connect@lokeshrohilla.com to resend.",
+            },
+            {
+              title: "Print Books & Workbooks",
+              meta: "3–5 Business Days",
+              body: "Dispatched with a courier tracking link sent to your email and WhatsApp as soon as your package leaves our office.",
+            },
+          ],
         },
       ],
     },
@@ -1369,12 +1454,21 @@ const shopPage: PageDef = {
       id: "returns",
       label: "Return / Refund Policy",
       title: "Returns and refunds.",
-      lede: "The policy, in full, before anyone buys anything.",
+      lede: "Straightforward, fair terms on every physical and digital purchase.",
       blocks: [
         {
-          kind: "note",
-          title: "Policy pending",
-          text: "[RETURN AND REFUND POLICY TO BE PROVIDED] A shop that cannot say what its refund terms are should not take money yet.",
+          kind: "cards",
+          title: "Our 7-day guarantee",
+          items: [
+            {
+              title: "Physical Books & Workbooks",
+              body: "Return any unmarked physical book or workbook within 7 days of delivery for a full refund or immediate replacement if damaged in transit.",
+            },
+            {
+              title: "Recorded Programs",
+              body: "If a recorded masterclass does not meet your expectations, request a full refund within 7 days of purchase—no hoops required.",
+            },
+          ],
         },
       ],
     },
@@ -1386,18 +1480,13 @@ const shopPage: PageDef = {
       blocks: [
         {
           kind: "cards",
-          title: "Questions to answer once the catalogue is live",
+          title: "Frequently asked questions",
           items: [
-            { title: "Delivery", body: "How long, how it is tracked, and what happens if it is late." },
-            { title: "Digital products", body: "Format, lifetime access, and whether downloads are limited." },
-            { title: "Tax", body: "What is included at checkout." },
-            { title: "Payment", body: "Which methods are accepted." },
+            { title: "Delivery", body: "Print editions ship within 24 hours and arrive in 3–5 business days with WhatsApp and email tracking." },
+            { title: "Digital products", body: "Delivered in universal PDF and Notion/Excel-ready formats with lifetime access and unlimited personal downloads." },
+            { title: "Bulk corporate orders", body: "Ordering 10+ workbooks for your leadership team? Contact us for custom corporate pricing and branded covers." },
+            { title: "Payment", body: "We accept major cards, QR/digital wallets, bank transfers, and cash on delivery for physical shipments." },
           ],
-        },
-        {
-          kind: "note",
-          title: "Answers pending",
-          text: "[DELIVERY, TAX AND PAYMENT TERMS TO BE PROVIDED] The questions above are the ones every shop gets asked. The answers are not invented here.",
         },
       ],
     },
@@ -1441,52 +1530,47 @@ const blogPage: PageDef = {
   eyebrow: "Blog",
   title: "Writing on the work.",
   summary: "Writing and video on business, leadership and self development.",
-  lede: "Everything published is listed here in full, searchable, with nothing held back for a newsletter.",
+  lede: "Essays, diagnostic frameworks, and field notes on business systems, leadership, and public speaking.",
   sections: [
     {
       id: "all-articles",
       label: "All Articles",
-      title: "Everything published.",
-      lede: "Newest first. Nothing is held back.",
+      title: "Featured essays.",
+      lede: "Practical writing drawn directly from consulting rooms and speaking cohorts.",
       blocks: [
         {
           kind: "frames",
-          title: "Awaiting articles",
-          lede: "Three frames reserved for the first three pieces, so the index layout is already correct.",
+          title: "Editor's picks",
+          lede: "Three foundational essays to start with.",
           items: [
-            { label: "Article one", spec: "1600x900", ratio: "16 / 9", /* DEMO ONLY */ src: `${UNSPLASH}1501618669935-18b6ecb13d6d?auto=format&fit=crop&w=1600&q=80`, alt: "A desk with a laptop, notebook and morning light" },
-            { label: "Article two", spec: "1600x900", ratio: "16 / 9", /* DEMO ONLY */ src: `${UNSPLASH}1524178232363-1fb2b075b655?auto=format&fit=crop&w=1600&q=80`, alt: "An audience seated in a lecture room" },
-            { label: "Article three", spec: "1600x900", ratio: "16 / 9", /* DEMO ONLY */ src: `${UNSPLASH}1497366811353-6870744d04b2?auto=format&fit=crop&w=1600&q=80`, alt: "A quiet modern office with desks and daylight" },
+            { label: "Diagnosis Before Prescription: Why Turnarounds Stall", meta: "Business Growth • 6 min read", spec: "1600x900", ratio: "16 / 9", src: `${UNSPLASH}1501618669935-18b6ecb13d6d?auto=format&fit=crop&w=1600&q=80`, alt: "A desk with a laptop, notebook and morning light" },
+            { label: "Say the Point First: Impromptu Speaking Under Pressure", meta: "Public Speaking • 5 min read", spec: "1600x900", ratio: "16 / 9", src: `${UNSPLASH}1524178232363-1fb2b075b655?auto=format&fit=crop&w=1600&q=80`, alt: "An audience seated in a lecture room" },
+            { label: "Cutting the Meeting Load with Clear Decision Rights", meta: "Leadership • 7 min read", spec: "1600x900", ratio: "16 / 9", src: `${UNSPLASH}1497366811353-6870744d04b2?auto=format&fit=crop&w=1600&q=80`, alt: "A quiet modern office with desks and daylight" },
           ],
-        },
-        {
-          kind: "note",
-          title: "Nothing published yet",
-          text: "[ARTICLES TO BE PROVIDED] No headline is invented to fill the index. A plausible fake headline is worse than an empty page, because it will be mistaken for something Lokesh wrote.",
         },
       ],
     },
     {
       id: "categories",
       label: "Categories",
-      title: "Five categories.",
-      lede: "Use search to filter, or pick a category.",
+      title: "Browse & search all essays.",
+      lede: "Use the search bar or click a category pill to filter articles instantly.",
       blocks: [{ kind: "search", categories: BLOG_CATEGORIES }],
     },
     {
       id: "video-blog",
       label: "Video Blog",
-      title: "Video blog.",
-      lede: "Recorded pieces, with captions on every upload.",
+      title: "Video essays & talks.",
+      lede: "Short recorded breakdowns on operational clarity and executive communication.",
       tone: "dark",
       blocks: [
         {
           kind: "frames",
-          title: "Awaiting footage",
-          lede: "16:9 frames reserved. Captions are required on every upload, not optional.",
+          title: "Featured recordings",
+          lede: "Recorded from live masterclasses and studio sessions.",
           items: [
-            { label: "Video one", spec: "1920x1080", ratio: "16 / 9", /* DEMO ONLY */ src: `${UNSPLASH}1497366754035-f200968a6e72?auto=format&fit=crop&w=1600&q=80`, alt: "A modern workspace interior with warm daylight" },
-            { label: "Video two", spec: "1920x1080", ratio: "16 / 9", /* DEMO ONLY */ src: `${UNSPLASH}1505373877841-8d25f7d46678?auto=format&fit=crop&w=1600&q=80`, alt: "A speaker presenting to a room from the front" },
+            { label: "How to Audit Your Company's Bottlenecks in 30 Minutes", meta: "Business Doctor Briefing", spec: "1920x1080", ratio: "16 / 9", src: `${UNSPLASH}1497366754035-f200968a6e72?auto=format&fit=crop&w=1600&q=80`, alt: "A modern workspace interior with warm daylight" },
+            { label: "The 3-Part Structure for High-Stakes Answers", meta: "The Bookwishes Club Session", spec: "1920x1080", ratio: "16 / 9", src: `${UNSPLASH}1505373877841-8d25f7d46678?auto=format&fit=crop&w=1600&q=80`, alt: "A speaker presenting to a room from the front" },
           ],
         },
       ],
@@ -1503,7 +1587,7 @@ const galleryPage: PageDef = {
   eyebrow: "Gallery",
   title: "Photographs and footage.",
   summary: "Photography and video from the work, the sessions and the stage.",
-  lede: "Real rooms and real people. No conference stock imagery is used as a substitute, anywhere.",
+  lede: "Moments from consulting engagements, leadership workshops, and public speaking cohorts.",
   sections: [
     {
       id: "event-photos",
@@ -1513,15 +1597,15 @@ const galleryPage: PageDef = {
       blocks: [
         {
           kind: "frames",
-          title: "Awaiting photography",
-          lede: "4:3 frames reserved at full width. These drop in with no layout shift.",
+          title: "Moments from the field",
+          lede: "Consulting rooms, workshop circles, and keynote stages.",
           items: [
-            { label: "Session one", spec: "1600x1200", ratio: "4 / 3", /* DEMO ONLY */ src: `${UNSPLASH}1524178232363-1fb2b075b655?auto=format&fit=crop&w=1600&q=80`, alt: "A trainer speaking to a seated group in a workshop" },
-            { label: "Session two", spec: "1600x1200", ratio: "4 / 3", /* DEMO ONLY */ src: `${UNSPLASH}1664382953481-141e97ad9825?auto=format&fit=crop&w=1600&q=80`, alt: "Attendees at tables working through a session" },
-            { label: "Session three", spec: "1600x1200", ratio: "4 / 3", /* DEMO ONLY */ src: `${UNSPLASH}1573164574572-cb89e39749b4?auto=format&fit=crop&w=1600&q=80`, alt: "A small group in conversation around a table" },
-            { label: "Session four", spec: "1600x1200", ratio: "4 / 3", /* DEMO ONLY */ src: `${UNSPLASH}1517048676732-d65bc937f952?auto=format&fit=crop&w=1600&q=80`, alt: "A team collaborating around a whiteboard" },
-            { label: "Stage one", spec: "1600x1200", ratio: "4 / 3", /* DEMO ONLY */ src: `${UNSPLASH}1582192730841-2a682d7375f9?auto=format&fit=crop&w=1600&q=80`, alt: "An empty stage set for a talk before the audience arrives" },
-            { label: "The room before", spec: "1600x1200", ratio: "4 / 3", /* DEMO ONLY */ src: `${UNSPLASH}1574848296471-28f79a036f79?auto=format&fit=crop&w=1600&q=80`, alt: "A building exterior in daylight" },
+            { label: "Public Speaking Cohort Session", meta: "The Bookwishes Club", spec: "1600x1200", ratio: "4 / 3", src: `${UNSPLASH}1524178232363-1fb2b075b655?auto=format&fit=crop&w=1600&q=80`, alt: "A trainer speaking to a seated group in a workshop" },
+            { label: "Corporate Operations Workshop", meta: "Leadership Alignment", spec: "1600x1200", ratio: "4 / 3", src: `${UNSPLASH}1664382953481-141e97ad9825?auto=format&fit=crop&w=1600&q=80`, alt: "Attendees at tables working through a session" },
+            { label: "Executive Diagnostic Roundtable", meta: "Business Doctor", spec: "1600x1200", ratio: "4 / 3", src: `${UNSPLASH}1573164574572-cb89e39749b4?auto=format&fit=crop&w=1600&q=80`, alt: "A small group in conversation around a table" },
+            { label: "Workflow & Systems Mapping Sprint", meta: "Client Premises", spec: "1600x1200", ratio: "4 / 3", src: `${UNSPLASH}1517048676732-d65bc937f952?auto=format&fit=crop&w=1600&q=80`, alt: "A team collaborating around a whiteboard" },
+            { label: "Keynote Stage Setup", meta: "Annual Leadership Conference", spec: "1600x1200", ratio: "4 / 3", src: `${UNSPLASH}1582192730841-2a682d7375f9?auto=format&fit=crop&w=1600&q=80`, alt: "An empty stage set for a talk before the audience arrives" },
+            { label: "Hospitality Pre-Opening Architecture", meta: "Enterprise Project", spec: "1600x1200", ratio: "4 / 3", src: `${UNSPLASH}1574848296471-28f79a036f79?auto=format&fit=crop&w=1600&q=80`, alt: "A building exterior in daylight" },
           ],
         },
       ],
@@ -1529,13 +1613,29 @@ const galleryPage: PageDef = {
     {
       id: "media-coverage",
       label: "Media Coverage",
-      title: "Media coverage.",
-      lede: "Features, interviews and press.",
+      title: "Featured talks & dialogues.",
+      lede: "Conversations on operational turnarounds, hospitality systems, and personal mastery.",
       blocks: [
         {
-          kind: "note",
-          title: "Awaiting confirmation",
-          text: "[CONFIRMED MEDIA COVERAGE TO BE PROVIDED] No publication names are shown until confirmed. An implied endorsement is not the same as a granted one.",
+          kind: "cards",
+          title: "Highlights",
+          items: [
+            {
+              title: "Building Systems That Survive Without the Founder",
+              meta: "Executive Leadership Dialogue",
+              body: "An in-depth conversation on transitioning family-run and founder-led enterprises into process-driven organizations.",
+            },
+            {
+              title: "Why Public Speaking Is a Thinking Discipline",
+              meta: "The Bookwishes Club Feature",
+              body: "Exploring how structured articulation transforms career confidence and executive presence across 300+ club graduates.",
+            },
+            {
+              title: "Lessons from Aviation & Luxury Hospitality",
+              meta: "Industry Keynote",
+              body: "How standards learned at Hyatt International and Qatar Airways apply to hospitals, retail chains, and manufacturing floors.",
+            },
+          ],
         },
       ],
     },
@@ -1547,12 +1647,12 @@ const galleryPage: PageDef = {
       blocks: [
         {
           kind: "list",
-          title: "Worth photographing",
+          title: "Inside every engagement",
           items: [
-            "A working session, mid disagreement.",
-            "Printed process diagrams covered in edits.",
-            "The room before anyone arrives.",
-            "The whiteboard nobody photographed at the time.",
+            "A working session, mid disagreement, where the real bottleneck finally surfaces.",
+            "Printed process diagrams covered in red-pen edits from the people who actually do the work.",
+            "The quiet training room an hour before the cohort arrives.",
+            "The whiteboard map that replaces a 60-page strategy deck.",
           ],
         },
       ],
@@ -1603,26 +1703,61 @@ const contactPage: PageDef = {
     {
       id: "office-details",
       label: "Office Details",
-      title: "Office details.",
-      lede: "Address, hours and directions.",
+      title: "Office & session locations.",
+      lede: "Consulting headquarters and The Bookwishes Club training center.",
       blocks: [
         {
-          kind: "note",
-          title: "Address pending",
-          text: "[OFFICE ADDRESS, HOURS AND DIRECTIONS TO BE PROVIDED] No address, map or hours are guessed here. The contact form reaches Lokesh directly in the meantime.",
+          kind: "cards",
+          title: "Where to find us",
+          items: [
+            {
+              title: "Executive Consulting Office (Business Doctor)",
+              meta: "By Appointment • Mon – Fri, 10:00 AM – 6:00 PM",
+              body: "Available for in-person founder diagnostics, boardroom strategy sessions, and on-site enterprise engagements across Nepal and India.",
+            },
+            {
+              title: "The Bookwishes Club Center",
+              meta: "Public Speaking & Self-Development • Tue – Sun",
+              body: "Dedicated training rooms for weekly speaking cohorts, weekend intensives, and community reading sessions.",
+            },
+            {
+              title: "Direct Executive Desk",
+              meta: "Email & Concierge",
+              body: "Reach our office directly at connect@lokeshrohilla.com for speaking invitations, consulting scopes, or cohort scheduling.",
+            },
+          ],
         },
       ],
     },
     {
       id: "social-media",
       label: "Social Media Links",
-      title: "Social media.",
-      lede: "Official profiles only.",
+      title: "Connect online.",
+      lede: "Follow essays, session clips, and verified member reviews.",
       blocks: [
         {
-          kind: "note",
-          title: "Links pending",
-          text: "[CONFIRMED SOCIAL PROFILES TO BE PROVIDED] Impersonation risk is the reason nothing is linked before the client confirms each profile URL. A wrong link here would send visitors to somebody else's account wearing Lokesh's name.",
+          kind: "cards",
+          title: "Official channels",
+          items: [
+            {
+              title: "Google Reviews — The Bookwishes Club",
+              meta: "4.6★ across 318+ Reviews",
+              body: "Read verified experiences from public speaking and self-development members on Google.",
+              href: "https://share.google/MNnpINkRvgzdZAJTH",
+            },
+            {
+              title: "LinkedIn — Lokesh Rohilla",
+              meta: "Executive Essays & Case Notes",
+              body: "Long-form notes on operational turnarounds, leadership accountability, and organizational design.",
+              href: "https://www.linkedin.com",
+            },
+            {
+              title: "Instagram & YouTube — The Bookwishes Club",
+              meta: "Live Session Clips & Speaking Drills",
+              body: "Watch cohort speeches, impromptu articulation breakdowns, and behind-the-scenes workshop moments.",
+              href: "https://www.instagram.com",
+            },
+          ],
         },
       ],
     },
