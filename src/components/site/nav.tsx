@@ -61,6 +61,7 @@ export function Nav() {
   const { itemCount, ready } = useCart();
 
   const [openEntry, setOpenEntry] = useState<string | null>(null);
+  const [hoveredEntry, setHoveredEntry] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [diagnosticOpen, setDiagnosticOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -84,6 +85,7 @@ export function Nav() {
       closeTimer.current = null;
     }
     setOpenEntry(null);
+    setHoveredEntry(null);
   }, []);
 
   // Close menus on route change
@@ -157,7 +159,10 @@ export function Nav() {
 
   const scheduleClose = () => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
-    closeTimer.current = setTimeout(() => setOpenEntry(null), 140);
+    closeTimer.current = setTimeout(() => {
+      setOpenEntry(null);
+      setHoveredEntry(null);
+    }, 140);
   };
   const cancelClose = () => {
     if (closeTimer.current) {
@@ -225,27 +230,45 @@ export function Nav() {
         onMouseEnter={cancelClose}
       >
         <div className="mx-auto flex h-[72px] w-full max-w-[1400px] items-center justify-between gap-4 px-5 md:px-8 lg:px-12">
-          <Link href="/" className="flex shrink-0 items-center gap-2.5">
+          <Link href="/" className="group flex shrink-0 items-center gap-2.5">
             <span
               aria-hidden="true"
-              className="grid size-9 place-items-center rounded-[10px] bg-ink text-[0.8125rem] font-extrabold text-canvas"
+              className="grid size-9 place-items-center rounded-[10px] bg-ink text-[0.8125rem] font-extrabold text-canvas transition-transform duration-200 ease-brand group-hover:scale-105"
             >
               LR
             </span>
-            <span className="hidden text-[0.9375rem] font-extrabold tracking-[-0.01em] sm:block">
+            <span className="hidden text-[0.9375rem] font-extrabold tracking-[-0.01em] transition-colors duration-200 ease-brand group-hover:text-accent sm:block">
               Lokesh Rohilla
             </span>
           </Link>
 
-          <nav aria-label="Primary" className="hidden xl:block">
+          <nav
+            aria-label="Primary"
+            className="hidden xl:block"
+            onMouseLeave={() => setHoveredEntry(null)}
+          >
             <ul className="flex items-center gap-1">
               {NAV.map((entry, index) => {
                 const open = openEntry === entry.label;
                 const current = isCurrent(entry.href);
+                const showPill = hoveredEntry === entry.label || open;
                 const panelId = `${navId}-${index}`;
 
                 return (
                   <li key={entry.label} className="relative">
+                    {showPill ? (
+                      <motion.span
+                        layoutId={`${navId}-hover-pill`}
+                        aria-hidden="true"
+                        className="pointer-events-none absolute inset-0 rounded-pill bg-sunk/85"
+                        transition={
+                          reduce
+                            ? { duration: 0 }
+                            : { type: "spring", stiffness: 450, damping: 34 }
+                        }
+                      />
+                    ) : null}
+
                     {entry.children ? (
                       <button
                         ref={(el) => {
@@ -263,10 +286,11 @@ export function Nav() {
                         }}
                         onMouseEnter={() => {
                           cancelClose();
+                          setHoveredEntry(entry.label);
                           setOpenEntry(entry.label);
                         }}
                         onKeyDown={(e) => onTriggerKeyDown(e, index)}
-                        className={`flex items-center gap-1.5 rounded-input px-4 py-2.5 text-sm font-semibold transition-colors duration-200 ease-brand hover:text-accent ${
+                        className={`relative z-10 flex items-center gap-1.5 rounded-pill px-4 py-2.5 text-sm font-semibold transition-colors duration-200 ease-brand hover:text-accent ${
                           current || open ? "text-accent" : "text-ink-muted"
                         }`}
                       >
@@ -286,9 +310,13 @@ export function Nav() {
                         }}
                         href={entry.href}
                         aria-current={current ? "page" : undefined}
-                        onMouseEnter={cancelClose}
+                        onMouseEnter={() => {
+                          cancelClose();
+                          setHoveredEntry(entry.label);
+                          setOpenEntry(null);
+                        }}
                         onKeyDown={(e) => onTriggerKeyDown(e, index)}
-                        className={`flex items-center rounded-input px-4 py-2.5 text-sm font-semibold transition-colors duration-200 ease-brand hover:text-accent ${
+                        className={`relative z-10 flex items-center rounded-pill px-4 py-2.5 text-sm font-semibold transition-colors duration-200 ease-brand hover:text-accent ${
                           current ? "text-accent" : "text-ink-muted"
                         }`}
                       >
@@ -300,15 +328,15 @@ export function Nav() {
                       {open && entry.children ? (
                         <motion.div
                           key={panelId}
-                          initial={reduce ? false : { opacity: 0, y: -6 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={reduce ? undefined : { opacity: 0, y: -6 }}
+                          initial={reduce ? false : { opacity: 0, y: -6, scale: 0.98 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={reduce ? undefined : { opacity: 0, y: -6, scale: 0.98 }}
                           transition={
                             reduce
                               ? { duration: 0 }
                               : { duration: 0.2, ease: [0.16, 1, 0.3, 1] }
                           }
-                          className="absolute left-0 top-[calc(100%_+_8px)] z-10 w-[21rem] max-h-[calc(100dvh_-_7rem)] overflow-y-auto overscroll-contain rounded-card bg-canvas p-5 shadow-lift"
+                          className="absolute left-0 top-[calc(100%_+_8px)] z-10 w-[21rem] max-h-[calc(100dvh_-_7rem)] overflow-y-auto overscroll-contain rounded-card border border-hairline bg-canvas p-5 shadow-lift"
                           onMouseEnter={cancelClose}
                         >
                           <ul id={panelId} aria-label={entry.label} className="flex flex-col gap-4">
@@ -318,10 +346,10 @@ export function Nav() {
                                   href={child.href}
                                   onClick={closeAll}
                                   aria-current={isCurrent(child.href) ? "page" : undefined}
-                                  className="group flex flex-col gap-0.5"
+                                  className="group flex flex-col gap-0.5 rounded-input p-1.5 -m-1.5 transition-colors duration-200 ease-brand hover:bg-surface"
                                 >
                                   <span
-                                    className={`font-display text-base font-bold ${
+                                    className={`font-display text-base font-bold transition-colors duration-200 ease-brand group-hover:text-accent ${
                                       isCurrent(child.href) ? "text-accent" : "text-ink"
                                     }`}
                                   >
@@ -349,7 +377,7 @@ export function Nav() {
               onClick={() => setSearchOpen(true)}
               aria-expanded={searchOpen}
               aria-controls={searchId}
-              className="inline-flex size-11 items-center justify-center rounded-pill text-ink-muted transition-colors duration-200 ease-brand hover:bg-sunk hover:text-ink"
+              className="inline-flex size-11 items-center justify-center rounded-pill text-ink-muted transition-all duration-200 ease-brand hover:-translate-y-0.5 hover:bg-sunk hover:text-ink active:translate-y-0 active:scale-95"
             >
               <span className="sr-only">Search</span>
               <MagnifyingGlass aria-hidden="true" className="size-5" weight="bold" />
@@ -357,7 +385,7 @@ export function Nav() {
 
             <Link
               href="/account"
-              className="hidden size-11 items-center justify-center rounded-pill text-ink-muted transition-colors duration-200 ease-brand hover:bg-sunk hover:text-ink lg:inline-flex"
+              className="hidden size-11 items-center justify-center rounded-pill text-ink-muted transition-all duration-200 ease-brand hover:-translate-y-0.5 hover:bg-sunk hover:text-ink active:translate-y-0 active:scale-95 lg:inline-flex"
             >
               <span className="sr-only">My account</span>
               <UserCircle aria-hidden="true" className="size-5" weight="bold" />
@@ -365,7 +393,7 @@ export function Nav() {
 
             <Link
               href="/cart"
-              className="relative inline-flex size-11 items-center justify-center rounded-pill text-ink-muted transition-colors duration-200 ease-brand hover:bg-sunk hover:text-ink"
+              className="relative inline-flex size-11 items-center justify-center rounded-pill text-ink-muted transition-all duration-200 ease-brand hover:-translate-y-0.5 hover:bg-sunk hover:text-ink active:translate-y-0 active:scale-95"
             >
               <span className="sr-only">
                 Cart{ready && itemCount > 0 ? `, ${itemCount} items` : ""}
@@ -386,7 +414,7 @@ export function Nav() {
                 onClick={() => setDiagnosticOpen((v) => !v)}
                 aria-expanded={diagnosticOpen}
                 aria-haspopup="true"
-                className="inline-flex h-11 items-center gap-2 rounded-pill bg-accent px-5 text-sm font-bold text-accent-ink transition-[filter,transform] duration-200 ease-brand hover:brightness-110 active:translate-y-px"
+                className="inline-flex h-11 items-center gap-2 rounded-pill bg-accent px-5 text-sm font-bold text-accent-ink transition-all duration-200 ease-brand hover:-translate-y-0.5 hover:brightness-110 hover:shadow-card active:translate-y-0 active:scale-[0.98]"
               >
                 <span>Growth Path Tool</span>
                 <CaretDown
@@ -400,10 +428,14 @@ export function Nav() {
               <AnimatePresence>
                 {diagnosticOpen ? (
                   <motion.div
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 6 }}
-                    transition={{ duration: 0.16 }}
+                    initial={reduce ? false : { opacity: 0, y: 6, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={reduce ? undefined : { opacity: 0, y: 6, scale: 0.98 }}
+                    transition={
+                      reduce
+                        ? { duration: 0 }
+                        : { duration: 0.18, ease: [0.16, 1, 0.3, 1] }
+                    }
                     className="absolute right-0 top-[calc(100%_+_8px)] w-80 rounded-panel border border-hairline bg-canvas p-3 shadow-lift z-50"
                   >
                     <p className="px-3 pt-2 pb-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-muted">
@@ -413,7 +445,7 @@ export function Nav() {
                     <Link
                       href="/?track=business#diagnostic"
                       onClick={() => setDiagnosticOpen(false)}
-                      className="group/track flex flex-col gap-1 rounded-card p-3 transition-colors hover:bg-surface active:bg-surface-sunk"
+                      className="group/track flex flex-col gap-1 rounded-card p-3 transition-all duration-200 ease-brand hover:bg-surface active:bg-surface-sunk active:scale-[0.99]"
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-bold text-ink group-hover/track:text-accent transition-colors">
@@ -433,7 +465,7 @@ export function Nav() {
                     <Link
                       href="/?track=self#diagnostic"
                       onClick={() => setDiagnosticOpen(false)}
-                      className="group/track flex flex-col gap-1 rounded-card p-3 transition-colors hover:bg-surface active:bg-surface-sunk"
+                      className="group/track flex flex-col gap-1 rounded-card p-3 transition-all duration-200 ease-brand hover:bg-surface active:bg-surface-sunk active:scale-[0.99]"
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-bold text-ink group-hover/track:text-accent transition-colors">
@@ -457,7 +489,7 @@ export function Nav() {
               onClick={() => setMobileOpen((v) => !v)}
               aria-expanded={mobileOpen}
               aria-controls={mobileId}
-              className="inline-flex size-11 items-center justify-center rounded-pill border border-hairline-strong text-ink transition-colors duration-200 ease-brand hover:border-accent hover:text-accent xl:hidden"
+              className="inline-flex size-11 items-center justify-center rounded-pill border border-hairline-strong text-ink transition-all duration-200 ease-brand hover:border-accent hover:text-accent active:scale-95 xl:hidden"
             >
               <span className="sr-only">{mobileOpen ? "Close menu" : "Open menu"}</span>
               {mobileOpen ? (
@@ -483,7 +515,7 @@ export function Nav() {
                   <Link
                     href={entry.href}
                     onClick={() => setMobileOpen(false)}
-                    className={`block font-display text-lg font-bold ${
+                    className={`block font-display text-lg font-bold transition-colors duration-200 hover:text-accent ${
                       isCurrent(entry.href) ? "text-accent" : "text-ink"
                     }`}
                   >
@@ -496,7 +528,7 @@ export function Nav() {
                           <Link
                             href={child.href}
                             onClick={() => setMobileOpen(false)}
-                            className={`text-sm ${
+                            className={`text-sm transition-colors duration-200 hover:text-accent ${
                               isCurrent(child.href) ? "text-accent" : "text-ink-muted"
                             }`}
                           >
@@ -518,24 +550,24 @@ export function Nav() {
                   <Link
                     href="/?track=business#diagnostic"
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center justify-between rounded-card bg-surface p-3.5 border border-hairline transition-colors active:bg-surface-sunk"
+                    className="group flex items-center justify-between rounded-card bg-surface p-3.5 border border-hairline transition-all duration-200 hover:border-accent active:bg-surface-sunk"
                   >
                     <div className="flex flex-col">
                       <span className="text-sm font-bold text-ink">For Your Business</span>
                       <span className="text-xs text-ink-muted">Powered by Business Doctor</span>
                     </div>
-                    <ArrowRight weight="bold" className="size-4 text-accent" />
+                    <ArrowRight weight="bold" className="size-4 text-accent transition-transform duration-200 group-hover:translate-x-1" />
                   </Link>
                   <Link
                     href="/?track=self#diagnostic"
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center justify-between rounded-card bg-surface p-3.5 border border-hairline transition-colors active:bg-surface-sunk"
+                    className="group flex items-center justify-between rounded-card bg-surface p-3.5 border border-hairline transition-all duration-200 hover:border-accent active:bg-surface-sunk"
                   >
                     <div className="flex flex-col">
                       <span className="text-sm font-bold text-ink">For Yourself</span>
                       <span className="text-xs text-ink-muted">Powered by The Bookwishes Club</span>
                     </div>
-                    <ArrowRight weight="bold" className="size-4 text-accent" />
+                    <ArrowRight weight="bold" className="size-4 text-accent transition-transform duration-200 group-hover:translate-x-1" />
                   </Link>
                 </div>
               </div>
@@ -544,14 +576,14 @@ export function Nav() {
                 <Link
                   href="/account"
                   onClick={() => setMobileOpen(false)}
-                  className="inline-flex h-12 flex-1 items-center justify-center rounded-pill border border-hairline-strong text-sm font-bold"
+                  className="inline-flex h-12 flex-1 items-center justify-center rounded-pill border border-hairline-strong text-sm font-bold transition-colors duration-200 hover:border-accent hover:text-accent"
                 >
                   My account
                 </Link>
                 <Link
                   href="/cart"
                   onClick={() => setMobileOpen(false)}
-                  className="inline-flex h-12 flex-1 items-center justify-center rounded-pill border border-hairline-strong text-sm font-bold"
+                  className="inline-flex h-12 flex-1 items-center justify-center rounded-pill border border-hairline-strong text-sm font-bold transition-colors duration-200 hover:border-accent hover:text-accent"
                 >
                   Cart
                 </Link>
@@ -578,9 +610,9 @@ export function Nav() {
               role="dialog"
               aria-modal="true"
               aria-label="Search"
-              initial={reduce ? false : { opacity: 0, y: -12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={reduce ? undefined : { opacity: 0, y: -12 }}
+              initial={reduce ? false : { opacity: 0, y: -12, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={reduce ? undefined : { opacity: 0, y: -12, scale: 0.98 }}
               transition={{ duration: reduce ? 0 : 0.2, ease: [0.16, 1, 0.3, 1] }}
               className="mx-auto mt-[12vh] w-[min(40rem,calc(100%_-_2.5rem))] rounded-panel bg-canvas p-5 shadow-lift"
               onClick={(e) => e.stopPropagation()}
@@ -632,15 +664,17 @@ export function Nav() {
                             setSearchOpen(false);
                             setQuery("");
                           }}
-                          className="flex items-center justify-between gap-4 rounded-input px-3 py-2.5 transition-colors duration-200 hover:bg-sunk"
+                          className="group flex items-center justify-between gap-4 rounded-input px-3 py-2.5 transition-colors duration-200 hover:bg-sunk"
                         >
                           <span className="flex flex-col">
-                            <span className="text-sm font-bold text-ink">{result.label}</span>
+                            <span className="text-sm font-bold text-ink transition-colors group-hover:text-accent">
+                              {result.label}
+                            </span>
                             <span className="text-xs text-ink-muted">{result.group}</span>
                           </span>
                           <CaretDown
                             aria-hidden="true"
-                            className="size-3.5 shrink-0 -rotate-90 text-ink-faint"
+                            className="size-3.5 shrink-0 -rotate-90 text-ink-faint transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-accent"
                             weight="bold"
                           />
                         </Link>

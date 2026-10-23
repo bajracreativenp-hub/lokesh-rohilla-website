@@ -65,7 +65,7 @@ export function BlockView({ block, dark }: { block: Block; dark: boolean }) {
                 <Link
                   key={item.title}
                   href={item.href}
-                  className="group flex h-full flex-col gap-3 rounded-card bg-surface p-6 transition-shadow duration-200 ease-brand hover:shadow-lift"
+                  className="group flex h-full flex-col gap-3 rounded-card border border-transparent bg-surface p-6 transition-all duration-300 ease-brand hover:-translate-y-1 hover:border-hairline hover:shadow-lift active:translate-y-0 active:scale-[0.99]"
                 >
                   <h3 className="text-display-4 leading-tight transition-colors duration-200 ease-brand group-hover:text-accent">
                     {item.title}
@@ -75,7 +75,7 @@ export function BlockView({ block, dark }: { block: Block; dark: boolean }) {
                     Read more
                     <ArrowRight
                       aria-hidden="true"
-                      className="size-3.5 shrink-0 transition-transform duration-200 ease-brand group-hover:translate-x-0.5"
+                      className="size-3.5 shrink-0 transition-transform duration-200 ease-brand group-hover:translate-x-1"
                       weight="bold"
                     />
                   </span>
@@ -83,7 +83,7 @@ export function BlockView({ block, dark }: { block: Block; dark: boolean }) {
               ) : (
                 <article
                   key={item.title}
-                  className="flex h-full flex-col gap-3 rounded-card bg-surface p-6"
+                  className="flex h-full flex-col gap-3 rounded-card border border-transparent bg-surface p-6 transition-all duration-300 ease-brand hover:-translate-y-0.5 hover:border-hairline hover:shadow-card"
                 >
                   {item.meta ? <p className="eyebrow">{item.meta}</p> : null}
                   <h3 className="text-display-4 leading-tight">{item.title}</h3>
@@ -114,7 +114,7 @@ export function BlockView({ block, dark }: { block: Block; dark: boolean }) {
             {block.items.map((item) => (
               <div
                 key={item.verb}
-                className="flex h-full flex-col gap-3 rounded-card bg-surface p-6"
+                className="flex h-full flex-col gap-3 rounded-card border border-transparent bg-surface p-6 transition-all duration-300 ease-brand hover:-translate-y-0.5 hover:border-hairline hover:shadow-card"
               >
                 <p className="text-display-4 leading-tight">{item.verb}</p>
                 <p className="text-sm leading-relaxed text-ink-muted">{item.body}</p>
@@ -197,12 +197,12 @@ export function BlockView({ block, dark }: { block: Block; dark: boolean }) {
           </div>
           <Link
             href={block.href}
-            className="group inline-flex h-12 shrink-0 items-center gap-2 rounded-pill bg-accent px-6 text-sm font-bold text-accent-ink"
+            className="group inline-flex h-12 shrink-0 items-center gap-2 rounded-pill bg-accent px-6 text-sm font-bold text-accent-ink transition-all duration-200 ease-brand hover:-translate-y-0.5 hover:brightness-110 hover:shadow-card active:translate-y-0 active:scale-[0.98]"
           >
             {block.label}
             <ArrowRight
               aria-hidden="true"
-              className="size-4 transition-transform duration-200 group-hover:translate-x-1"
+              className="size-4 transition-transform duration-200 ease-brand group-hover:translate-x-1"
               weight="bold"
             />
           </Link>
@@ -217,7 +217,7 @@ export function BlockView({ block, dark }: { block: Block; dark: boolean }) {
           </div>
           <Link
             href={block.href}
-            className="group inline-flex h-12 shrink-0 items-center gap-2 rounded-pill bg-accent px-6 text-sm font-bold text-accent-ink transition-[filter,transform] duration-200 ease-brand hover:brightness-110 active:translate-y-px"
+            className="group inline-flex h-12 shrink-0 items-center gap-2 rounded-pill bg-accent px-6 text-sm font-bold text-accent-ink transition-all duration-200 ease-brand hover:-translate-y-0.5 hover:brightness-110 hover:shadow-card active:translate-y-0 active:scale-[0.98]"
           >
             {block.label}
             <ArrowRight
@@ -248,7 +248,7 @@ export function BlockView({ block, dark }: { block: Block; dark: boolean }) {
             {block.items.map((item) => (
               <figure
                 key={item.label}
-                className="flex h-full flex-col overflow-hidden rounded-card border border-hairline bg-surface"
+                className="group flex h-full flex-col overflow-hidden rounded-card border border-hairline bg-surface transition-all duration-300 ease-brand hover:-translate-y-1 hover:border-hairline-strong hover:shadow-card"
               >
                 {/*
                   ImageSlot rather than a second hand rolled slot. It already
@@ -259,13 +259,13 @@ export function BlockView({ block, dark }: { block: Block; dark: boolean }) {
                   attributes.
                 */}
                 <ImageSlot
-                        label={item.label}
-                        ratio={item.ratio}
-                        spec={item.spec}
-                        /* Demo only. Absent means the pending slot renders. */
-                        src={item.src}
-                        alt={item.alt}
-                      />
+                  label={item.label}
+                  ratio={item.ratio}
+                  spec={item.spec}
+                  /* Demo only. Absent means the pending slot renders. */
+                  src={item.src}
+                  alt={item.alt}
+                />
                 <figcaption className="flex flex-col gap-1 p-5">
                   <p className="text-sm font-bold text-ink">{item.label}</p>
                   {item.meta ? <p className="text-xs text-ink-muted">{item.meta}</p> : null}

@@ -30,7 +30,7 @@ export function TransformationPillars() {
             {transformationPillars.items.map((pillar) => (
               <article
                 key={pillar.number}
-                className="group flex h-full flex-col justify-between rounded-panel border border-hairline bg-surface p-6 transition-all duration-300 ease-brand hover:border-hairline-strong hover:shadow-card sm:p-8 md:p-9"
+                className="group flex h-full flex-col justify-between rounded-panel border border-hairline bg-surface p-6 transition-all duration-300 ease-brand hover:-translate-y-1 hover:border-hairline-strong hover:shadow-lift sm:p-8 md:p-9"
               >
                 <div className="flex flex-col gap-5 sm:gap-6">
                   {/* Top indicator row */}
@@ -52,7 +52,7 @@ export function TransformationPillars() {
 
                   {/* Title & Description */}
                   <div className="flex flex-col gap-2.5 sm:gap-3">
-                    <h3 className="text-xl sm:text-2xl font-bold leading-tight text-ink lg:text-display-3">
+                    <h3 className="text-xl sm:text-2xl font-bold leading-tight text-ink transition-colors duration-200 ease-brand group-hover:text-accent lg:text-display-3">
                       {pillar.title}
                     </h3>
                     <p className="text-sm leading-relaxed text-ink-muted sm:text-base">
@@ -79,7 +79,7 @@ export function TransformationPillars() {
                 <div className="border-t border-hairline pt-6 mt-6 sm:mt-8">
                   <Link
                     href={pillar.href}
-                    className="group/btn inline-flex h-12 min-h-[48px] w-full items-center justify-center gap-2 rounded-pill bg-ink px-6 text-sm font-bold text-canvas transition-[background-color,transform,box-shadow] duration-200 ease-brand hover:bg-accent hover:text-accent-ink hover:shadow-card active:translate-y-px"
+                    className="group/btn inline-flex h-12 min-h-[48px] w-full items-center justify-center gap-2 rounded-pill bg-ink px-6 text-sm font-bold text-canvas transition-all duration-200 ease-brand hover:-translate-y-0.5 hover:bg-accent hover:text-accent-ink hover:shadow-card active:translate-y-0 active:scale-[0.98]"
                   >
                     <span>{pillar.cta}</span>
                     <ArrowRight

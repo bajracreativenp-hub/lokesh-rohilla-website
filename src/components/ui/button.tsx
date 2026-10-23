@@ -12,20 +12,20 @@ import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
    ========================================================================== */
 
 const base =
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap font-bold transition-[background-color,color,border-color,transform,box-shadow] duration-200 ease-brand select-none";
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap font-bold transition-[background-color,color,border-color,transform,box-shadow,filter] duration-200 ease-brand select-none";
 
 const variants = {
   /* Accent blue pill. The primary action colour. */
   primary:
-    "rounded-pill bg-accent text-accent-ink hover:brightness-110 hover:shadow-card active:translate-y-px",
+    "rounded-pill bg-accent text-accent-ink hover:-translate-y-0.5 hover:brightness-110 hover:shadow-card active:translate-y-0 active:scale-[0.98]",
   /* Solid navy pill. Used for the second action in a pair. */
-  navy: "rounded-pill bg-ink text-canvas hover:brightness-125 active:translate-y-px",
+  navy: "rounded-pill bg-ink text-canvas hover:-translate-y-0.5 hover:brightness-125 hover:shadow-card active:translate-y-0 active:scale-[0.98]",
   /* Outline pill over light backgrounds. */
   outline:
-    "rounded-pill border border-hairline-strong bg-transparent text-ink hover:border-ink hover:bg-sunk active:translate-y-px",
+    "rounded-pill border border-hairline-strong bg-transparent text-ink hover:-translate-y-0.5 hover:border-ink hover:bg-sunk hover:shadow-xs active:translate-y-0 active:scale-[0.98]",
   /* Outline pill that survives on photography or a dark band. */
   "on-media":
-    "rounded-pill border border-white/45 bg-white/10 text-white backdrop-blur-sm hover:bg-white hover:text-ink active:translate-y-px",
+    "rounded-pill border border-white/45 bg-white/10 text-white backdrop-blur-sm hover:-translate-y-0.5 hover:bg-white hover:text-ink hover:shadow-card active:translate-y-0 active:scale-[0.98]",
   /*
     Solid white pill with a navy label.
 
@@ -36,7 +36,7 @@ const variants = {
     looking subtly different from every other control on the site.
   */
   light:
-    "rounded-pill bg-white text-ink hover:brightness-95 hover:shadow-card active:translate-y-px",
+    "rounded-pill bg-white text-ink hover:-translate-y-0.5 hover:brightness-95 hover:shadow-card active:translate-y-0 active:scale-[0.98]",
 } as const;
 
 const sizes = {

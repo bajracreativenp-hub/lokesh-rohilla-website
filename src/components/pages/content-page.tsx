@@ -61,7 +61,7 @@ export function ContentPage({ page }: { page: PageDef }) {
                 <li key={section.id}>
                   <a
                     href={`#${section.id}`}
-                    className="inline-flex items-center rounded-input px-3 py-2 text-sm font-semibold text-ink-muted transition-colors duration-200 ease-brand hover:bg-sunk hover:text-accent"
+                    className="inline-flex items-center rounded-input px-3 py-2 text-sm font-semibold text-ink-muted transition-all duration-200 ease-brand hover:-translate-y-0.5 hover:bg-sunk hover:text-accent active:translate-y-0 active:scale-[0.98]"
                   >
                     {section.label}
                   </a>
@@ -142,7 +142,7 @@ export function ContentPage({ page }: { page: PageDef }) {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="inline-flex items-center rounded-pill border border-hairline-strong px-4 py-2 text-sm font-semibold text-ink transition-colors duration-200 ease-brand hover:border-accent hover:text-accent"
+                    className="inline-flex items-center rounded-pill border border-hairline-strong px-4 py-2 text-sm font-semibold text-ink transition-all duration-200 ease-brand hover:-translate-y-0.5 hover:border-accent hover:bg-surface hover:text-accent active:translate-y-0 active:scale-[0.98]"
                   >
                     {link.label}
                   </Link>

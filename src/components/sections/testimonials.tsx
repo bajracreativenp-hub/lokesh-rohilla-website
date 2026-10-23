@@ -102,7 +102,7 @@ export function Testimonials() {
                   href={googleReviews.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group inline-flex h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-pill bg-ink px-6 text-sm font-bold text-canvas transition-[background-color,transform,box-shadow] duration-200 ease-brand hover:bg-accent hover:shadow-card active:translate-y-px"
+                  className="group inline-flex h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-pill bg-ink px-6 text-sm font-bold text-canvas transition-all duration-200 ease-brand hover:-translate-y-0.5 hover:bg-accent hover:shadow-card active:translate-y-0 active:scale-[0.98]"
                 >
                   <span>View All on Google</span>
                   <ArrowUpRight
@@ -119,7 +119,7 @@ export function Testimonials() {
           <div className="grid gap-4 sm:gap-5 md:grid-cols-2">
             {googleReviews.reviews.map((review, i) => (
               <Reveal key={review.author} delay={0.12 + i * 0.05} distance={15}>
-                <article className="flex h-full flex-col justify-between gap-4 sm:gap-5 rounded-panel border border-hairline bg-canvas p-5 sm:p-6 md:p-7 transition-all duration-200 ease-brand hover:border-hairline-strong hover:shadow-card">
+                <article className="flex h-full flex-col justify-between gap-4 sm:gap-5 rounded-panel border border-hairline bg-canvas p-5 sm:p-6 md:p-7 transition-all duration-300 ease-brand hover:-translate-y-1 hover:border-hairline-strong hover:shadow-card">
                   <div className="flex flex-col gap-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1 text-amber-500" aria-label={`${review.rating} out of 5 stars`}>

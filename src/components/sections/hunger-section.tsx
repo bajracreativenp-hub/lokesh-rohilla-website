@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { CaretLeft, CaretRight, Play, Star } from "@phosphor-icons/react/dist/ssr";
-import { AnimatePresence, motion } from "motion/react";
+import { ArrowRight, CaretLeft, CaretRight, Play, Star } from "@phosphor-icons/react/dist/ssr";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import { CountUp } from "@/components/ui/count-up";
 import { Container } from "@/components/ui/layout";
@@ -33,6 +33,7 @@ const SLIDES = [
 export function HungerSection() {
   const [slideIndex, setSlideIndex] = useState(0);
   const [videoOpen, setVideoOpen] = useState(false);
+  const reduce = useReducedMotion();
 
   const prevSlide = () => {
     setSlideIndex((i) => (i === 0 ? SLIDES.length - 1 : i - 1));
@@ -69,13 +70,13 @@ export function HungerSection() {
                 </div>
 
                 {/* Photo Card */}
-                <div className="relative z-10 flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl md:aspect-video bg-[#1e5ae6] shadow-none border-0">
+                <div className="group relative z-10 flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl md:aspect-video bg-[#1e5ae6] shadow-none border-0">
                   <Image
                     src="/lokesh-hunger.png"
                     alt="Lokesh Rohilla"
                     fill
                     sizes="(min-width: 768px) 66vw, 100vw"
-                    className="object-cover object-left-top sm:object-center"
+                    className="object-cover object-left-top sm:object-center transition-transform duration-700 ease-brand group-hover:scale-[1.02]"
                     priority
                   />
                 </div>
@@ -91,9 +92,14 @@ export function HungerSection() {
                 <div>
                   <Link
                     href="/about"
-                    className="inline-flex h-11 items-center rounded-pill border border-hairline-strong bg-surface px-6 text-sm font-bold text-ink transition-all duration-200 hover:border-ink hover:bg-surface-sunk active:translate-y-px"
+                    className="group inline-flex h-11 items-center gap-2 rounded-pill border border-hairline-strong bg-surface px-6 text-sm font-bold text-ink transition-all duration-200 ease-brand hover:-translate-y-0.5 hover:border-ink hover:bg-surface-sunk hover:shadow-xs active:translate-y-0 active:scale-[0.98]"
                   >
-                    Meet Lokesh Rohilla
+                    <span>Meet Lokesh Rohilla</span>
+                    <ArrowRight
+                      aria-hidden="true"
+                      weight="bold"
+                      className="size-3.5 transition-transform duration-200 ease-brand group-hover:translate-x-1"
+                    />
                   </Link>
                 </div>
               </div>
@@ -139,7 +145,7 @@ export function HungerSection() {
                   />
 
                   {/* Play button pill */}
-                  <div className="relative z-10 inline-flex items-center gap-2 rounded-pill bg-white/10 px-5 py-2.5 text-xs font-bold text-white backdrop-blur-md border border-white/20 shadow-lift transition-transform duration-200 group-hover:scale-105 group-hover:bg-white/20">
+                  <div className="relative z-10 inline-flex items-center gap-2 rounded-pill bg-white/10 px-5 py-2.5 text-xs font-bold text-white backdrop-blur-md border border-white/20 shadow-lift transition-all duration-200 ease-brand group-hover:-translate-y-0.5 group-hover:scale-105 group-hover:bg-white/20">
                     <Play weight="fill" className="size-4 text-white" />
                     <span>Watch video</span>
                   </div>
@@ -209,21 +215,34 @@ export function HungerSection() {
                     type="button"
                     onClick={prevSlide}
                     aria-label="Previous result slide"
-                    className="inline-flex size-10 items-center justify-center rounded-full border border-hairline-strong bg-canvas text-ink transition-colors hover:border-ink hover:bg-surface active:scale-95"
+                    className="group inline-flex size-10 items-center justify-center rounded-full border border-hairline-strong bg-canvas text-ink transition-all duration-200 ease-brand hover:-translate-y-0.5 hover:border-ink hover:bg-surface hover:shadow-2xs active:translate-y-0 active:scale-95"
                   >
-                    <CaretLeft weight="bold" className="size-4" />
+                    <CaretLeft weight="bold" className="size-4 transition-transform duration-200 ease-brand group-hover:-translate-x-0.5" />
                   </button>
                   <button
                     type="button"
                     onClick={nextSlide}
                     aria-label="Next result slide"
-                    className="inline-flex size-10 items-center justify-center rounded-full border border-hairline-strong bg-canvas text-ink transition-colors hover:border-ink hover:bg-surface active:scale-95"
+                    className="group inline-flex size-10 items-center justify-center rounded-full border border-hairline-strong bg-canvas text-ink transition-all duration-200 ease-brand hover:-translate-y-0.5 hover:border-ink hover:bg-surface hover:shadow-2xs active:translate-y-0 active:scale-95"
                   >
-                    <CaretRight weight="bold" className="size-4" />
+                    <CaretRight weight="bold" className="size-4 transition-transform duration-200 ease-brand group-hover:translate-x-0.5" />
                   </button>
-                  <span className="ml-2 text-xs font-bold text-ink-muted">
-                    {slideIndex + 1} / {SLIDES.length}
-                  </span>
+                  <div className="ml-2 flex items-center gap-1.5">
+                    {SLIDES.map((_, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setSlideIndex(i)}
+                        aria-label={`Result slide ${i + 1} of ${SLIDES.length}`}
+                        aria-current={i === slideIndex ? "true" : undefined}
+                        className={`h-2 rounded-pill transition-all duration-300 ease-brand ${
+                          i === slideIndex
+                            ? "w-6 bg-ink"
+                            : "w-2 bg-hairline-strong hover:bg-ink/40"
+                        }`}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -232,10 +251,14 @@ export function HungerSection() {
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={slideIndex}
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={reduce ? false : { opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.25 }}
+                    exit={reduce ? undefined : { opacity: 0, y: -10 }}
+                    transition={
+                      reduce
+                        ? { duration: 0 }
+                        : { duration: 0.28, ease: [0.16, 1, 0.3, 1] }
+                    }
                     className="flex flex-col gap-6"
                   >
                     <p className="text-base sm:text-lg leading-relaxed text-ink-muted">
@@ -267,9 +290,14 @@ export function HungerSection() {
                 <div className="pt-2">
                   <Link
                     href="/services/business-consultation"
-                    className="inline-flex h-11 items-center rounded-pill border border-hairline-strong bg-surface px-6 text-sm font-bold text-ink transition-all duration-200 hover:border-ink hover:bg-surface-sunk active:translate-y-px"
+                    className="group inline-flex h-11 items-center gap-2 rounded-pill border border-hairline-strong bg-surface px-6 text-sm font-bold text-ink transition-all duration-200 ease-brand hover:-translate-y-0.5 hover:border-ink hover:bg-surface-sunk hover:shadow-xs active:translate-y-0 active:scale-[0.98]"
                   >
-                    Learn more
+                    <span>Learn more</span>
+                    <ArrowRight
+                      aria-hidden="true"
+                      weight="bold"
+                      className="size-3.5 transition-transform duration-200 ease-brand group-hover:translate-x-1"
+                    />
                   </Link>
                 </div>
               </div>

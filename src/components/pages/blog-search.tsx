@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 
 import { MagnifyingGlass } from "@phosphor-icons/react/dist/ssr";
+import { motion, useReducedMotion } from "motion/react";
 
 /**
  * BLOG SEARCH AND CATEGORY FILTER
@@ -38,6 +39,8 @@ export function BlogSearch({
 }: {
   categories: { slug: string; label: string; note: string }[];
 }) {
+  const instanceId = useId();
+  const reduce = useReducedMotion();
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
@@ -62,7 +65,7 @@ export function BlogSearch({
         <label htmlFor="blog-search" className="eyebrow">
           Search {ARTICLES.length} articles
         </label>
-        <div className="flex items-center gap-3 rounded-input border border-hairline-strong bg-surface px-4 py-3">
+        <div className="flex items-center gap-3 rounded-input border border-hairline-strong bg-surface px-4 py-3 transition-colors duration-200 ease-brand focus-within:border-accent">
           <MagnifyingGlass aria-hidden="true" className="size-5 shrink-0 text-ink-muted" weight="bold" />
           <input
             id="blog-search"
@@ -82,20 +85,32 @@ export function BlogSearch({
         </p>
       </div>
 
-      {/* Categories */}
+      {/* Categories with sliding pill switch */}
       <div className="flex flex-col gap-5">
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
             onClick={() => setActiveCategory(null)}
             aria-pressed={activeCategory === null}
-            className={`inline-flex items-center rounded-pill border px-4 py-2 text-sm font-semibold transition-colors duration-200 ease-brand ${
+            className={`relative z-10 inline-flex items-center rounded-pill border px-4 py-2 text-sm font-semibold transition-all duration-200 ease-brand active:scale-[0.98] ${
               activeCategory === null
-                ? "border-accent bg-accent text-accent-ink"
-                : "border-hairline-strong text-ink hover:border-accent hover:text-accent"
+                ? "border-accent text-accent-ink"
+                : "border-hairline-strong text-ink hover:-translate-y-0.5 hover:border-accent hover:text-accent"
             }`}
           >
-            All
+            {activeCategory === null ? (
+              <motion.span
+                layoutId={`${instanceId}-category-pill`}
+                aria-hidden="true"
+                className="absolute inset-0 -z-10 rounded-pill bg-accent"
+                transition={
+                  reduce
+                    ? { duration: 0 }
+                    : { type: "spring", stiffness: 450, damping: 34 }
+                }
+              />
+            ) : null}
+            <span>All</span>
           </button>
           {categories.map((category) => {
             const isActive = activeCategory === category.slug;
@@ -105,41 +120,62 @@ export function BlogSearch({
                 type="button"
                 onClick={() => setActiveCategory(isActive ? null : category.slug)}
                 aria-pressed={isActive}
-                className={`inline-flex items-center rounded-pill border px-4 py-2 text-sm font-semibold transition-colors duration-200 ease-brand ${
+                className={`relative z-10 inline-flex items-center rounded-pill border px-4 py-2 text-sm font-semibold transition-all duration-200 ease-brand active:scale-[0.98] ${
                   isActive
-                    ? "border-accent bg-accent text-accent-ink"
-                    : "border-hairline-strong text-ink hover:border-accent hover:text-accent"
+                    ? "border-accent text-accent-ink"
+                    : "border-hairline-strong text-ink hover:-translate-y-0.5 hover:border-accent hover:text-accent"
                 }`}
               >
-                {category.label}
+                {isActive ? (
+                  <motion.span
+                    layoutId={`${instanceId}-category-pill`}
+                    aria-hidden="true"
+                    className="absolute inset-0 -z-10 rounded-pill bg-accent"
+                    transition={
+                      reduce
+                        ? { duration: 0 }
+                        : { type: "spring", stiffness: 450, damping: 34 }
+                    }
+                  />
+                ) : null}
+                <span>{category.label}</span>
               </button>
             );
           })}
         </div>
 
-        {filtered.length > 0 ? (
-          <ul className="flex flex-col divide-y divide-hairline">
-            {filtered.map((article) => (
-              <li key={article.slug} className="py-5">
-                <p className="eyebrow">{article.category}</p>
-                <p className="mt-2 font-display text-lg font-bold text-ink">{article.title}</p>
-                {article.standfirst ? (
-                  <p className="mt-1 text-sm leading-relaxed text-ink-muted">{article.standfirst}</p>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="rounded-panel bg-sunk p-6">
-            <p className="text-sm leading-relaxed text-ink">
-              {ARTICLES.length === 0
-                ? "No articles have been published yet. The search and the categories above are working and will filter content as soon as it is added."
-                : searching
-                  ? `Nothing matches that. Try a broader term, or clear the category filter.`
-                  : "No articles in that category yet."}
-            </p>
-          </div>
-        )}
+        <motion.div
+          key={activeCategory ?? "all"}
+          initial={reduce ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={
+            reduce ? { duration: 0 } : { duration: 0.25, ease: [0.16, 1, 0.3, 1] }
+          }
+        >
+          {filtered.length > 0 ? (
+            <ul className="flex flex-col divide-y divide-hairline">
+              {filtered.map((article) => (
+                <li key={article.slug} className="py-5">
+                  <p className="eyebrow">{article.category}</p>
+                  <p className="mt-2 font-display text-lg font-bold text-ink">{article.title}</p>
+                  {article.standfirst ? (
+                    <p className="mt-1 text-sm leading-relaxed text-ink-muted">{article.standfirst}</p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="rounded-panel bg-sunk p-6">
+              <p className="text-sm leading-relaxed text-ink">
+                {ARTICLES.length === 0
+                  ? "No articles have been published yet. The search and the categories above are working and will filter content as soon as it is added."
+                  : searching
+                    ? `Nothing matches that. Try a broader term, or clear the category filter.`
+                    : "No articles in that category yet."}
+              </p>
+            </div>
+          )}
+        </motion.div>
       </div>
     </div>
   );

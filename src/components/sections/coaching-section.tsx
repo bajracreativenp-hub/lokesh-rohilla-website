@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { Play } from "@phosphor-icons/react/dist/ssr";
+import { ArrowRight, Play } from "@phosphor-icons/react/dist/ssr";
 
 import { Container } from "@/components/ui/layout";
 import { Reveal } from "@/components/ui/reveal";
@@ -94,7 +94,7 @@ export function CoachingSection() {
 
                   {/* Frosted Translucent Pill */}
                   <div className="absolute inset-0 flex items-center justify-center z-10">
-                    <div className="inline-flex items-center gap-2 rounded-pill bg-black/60 px-6 py-3 text-sm font-bold text-white backdrop-blur-md border border-white/20 shadow-lift transition-transform duration-200 group-hover:scale-110">
+                    <div className="inline-flex items-center gap-2 rounded-pill bg-black/60 px-6 py-3 text-sm font-bold text-white backdrop-blur-md border border-white/20 shadow-lift transition-all duration-200 ease-brand group-hover:-translate-y-0.5 group-hover:scale-105">
                       <Play weight="fill" className="size-4 text-white" />
                       <span>Watch</span>
                     </div>
@@ -133,15 +133,25 @@ export function CoachingSection() {
                 <div className="flex flex-col gap-3 pt-2">
                   <Link
                     href="/services/self-development"
-                    className="inline-flex h-12 w-full items-center justify-center rounded-pill bg-white/10 border border-white/15 px-6 text-sm font-bold text-white backdrop-blur-sm transition-all duration-200 hover:bg-white/20 active:translate-y-px"
+                    className="group inline-flex h-12 w-full items-center justify-center gap-2 rounded-pill bg-white/10 border border-white/15 px-6 text-sm font-bold text-white backdrop-blur-sm transition-all duration-200 ease-brand hover:-translate-y-0.5 hover:bg-white/20 hover:border-white/30 active:translate-y-0 active:scale-[0.98]"
                   >
-                    Results coaching
+                    <span>Results coaching</span>
+                    <ArrowRight
+                      aria-hidden="true"
+                      weight="bold"
+                      className="size-4 transition-transform duration-200 ease-brand group-hover:translate-x-1"
+                    />
                   </Link>
                   <Link
                     href="/services/business-consultation"
-                    className="inline-flex h-12 w-full items-center justify-center rounded-pill bg-white/10 border border-white/15 px-6 text-sm font-bold text-white backdrop-blur-sm transition-all duration-200 hover:bg-white/20 active:translate-y-px"
+                    className="group inline-flex h-12 w-full items-center justify-center gap-2 rounded-pill bg-white/10 border border-white/15 px-6 text-sm font-bold text-white backdrop-blur-sm transition-all duration-200 ease-brand hover:-translate-y-0.5 hover:bg-white/20 hover:border-white/30 active:translate-y-0 active:scale-[0.98]"
                   >
-                    Business coaching
+                    <span>Business coaching</span>
+                    <ArrowRight
+                      aria-hidden="true"
+                      weight="bold"
+                      className="size-4 transition-transform duration-200 ease-brand group-hover:translate-x-1"
+                    />
                   </Link>
                 </div>
               </div>

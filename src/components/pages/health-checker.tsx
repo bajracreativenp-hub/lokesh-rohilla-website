@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 
-import { ArrowLeft, ArrowRight, Sparkle } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeft, ArrowRight, Check, Sparkle } from "@phosphor-icons/react/dist/ssr";
+import { motion, useReducedMotion } from "motion/react";
 
 import { Progress } from "@/components/ui/progress";
 
@@ -722,6 +723,8 @@ export function BusinessHealthChecker({
 }: {
   initialTrack?: DiagnosticTrack;
 } = {}) {
+  const instanceId = useId();
+  const reduce = useReducedMotion();
   const [track, setTrack] = useState<DiagnosticTrack>(initialTrack);
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
@@ -797,36 +800,56 @@ export function BusinessHealthChecker({
   /* Left dark sidebar shared across both active quiz and results view */
   const leftSidebar = (
     <div className="on-ink flex flex-col justify-between gap-8 p-7 sm:p-9 lg:p-12">
-      {/* Track Switcher */}
+      {/* Track Switcher with sliding spring pill */}
       <div className="flex flex-col gap-3">
-        <div className="inline-grid grid-cols-2 rounded-pill border border-[#f2f5fa]/18 bg-[#14161c] p-1 w-full sm:w-fit">
-          <button
-            type="button"
-            onClick={() => switchTrack("business")}
-            className={`rounded-pill px-4 py-1.5 text-xs font-bold transition-colors duration-200 ${
-              track === "business"
-                ? "bg-[#93a9f5] text-[#0b1730]"
-                : "text-[#a7b0c2] hover:text-[#f2f5fa]"
-            }`}
-          >
-            For Your Business
-          </button>
-          <button
-            type="button"
-            onClick={() => switchTrack("self")}
-            className={`rounded-pill px-4 py-1.5 text-xs font-bold transition-colors duration-200 ${
-              track === "self"
-                ? "bg-[#93a9f5] text-[#0b1730]"
-                : "text-[#a7b0c2] hover:text-[#f2f5fa]"
-            }`}
-          >
-            For Yourself
-          </button>
+        <div
+          role="group"
+          aria-label="Diagnostic track"
+          className="relative inline-grid grid-cols-2 rounded-pill border border-[#f2f5fa]/18 bg-[#14161c] p-1 w-full sm:w-fit"
+        >
+          {(["business", "self"] as const).map((t) => {
+            const isActive = track === t;
+            return (
+              <button
+                key={t}
+                type="button"
+                aria-pressed={isActive}
+                onClick={() => switchTrack(t)}
+                className={`relative z-10 rounded-pill px-4 py-1.5 text-xs font-bold transition-colors duration-200 ease-brand ${
+                  isActive
+                    ? "text-[#0b1730]"
+                    : "text-[#a7b0c2] hover:text-[#f2f5fa]"
+                }`}
+              >
+                {isActive ? (
+                  <motion.span
+                    layoutId={`${instanceId}-track-pill`}
+                    aria-hidden="true"
+                    className="absolute inset-0 -z-10 rounded-pill bg-[#93a9f5] shadow-xs"
+                    transition={
+                      reduce
+                        ? { duration: 0 }
+                        : { type: "spring", stiffness: 450, damping: 34 }
+                    }
+                  />
+                ) : null}
+                <span>{t === "business" ? "For Your Business" : "For Yourself"}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Center Hero Copy */}
-      <div className="my-auto flex flex-col gap-4 py-2 lg:py-6">
+      <motion.div
+        key={track}
+        initial={reduce ? false : { opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={
+          reduce ? { duration: 0 } : { duration: 0.32, ease: [0.16, 1, 0.3, 1] }
+        }
+        className="my-auto flex flex-col gap-4 py-2 lg:py-6"
+      >
         <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-[#93a9f5]">
           <Sparkle aria-hidden="true" className="size-3.5 shrink-0" weight="fill" />
           {track === "business" ? "Free Business Quiz" : "Free Self-Mastery Quiz"}
@@ -851,7 +874,7 @@ export function BusinessHealthChecker({
             ? "Answer 10 quick questions — we route you to the right Business Doctor focus area: Strategy, Operations, Systems, Sales, Marketing & Culture."
             : "Answer 10 quick questions — we route you to the right Bookwishes Club focus area: Public Speaking, Articulation, Presence, Resilience & Vision."}
         </p>
-      </div>
+      </motion.div>
 
       {/* Bottom 4-Stage Segmented Progress Indicator */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 pt-2">
@@ -860,11 +883,18 @@ export function BusinessHealthChecker({
           const isCurrent = !done && idx === currentStage;
           return (
             <div key={stageLabel} className="flex flex-col gap-2">
-              <div
-                className={`h-1 w-full rounded-pill transition-colors duration-300 ${
-                  isReached ? "bg-[#93a9f5]" : "bg-[#f2f5fa]/20"
-                }`}
-              />
+              <div className="h-1 w-full overflow-hidden rounded-pill bg-[#f2f5fa]/20">
+                <motion.div
+                  initial={false}
+                  animate={{ scaleX: isReached ? 1 : 0 }}
+                  transition={
+                    reduce
+                      ? { duration: 0 }
+                      : { duration: 0.42, ease: [0.16, 1, 0.3, 1] }
+                  }
+                  className="h-full w-full origin-left rounded-pill bg-[#93a9f5]"
+                />
+              </div>
               <span
                 className={`text-[11px] font-bold uppercase tracking-[0.06em] transition-colors duration-200 ${
                   isCurrent || done
@@ -898,7 +928,13 @@ export function BusinessHealthChecker({
       >
         {leftSidebar}
 
-        <div
+        <motion.div
+          key="quiz-results"
+          initial={reduce ? false : { opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={
+            reduce ? { duration: 0 } : { duration: 0.36, ease: [0.16, 1, 0.3, 1] }
+          }
           style={LIGHT_PANEL_VARS}
           className="flex flex-col justify-between gap-7 p-6 sm:p-9 lg:p-12"
         >
@@ -919,7 +955,7 @@ export function BusinessHealthChecker({
 
           {weakest && strongest ? (
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="flex flex-col gap-2 rounded-card border border-[#3b5fcc] bg-[#f7f9fd] p-5">
+              <div className="flex flex-col gap-2 rounded-card border border-[#3b5fcc] bg-[#f7f9fd] p-5 transition-shadow duration-200 hover:shadow-xs">
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#3b5fcc]">
                   Look here first
                 </p>
@@ -946,7 +982,7 @@ export function BusinessHealthChecker({
                   </>
                 )}
               </div>
-              <div className="flex flex-col gap-2 rounded-card bg-[#eef2fa] p-5">
+              <div className="flex flex-col gap-2 rounded-card bg-[#eef2fa] p-5 transition-shadow duration-200 hover:shadow-xs">
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#5d6679]">
                   Strongest area
                 </p>
@@ -971,16 +1007,17 @@ export function BusinessHealthChecker({
             <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link
                 href={band.cta.href}
-                className="inline-flex h-11 min-h-[44px] w-full sm:w-auto items-center justify-center rounded-pill bg-[#3b5fcc] px-6 text-sm font-bold text-[#ffffff] transition-[filter,transform] duration-200 ease-brand hover:brightness-110 active:translate-y-px"
+                className="inline-flex h-11 min-h-[44px] w-full sm:w-auto items-center justify-center rounded-pill bg-[#3b5fcc] px-6 text-sm font-bold text-[#ffffff] transition-all duration-200 ease-brand hover:-translate-y-0.5 hover:brightness-110 hover:shadow-card active:translate-y-0 active:scale-[0.98]"
               >
                 {band.cta.label}
               </Link>
               <button
                 type="button"
                 onClick={() => switchTrack(track === "business" ? "self" : "business")}
-                className="inline-flex h-11 min-h-[44px] w-full sm:w-auto items-center justify-center rounded-pill bg-[#eef2fa] border border-[#0b1730]/12 px-5 text-sm font-bold text-[#0b1730] transition-colors duration-200 ease-brand hover:border-[#3b5fcc] hover:text-[#3b5fcc]"
+                className="group inline-flex h-11 min-h-[44px] w-full sm:w-auto items-center justify-center gap-1.5 rounded-pill bg-[#eef2fa] border border-[#0b1730]/12 px-5 text-sm font-bold text-[#0b1730] transition-all duration-200 ease-brand hover:-translate-y-0.5 hover:border-[#3b5fcc] hover:text-[#3b5fcc] active:translate-y-0 active:scale-[0.98]"
               >
-                Assess {track === "business" ? "For Yourself" : "For Your Business"} &rarr;
+                <span>Assess {track === "business" ? "For Yourself" : "For Your Business"}</span>
+                <span className="transition-transform duration-200 ease-brand group-hover:translate-x-1">&rarr;</span>
               </button>
               <button
                 type="button"
@@ -989,13 +1026,13 @@ export function BusinessHealthChecker({
                   setIndex(0);
                   setDone(false);
                 }}
-                className="inline-flex h-11 min-h-[44px] w-full sm:w-auto items-center justify-center rounded-pill border border-[#0b1730]/22 px-5 text-sm font-bold text-[#0b1730] transition-colors duration-200 ease-brand hover:border-[#3b5fcc] hover:text-[#3b5fcc]"
+                className="inline-flex h-11 min-h-[44px] w-full sm:w-auto items-center justify-center rounded-pill border border-[#0b1730]/22 px-5 text-sm font-bold text-[#0b1730] transition-all duration-200 ease-brand hover:-translate-y-0.5 hover:border-[#3b5fcc] hover:text-[#3b5fcc] active:translate-y-0 active:scale-[0.98]"
               >
                 Start again
               </button>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -1016,7 +1053,15 @@ export function BusinessHealthChecker({
         style={LIGHT_PANEL_VARS}
         className="flex flex-col justify-between gap-6 p-6 sm:p-9 lg:p-12"
       >
-        <div className="flex flex-col gap-6">
+        <motion.div
+          key={`${track}-${question.id}`}
+          initial={reduce ? false : { opacity: 0, x: 14 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={
+            reduce ? { duration: 0 } : { duration: 0.28, ease: [0.16, 1, 0.3, 1] }
+          }
+          className="flex flex-col gap-6"
+        >
           {/* Question Eyebrow */}
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#3b5fcc]">
             Question {index + 1} of {questions.length} &mdash; {question.area}
@@ -1041,10 +1086,10 @@ export function BusinessHealthChecker({
                   <label
                     key={option.score}
                     htmlFor={id}
-                    className={`group flex cursor-pointer flex-col gap-0.5 rounded-[14px] border px-5 py-3.5 sm:py-4 transition-all duration-150 ${
+                    className={`group flex cursor-pointer items-center justify-between gap-4 rounded-[14px] border px-5 py-3.5 sm:py-4 transition-all duration-200 ease-brand active:scale-[0.99] ${
                       isSelected
-                        ? "border-[#3b5fcc] bg-[#eef2fa] shadow-2xs"
-                        : "border-[#0b1730]/12 bg-[#ffffff] hover:border-[#3b5fcc]/50 hover:bg-[#f7f9fd]"
+                        ? "border-[#3b5fcc] bg-[#eef2fa] shadow-xs -translate-y-0.5"
+                        : "border-[#0b1730]/12 bg-[#ffffff] hover:-translate-y-0.5 hover:border-[#3b5fcc]/50 hover:bg-[#f7f9fd] hover:shadow-2xs"
                     }`}
                   >
                     <input
@@ -1057,18 +1102,30 @@ export function BusinessHealthChecker({
                       }
                       className="sr-only"
                     />
-                    <span className="text-[15px] font-bold leading-snug text-[#0b1730]">
-                      {option.label}
+                    <span className="flex flex-col gap-0.5">
+                      <span className="text-[15px] font-bold leading-snug text-[#0b1730] transition-colors duration-200 group-hover:text-[#3b5fcc]">
+                        {option.label}
+                      </span>
+                      <span className="text-xs sm:text-[13px] leading-relaxed text-[#5d6679]">
+                        {option.sublabel}
+                      </span>
                     </span>
-                    <span className="text-xs sm:text-[13px] leading-relaxed text-[#5d6679]">
-                      {option.sublabel}
+                    <span
+                      aria-hidden="true"
+                      className={`grid size-5 shrink-0 place-items-center rounded-full border transition-all duration-200 ease-brand ${
+                        isSelected
+                          ? "border-[#3b5fcc] bg-[#3b5fcc] text-[#ffffff] scale-105"
+                          : "border-[#0b1730]/20 bg-transparent text-transparent group-hover:border-[#3b5fcc]/60"
+                      }`}
+                    >
+                      <Check weight="bold" className="size-3" />
                     </span>
                   </label>
                 );
               })}
             </div>
           </fieldset>
-        </div>
+        </motion.div>
 
         {/* Footer Navigation Bar matching reference: <- BACK on left, count + Next on right */}
         <div className="mt-4 flex items-center justify-between gap-4 pt-3 border-t border-[#0b1730]/8">
@@ -1076,9 +1133,13 @@ export function BusinessHealthChecker({
             <button
               type="button"
               onClick={() => setIndex((i) => i - 1)}
-              className="inline-flex items-center gap-1.5 py-2 text-xs font-bold uppercase tracking-[0.14em] text-[#5d6679] transition-colors hover:text-[#0b1730]"
+              className="group inline-flex items-center gap-1.5 py-2 text-xs font-bold uppercase tracking-[0.14em] text-[#5d6679] transition-colors duration-200 ease-brand hover:text-[#0b1730]"
             >
-              <ArrowLeft aria-hidden="true" className="size-3.5" weight="bold" />
+              <ArrowLeft
+                aria-hidden="true"
+                className="size-3.5 transition-transform duration-200 ease-brand group-hover:-translate-x-1"
+                weight="bold"
+              />
               <span className="sr-only">Previous </span>
               Back
             </button>
@@ -1090,7 +1151,7 @@ export function BusinessHealthChecker({
           )}
 
           <div className="flex items-center gap-4">
-            <span className="text-xs font-bold tracking-wider text-[#5d6679]">
+            <span className="tabular-nums text-xs font-bold tracking-wider text-[#5d6679]">
               {index + 1} / {questions.length}
             </span>
 
@@ -1098,10 +1159,14 @@ export function BusinessHealthChecker({
               type="button"
               disabled={selected === undefined}
               onClick={() => (isLast ? setDone(true) : setIndex((i) => i + 1))}
-              className="inline-flex h-10 min-h-[40px] items-center justify-center gap-2 rounded-pill bg-[#0b1730] px-5 text-xs font-bold uppercase tracking-[0.1em] text-[#ffffff] transition-all duration-200 hover:bg-[#3b5fcc] disabled:opacity-35 disabled:pointer-events-none"
+              className="group inline-flex h-10 min-h-[40px] items-center justify-center gap-2 rounded-pill bg-[#0b1730] px-5 text-xs font-bold uppercase tracking-[0.1em] text-[#ffffff] transition-all duration-200 ease-brand hover:-translate-y-0.5 hover:bg-[#3b5fcc] hover:shadow-card active:translate-y-0 active:scale-[0.98] disabled:opacity-35 disabled:pointer-events-none"
             >
               {isLast ? "See the result" : "Next question"}
-              <ArrowRight aria-hidden="true" className="size-3.5" weight="bold" />
+              <ArrowRight
+                aria-hidden="true"
+                className="size-3.5 transition-transform duration-200 ease-brand group-hover:translate-x-1"
+                weight="bold"
+              />
             </button>
           </div>
         </div>

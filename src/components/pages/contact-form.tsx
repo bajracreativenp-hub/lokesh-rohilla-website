@@ -198,10 +198,10 @@ export function ContactForm() {
               <label
                 key={option.value}
                 htmlFor={fieldId(option.value)}
-                className={`flex cursor-pointer flex-col gap-1 rounded-card border p-4 transition-colors duration-200 ease-brand ${
+                className={`flex cursor-pointer flex-col gap-1 rounded-card border p-4 transition-all duration-200 ease-brand active:scale-[0.99] ${
                   checked
-                    ? "border-accent bg-surface"
-                    : "border-hairline-strong hover:border-accent"
+                    ? "border-accent bg-surface -translate-y-0.5 shadow-2xs"
+                    : "border-hairline-strong hover:-translate-y-0.5 hover:border-accent hover:bg-surface/60"
                 }`}
               >
                 <span className="flex items-center gap-2">
