@@ -3,15 +3,14 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
-import { ArrowLeft, ArrowRight } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeft, ArrowRight, Sparkle } from "@phosphor-icons/react/dist/ssr";
 
-import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
 /**
  * GROWTH PATH TOOL (formerly Business Health Checker)
  *
- * Diagnostic assessment covering two distinct tracks:
+ * Split-screen interactive diagnostic assessment covering two distinct tracks:
  * 1. For Your Business (Powered by Business Doctor)
  * 2. For Yourself (Powered by The Bookwishes Club)
  *
@@ -19,16 +18,31 @@ import { Progress } from "@/components/ui/progress";
  * identified as the primary focus area.
  */
 
-type Option = { label: string; score: number };
+type Option = { label: string; sublabel: string; score: number };
 type Question = {
   id: string;
   area: string;
+  stageIndex: number; // 0 to 3 for the 4-stage segmented bar
   prompt: string;
   why: string;
   options: Option[];
 };
 
 export type DiagnosticTrack = "business" | "self";
+
+const BUSINESS_STAGES = [
+  "1. STRATEGY",
+  "2. SYSTEMS",
+  "3. REVENUE",
+  "4. CULTURE",
+] as const;
+
+const SELF_STAGES = [
+  "1. SPEAKING",
+  "2. MINDSET",
+  "3. VISION",
+  "4. INFLUENCE",
+] as const;
 
 /**
  * Ten questions for business owners and leaders, powered by Business Doctor.
@@ -37,121 +51,291 @@ const BUSINESS_QUESTIONS: Question[] = [
   {
     id: "clarity",
     area: "Strategy",
-    prompt: "If asked what this business is for, would three different people in the room give three different answers?",
+    stageIndex: 0,
+    prompt: "If asked what this business is for, would three different people give three different answers?",
     why: "Strategy. A business that cannot be described consistently cannot be steered consistently.",
     options: [
-      { label: "No, we would all say the same thing", score: 4 },
-      { label: "Close, with some argument about priorities", score: 3 },
-      { label: "Yes, and it is uncomfortable to admit", score: 2 },
-      { label: "There is no shared answer at all", score: 1 },
+      {
+        label: "Aligned & Unified",
+        sublabel: "No, we would all say the exact same thing",
+        score: 4,
+      },
+      {
+        label: "Mostly Aligned",
+        sublabel: "Close, with some argument about near-term priorities",
+        score: 3,
+      },
+      {
+        label: "Fragmented Direction",
+        sublabel: "Yes, different answers — and it is uncomfortable to admit",
+        score: 2,
+      },
+      {
+        label: "No Shared Clarity",
+        sublabel: "There is no shared answer or written strategy at all",
+        score: 1,
+      },
     ],
   },
   {
     id: "decisions",
     area: "Strategy",
-    prompt: "When a decision needs making, is it clear who decides?",
+    stageIndex: 0,
+    prompt: "When a key decision needs making, is it clear who decides?",
     why: "Decision rights. Unclear ownership of a decision is the most common cause of delay.",
     options: [
-      { label: "Clear, and written down", score: 4 },
-      { label: "Usually clear, but discovered case by case", score: 3 },
-      { label: "It gets made, eventually, by whoever pushes hardest", score: 2 },
-      { label: "Decisions stall and get made by default", score: 1 },
+      {
+        label: "Clear & Documented",
+        sublabel: "Decision ownership is explicit and written down",
+        score: 4,
+      },
+      {
+        label: "Usually Clear",
+        sublabel: "Understood in practice, but figured out case by case",
+        score: 3,
+      },
+      {
+        label: "Driven by Push",
+        sublabel: "It gets made, eventually, by whoever pushes hardest",
+        score: 2,
+      },
+      {
+        label: "Stalled by Default",
+        sublabel: "Decisions bottleneck at the top or get made by default",
+        score: 1,
+      },
     ],
   },
   {
     id: "operations",
     area: "Operations",
+    stageIndex: 1,
     prompt: "Could a competent new hire do the core work well after a written process and some support?",
     why: "Operations. Work that only one person can do is a single point of failure wearing a job title.",
     options: [
-      { label: "Yes, and we have the process written", score: 4 },
-      { label: "Mostly, with gaps we paper over", score: 3 },
-      { label: "It takes much longer than it should", score: 2 },
-      { label: "No. If that person is absent, it stops", score: 1 },
+      {
+        label: "Fully Systematized",
+        sublabel: "Yes, and we have the core playbooks written and tested",
+        score: 4,
+      },
+      {
+        label: "Partially Documented",
+        sublabel: "Mostly, with tribal-knowledge gaps we paper over",
+        score: 3,
+      },
+      {
+        label: "Slow Onboarding",
+        sublabel: "It takes months of shadowing longer than it should",
+        score: 2,
+      },
+      {
+        label: "Key-Person Dependent",
+        sublabel: "No. If that specific person is absent, the work stops",
+        score: 1,
+      },
     ],
   },
   {
     id: "systems",
     area: "Systems",
+    stageIndex: 1,
     prompt: "How much of the business relies on someone remembering to do something?",
     why: "Systems. Memory is not a system, however dependable the person holding it.",
     options: [
-      { label: "Very little. It is built into the process", score: 4 },
-      { label: "Some, mostly in predictable places", score: 3 },
-      { label: "A fair amount, and we all know where", score: 2 },
-      { label: "Almost all of it", score: 1 },
+      {
+        label: "Process-Driven",
+        sublabel: "Very little — checklists and workflows trigger the work",
+        score: 4,
+      },
+      {
+        label: "Predictable Gaps",
+        sublabel: "Some reliance on memory, mostly in known places",
+        score: 3,
+      },
+      {
+        label: "Memory-Heavy",
+        sublabel: "A fair amount, and we all feel the friction when things slip",
+        score: 2,
+      },
+      {
+        label: "Manual & Heroic",
+        sublabel: "Almost all of it lives inside people's heads",
+        score: 1,
+      },
     ],
   },
   {
     id: "sales",
     area: "Sales",
-    prompt: "Do you know where deals are lost between interest and signature?",
+    stageIndex: 2,
+    prompt: "Do you know where deals are lost between initial interest and signature?",
     why: "Sales. Pipeline problems are invisible until they are counted.",
     options: [
-      { label: "Yes, with reasons, and we act on them", score: 4 },
-      { label: "Roughly, from the team's impression", score: 3 },
-      { label: "We know the total but not the reasons", score: 2 },
-      { label: "No. Deals vanish and we find out late", score: 1 },
+      {
+        label: "Tracked & Actioned",
+        sublabel: "Yes, with conversion stages, reasons, and active fixes",
+        score: 4,
+      },
+      {
+        label: "Informal Impression",
+        sublabel: "Roughly, based on the sales team's gut feel",
+        score: 3,
+      },
+      {
+        label: "Totals Only",
+        sublabel: "We know the final revenue numbers but not why deals drop",
+        score: 2,
+      },
+      {
+        label: "Blind Pipeline",
+        sublabel: "No. Deals vanish quietly and we find out too late",
+        score: 1,
+      },
     ],
   },
   {
     id: "promise",
     area: "Marketing",
+    stageIndex: 2,
     prompt: "If a customer described what they bought, would that match what you promised?",
     why: "Marketing. The gap between promise and delivery is where reputation is spent.",
     options: [
-      { label: "They match, and we measure it", score: 4 },
-      { label: "They match in most cases", score: 3 },
-      { label: "There is a gap we are careful not to advertise", score: 2 },
-      { label: "There is a gap and customers have noticed", score: 1 },
+      {
+        label: "Exact Match",
+        sublabel: "Promise and delivery match tightly, and we measure it",
+        score: 4,
+      },
+      {
+        label: "Consistent in Most Cases",
+        sublabel: "They match for the majority of clients and engagements",
+        score: 3,
+      },
+      {
+        label: "Unspoken Gap",
+        sublabel: "There is a delivery gap we are careful not to advertise",
+        score: 2,
+      },
+      {
+        label: "Visible Friction",
+        sublabel: "There is a clear mismatch and customers have noticed",
+        score: 1,
+      },
     ],
   },
   {
     id: "structure",
     area: "Organizational Structure",
-    prompt: "Does each person know what they are accountable for, rather than what they are responsible for?",
+    stageIndex: 3,
+    prompt: "Does each person know what they are accountable for, rather than just tasks?",
     why: "Structure. Accountability is the difference between being given tasks and owning outcomes.",
     options: [
-      { label: "Yes, explicitly", score: 4 },
-      { label: "Broadly, and it is inferred from the role", score: 3 },
-      { label: "Not really, it changes by project", score: 2 },
-      { label: "No. Everyone is responsible for everything", score: 1 },
+      {
+        label: "Explicit Outcome Ownership",
+        sublabel: "Yes, every role has clear, measurable accountabilities",
+        score: 4,
+      },
+      {
+        label: "Broadly Inferred",
+        sublabel: "Mostly understood, though inferred from job titles",
+        score: 3,
+      },
+      {
+        label: "Shifting by Project",
+        sublabel: "Not really — ownership blurs and changes week to week",
+        score: 2,
+      },
+      {
+        label: "Shared Blur",
+        sublabel: "No. Everyone is responsible for everything, so no one owns it",
+        score: 1,
+      },
     ],
   },
   {
     id: "communication",
     area: "Communication",
+    stageIndex: 3,
     prompt: "How many meetings could be removed this month without losing anything?",
     why: "Communication. Most organizations have a communication load problem, not a willingness problem.",
     options: [
-      { label: "Very few. They earn their place", score: 4 },
-      { label: "A few, if we were honest", score: 3 },
-      { label: "A lot of them, honestly", score: 2 },
-      { label: "Most of them. The calendar is the plan", score: 1 },
+      {
+        label: "Lean & High-Signal",
+        sublabel: "Very few — every meeting has a clear purpose and decision",
+        score: 4,
+      },
+      {
+        label: "Minor Bloat",
+        sublabel: "A few status calls could be replaced if we were honest",
+        score: 3,
+      },
+      {
+        label: "Meeting Overload",
+        sublabel: "A lot of them, honestly — we talk more than we execute",
+        score: 2,
+      },
+      {
+        label: "Calendar Is the Plan",
+        sublabel: "Most of them. Constant meetings substitute for real systems",
+        score: 1,
+      },
     ],
   },
   {
     id: "performance",
     area: "Performance",
-    prompt: "Could you state what good performance looks like in any given role, in terms someone else could check?",
+    stageIndex: 3,
+    prompt: "Could you state what good performance looks like in any role, in checkable terms?",
     why: "Performance. Expectations held privately by the person who set them are not expectations.",
     options: [
-      { label: "Yes, written and agreed with the person", score: 4 },
-      { label: "Roughly, and people would mostly agree", score: 3 },
-      { label: "Not precisely. It depends who is judging", score: 2 },
-      { label: "No. It is a matter of opinion", score: 1 },
+      {
+        label: "Written & Agreed",
+        sublabel: "Yes, defined with clear standards agreed with each person",
+        score: 4,
+      },
+      {
+        label: "Shared Understanding",
+        sublabel: "Roughly defined, and the team would mostly agree",
+        score: 3,
+      },
+      {
+        label: "Subjective Judgment",
+        sublabel: "Not precisely — it depends on who is judging that week",
+        score: 2,
+      },
+      {
+        label: "Matter of Opinion",
+        sublabel: "No objective scorecard exists for good performance",
+        score: 1,
+      },
     ],
   },
   {
     id: "culture",
     area: "Organizational Culture",
-    prompt: "If you wrote down what this organization actually rewards, would it match what it says it values?",
+    stageIndex: 3,
+    prompt: "If you wrote down what this organization actually rewards, would it match its stated values?",
     why: "Culture. The gap between the two documents is the culture. Everything else is branding.",
     options: [
-      { label: "Yes, and the two agree closely", score: 4 },
-      { label: "Broadly, with some uncomfortable edges", score: 3 },
-      { label: "Not really", score: 2 },
-      { label: "They are opposites", score: 1 },
+      {
+        label: "Values Match Rewards",
+        sublabel: "Yes, who gets promoted and praised matches what we preach",
+        score: 4,
+      },
+      {
+        label: "Mostly Consistent",
+        sublabel: "Broadly aligned, with a few uncomfortable exceptions",
+        score: 3,
+      },
+      {
+        label: "Noticeable Drift",
+        sublabel: "Not really — we reward firefighting over system building",
+        score: 2,
+      },
+      {
+        label: "Stated vs. Actual Opposites",
+        sublabel: "What we say we value and what we reward are opposites",
+        score: 1,
+      },
     ],
   },
 ];
@@ -163,121 +347,291 @@ const SELF_QUESTIONS: Question[] = [
   {
     id: "spontaneous_speaking",
     area: "Public Speaking",
-    prompt: "When asked to speak in front of a group with little or no notice, how do you typically respond?",
+    stageIndex: 0,
+    prompt: "When asked to speak in front of a group with little or no notice, how do you respond?",
     why: "Public Speaking. Spontaneous confidence comes from structured thinking frameworks, not memorized speeches.",
     options: [
-      { label: "Calm and articulate; I structure my thoughts and deliver with ease", score: 4 },
-      { label: "A little nervous initially, but I find my rhythm and get my point across", score: 3 },
-      { label: "Anxious and rushed; I usually over-explain or hurry to finish", score: 2 },
-      { label: "Overwhelmed or frozen; I actively avoid speaking in front of groups", score: 1 },
+      {
+        label: "Calm & Articulate",
+        sublabel: "I structure my thoughts on the spot and deliver with ease",
+        score: 4,
+      },
+      {
+        label: "Briefly Nervous, Then Steady",
+        sublabel: "A little tension initially, but I find my rhythm quickly",
+        score: 3,
+      },
+      {
+        label: "Anxious & Rushed",
+        sublabel: "I tend to over-explain, ramble, or hurry just to finish",
+        score: 2,
+      },
+      {
+        label: "Frozen or Avoidant",
+        sublabel: "I feel overwhelmed and actively avoid speaking up in groups",
+        score: 1,
+      },
     ],
   },
   {
     id: "articulation_clarity",
     area: "Articulation",
-    prompt: "Do listeners quickly grasp the core point of your message without needing repeated explanations?",
-    why: "Articulation. Clarity of expression directly reflects clarity of thought. Verbosity usually conceals uncertainty.",
+    stageIndex: 0,
+    prompt: "Do listeners quickly grasp your core message without needing repeated explanations?",
+    why: "Articulation. Clarity of expression directly reflects clarity of thought.",
     options: [
-      { label: "Yes, I communicate directly with structured conciseness", score: 4 },
-      { label: "Mostly, though I occasionally wander into tangents before landing the point", score: 3 },
-      { label: "Often takes several tries to communicate what I actually mean", score: 2 },
-      { label: "People frequently misunderstand or misinterpret what I say", score: 1 },
+      {
+        label: "Sharp & Concise",
+        sublabel: "Yes, I communicate directly with structured precision",
+        score: 4,
+      },
+      {
+        label: "Clear with Occasional Tangents",
+        sublabel: "Mostly, though I sometimes wander before landing the point",
+        score: 3,
+      },
+      {
+        label: "Takes Multiple Tries",
+        sublabel: "Often takes several explanations to convey what I mean",
+        score: 2,
+      },
+      {
+        label: "Frequently Misunderstood",
+        sublabel: "People often miss my point or lose track of what I'm saying",
+        score: 1,
+      },
     ],
   },
   {
     id: "stage_presence",
     area: "Executive Presence",
-    prompt: "In meetings or high-stakes discussions, how effectively do you command attention and hold the room?",
+    stageIndex: 0,
+    prompt: "In meetings or high-stakes rooms, how effectively do you command attention?",
     why: "Presence. Authority is communicated through vocal pacing, physical posture, and intentional pauses.",
     options: [
-      { label: "Commanding and natural; others listen attentively when I speak", score: 4 },
-      { label: "Effective when speaking on topics I know intimately", score: 3 },
-      { label: "Easily talked over or sidelined by louder voices in the room", score: 2 },
-      { label: "Invisible; I stay quiet to avoid unwanted attention", score: 1 },
+      {
+        label: "Commanding & Natural",
+        sublabel: "Others listen attentively and lean in when I speak",
+        score: 4,
+      },
+      {
+        label: "Strong in Familiar Territory",
+        sublabel: "Effective when speaking on topics I know intimately",
+        score: 3,
+      },
+      {
+        label: "Easily Talked Over",
+        sublabel: "Often interrupted or sidelined by louder voices in the room",
+        score: 2,
+      },
+      {
+        label: "Quiet & Held Back",
+        sublabel: "I stay silent to avoid scrutiny or unwanted attention",
+        score: 1,
+      },
     ],
   },
   {
     id: "mindset_resilience",
     area: "Mindset & Resilience",
-    prompt: "When faced with sharp criticism or unexpected pushback, what is your immediate internal response?",
-    why: "Mindset. Emotional regulation dictates whether feedback fuels rapid improvement or triggers defensiveness.",
+    stageIndex: 1,
+    prompt: "When faced with sharp criticism or unexpected pushback, what is your internal response?",
+    why: "Mindset. Emotional regulation dictates whether feedback fuels growth or triggers defensiveness.",
     options: [
-      { label: "Receptive and composed; I separate my personal worth from the critique", score: 4 },
-      { label: "Briefly stung, but I quickly refocus on what is actionable", score: 3 },
-      { label: "Defensive and frustrated; the interaction lingers for days", score: 2 },
-      { label: "Deeply discouraged; I view criticism as personal failure", score: 1 },
+      {
+        label: "Composed & Objective",
+        sublabel: "I separate my personal worth from the critique immediately",
+        score: 4,
+      },
+      {
+        label: "Briefly Stung, Quickly Refocused",
+        sublabel: "I feel it for a moment, then extract what is actionable",
+        score: 3,
+      },
+      {
+        label: "Defensive & Lingering",
+        sublabel: "Frustrated in the moment, and the interaction replays for days",
+        score: 2,
+      },
+      {
+        label: "Deeply Discouraged",
+        sublabel: "I internalize criticism as personal failure and pull back",
+        score: 1,
+      },
     ],
   },
   {
     id: "reading_learning",
     area: "Learning & Knowledge",
-    prompt: "How disciplined and consistent is your habit of deep reading and intellectual development?",
-    why: "Knowledge. A structured reading practice is the single fastest way to expand mental models and strategic depth.",
+    stageIndex: 1,
+    prompt: "How disciplined and consistent is your habit of deep reading and self-development?",
+    why: "Knowledge. A structured reading practice is the fastest way to expand mental models and depth.",
     options: [
-      { label: "Consistent daily habit; I actively extract and apply insights", score: 4 },
-      { label: "Regular reader, though I struggle to retain and systematically apply ideas", score: 3 },
-      { label: "Sporadic reading bursts followed by weeks of passive digital scrolling", score: 2 },
-      { label: "Rarely read books or structured self-development material", score: 1 },
+      {
+        label: "Daily Disciplined Habit",
+        sublabel: "I read consistently and actively apply new mental models",
+        score: 4,
+      },
+      {
+        label: "Regular Reader",
+        sublabel: "I read often, though I could apply ideas more systematically",
+        score: 3,
+      },
+      {
+        label: "Sporadic Bursts",
+        sublabel: "Occasional reading followed by weeks of digital distraction",
+        score: 2,
+      },
+      {
+        label: "Rarely Read",
+        sublabel: "I struggle to finish books or sustain structured learning",
+        score: 1,
+      },
     ],
   },
   {
     id: "personal_vision",
     area: "Personal Vision",
-    prompt: "Can you clearly articulate your top 3 personal priorities and boundaries for the next 12 months?",
-    why: "Vision. Without clear self-direction, your calendar and energy get consumed by everyone else's priorities.",
+    stageIndex: 2,
+    prompt: "Can you clearly state your top 3 personal priorities for the next 12 months?",
+    why: "Vision. Without clear self-direction, your calendar and energy get consumed by others' priorities.",
     options: [
-      { label: "Crystal clear, documented, and reviewed weekly", score: 4 },
-      { label: "Clear in my head, though not documented or strictly defended", score: 3 },
-      { label: "Vague and constantly shifting depending on immediate pressures", score: 2 },
-      { label: "No clear personal direction; completely reactive to day-to-day demands", score: 1 },
+      {
+        label: "Documented & Defended",
+        sublabel: "Crystal clear, written down, and reviewed every week",
+        score: 4,
+      },
+      {
+        label: "Mental Clarity Only",
+        sublabel: "Clear in my head, though not written or strictly protected",
+        score: 3,
+      },
+      {
+        label: "Shifting & Reactive",
+        sublabel: "Vague and constantly changing with immediate pressures",
+        score: 2,
+      },
+      {
+        label: "No Clear Direction",
+        sublabel: "Completely reactive to day-to-day demands and urgency",
+        score: 1,
+      },
     ],
   },
   {
     id: "emotional_composure",
     area: "Stress & Composure",
-    prompt: "When high pressure or conflict arises, how well do you maintain mental clarity and emotional control?",
-    why: "Composure. High performance requires an anchored nervous system capable of making sound decisions under fire.",
+    stageIndex: 2,
+    prompt: "When high pressure or conflict arises, how well do you maintain mental clarity?",
+    why: "Composure. High performance requires an anchored nervous system under fire.",
     options: [
-      { label: "Anchored and clear-headed; pressure sharpens my focus", score: 4 },
-      { label: "Mostly composed, with occasional reactive slip-ups under peak stress", score: 3 },
-      { label: "Visibly tense and prone to hasty, emotionally driven reactions", score: 2 },
-      { label: "Overwhelmed by anxiety, leading to avoidance or burnout", score: 1 },
+      {
+        label: "Anchored Under Fire",
+        sublabel: "Pressure actually sharpens my focus and decision-making",
+        score: 4,
+      },
+      {
+        label: "Mostly Steady",
+        sublabel: "Generally composed, with occasional slip-ups at peak stress",
+        score: 3,
+      },
+      {
+        label: "Visibly Tense",
+        sublabel: "Prone to rushed, emotionally driven reactions under stress",
+        score: 2,
+      },
+      {
+        label: "Overwhelmed & Drained",
+        sublabel: "High pressure leads to freeze, avoidance, or burnout",
+        score: 1,
+      },
     ],
   },
   {
     id: "persuasion_influence",
     area: "Storytelling & Influence",
-    prompt: "How effectively can you inspire, persuade, or rally others behind an idea using narrative and emotion?",
-    why: "Influence. People are moved to action by emotional conviction and story, not just logical bullet points.",
+    stageIndex: 3,
+    prompt: "How effectively can you inspire or rally others behind an idea using narrative?",
+    why: "Influence. People are moved to action by conviction and story, not just bullet points.",
     options: [
-      { label: "Very effectively; I use storytelling to create buy-in and alignment", score: 4 },
-      { label: "Good at explaining facts and logic, but less practiced with emotional narrative", score: 3 },
-      { label: "Struggle to persuade skeptics or build genuine excitement", score: 2 },
-      { label: "Unable to influence others without formal authority or title", score: 1 },
+      {
+        label: "High-Impact Storyteller",
+        sublabel: "I use narrative and emotion to create strong alignment",
+        score: 4,
+      },
+      {
+        label: "Logical Explainer",
+        sublabel: "Strong on facts and data, less practiced with story",
+        score: 3,
+      },
+      {
+        label: "Hard to Persuade Skeptics",
+        sublabel: "I struggle to build genuine excitement or buy-in",
+        score: 2,
+      },
+      {
+        label: "Reliant on Title Alone",
+        sublabel: "Unable to influence others without formal authority",
+        score: 1,
+      },
     ],
   },
   {
     id: "self_belief",
     area: "Confidence & Self-Belief",
-    prompt: "When stepping into unfamiliar rooms with senior leaders or industry peers, how secure do you feel in your seat?",
-    why: "Self-Belief. Unchecked impostor syndrome handicaps your contribution before you even say a word.",
+    stageIndex: 3,
+    prompt: "When stepping into rooms with senior leaders or peers, how secure do you feel?",
+    why: "Self-Belief. Unchecked impostor syndrome handicaps your voice before you speak.",
     options: [
-      { label: "Fully grounded; I know my value and feel at home in any room", score: 4 },
-      { label: "Brief hesitation, but I quickly settle in and engage", score: 3 },
-      { label: "Frequent impostor syndrome; I constantly question if I belong", score: 2 },
-      { label: "Paralyzing self-doubt; I minimize my voice and stay unnoticed", score: 1 },
+      {
+        label: "Grounded & Equal",
+        sublabel: "I know my value and feel at home in any room",
+        score: 4,
+      },
+      {
+        label: "Quickly Settled",
+        sublabel: "Brief initial hesitation, then I engage with confidence",
+        score: 3,
+      },
+      {
+        label: "Impostor Syndrome",
+        sublabel: "I frequently question whether I truly belong at the table",
+        score: 2,
+      },
+      {
+        label: "Self-Doubt & Shrinking",
+        sublabel: "I minimize my voice and hope not to be called on",
+        score: 1,
+      },
     ],
   },
   {
     id: "follow_through",
     area: "Discipline & Consistency",
-    prompt: "How dependable is your follow-through on personal commitments when initial enthusiasm and motivation fade?",
-    why: "Discipline. Motivation is temporary; long-term personal authority is built on keeping promises to yourself.",
+    stageIndex: 3,
+    prompt: "How dependable is your follow-through when initial motivation fades?",
+    why: "Discipline. Long-term personal authority is built on keeping promises to yourself.",
     options: [
-      { label: "Uncompromising; my habits run on systems and discipline, not mood", score: 4 },
-      { label: "Generally reliable, with occasional drops when fatigue sets in", score: 3 },
-      { label: "Inconsistent; I start with high excitement but abandon momentum quickly", score: 2 },
-      { label: "Rarely sustain self-directed commitments past the first week", score: 1 },
+      {
+        label: "System-Driven Discipline",
+        sublabel: "My habits run on structure and standards, not mood",
+        score: 4,
+      },
+      {
+        label: "Generally Reliable",
+        sublabel: "Consistent most weeks, with occasional dips when tired",
+        score: 3,
+      },
+      {
+        label: "Start-Stop Momentum",
+        sublabel: "High excitement at the start, followed by quick drop-off",
+        score: 2,
+      },
+      {
+        label: "Struggle to Sustain",
+        sublabel: "Rarely keep self-directed commitments past week one",
+        score: 1,
+      },
     ],
   },
 ];
@@ -343,6 +697,26 @@ const SELF_BANDS: Band[] = [
   },
 ];
 
+/**
+ * Explicit light-surface variable scope for the right-hand card panel so that
+ * it always renders as a crisp white card with dark navy ink, even when placed
+ * inside a `.band-dark` section on service pages.
+ */
+const LIGHT_PANEL_VARS = {
+  "--canvas": "#ffffff",
+  "--surface": "#f7f9fd",
+  "--surface-sunk": "#eef2fa",
+  "--ink": "#0b1730",
+  "--ink-muted": "#5d6679",
+  "--ink-faint": "#8c96ab",
+  "--accent": "#3b5fcc",
+  "--accent-ink": "#ffffff",
+  "--hairline": "rgb(11 23 48 / 0.1)",
+  "--hairline-strong": "rgb(11 23 48 / 0.22)",
+  backgroundColor: "#ffffff",
+  color: "#0b1730",
+} as React.CSSProperties;
+
 export function BusinessHealthChecker({
   initialTrack = "business",
 }: {
@@ -381,6 +755,7 @@ export function BusinessHealthChecker({
   }, []);
 
   const questions = track === "business" ? BUSINESS_QUESTIONS : SELF_QUESTIONS;
+  const stages = track === "business" ? BUSINESS_STAGES : SELF_STAGES;
   const bands = track === "business" ? BUSINESS_BANDS : SELF_BANDS;
   const maxScore = questions.length * 4;
 
@@ -409,7 +784,7 @@ export function BusinessHealthChecker({
 
   const question = questions[index];
   const selected = question ? answers[question.id] : undefined;
-  const answeredCount = Object.keys(answers).length;
+  const currentStage = done ? 3 : (question?.stageIndex ?? 0);
 
   const switchTrack = (nextTrack: DiagnosticTrack) => {
     if (nextTrack === track) return;
@@ -418,6 +793,95 @@ export function BusinessHealthChecker({
     setAnswers({});
     setDone(false);
   };
+
+  /* Left dark sidebar shared across both active quiz and results view */
+  const leftSidebar = (
+    <div className="on-ink flex flex-col justify-between gap-8 p-7 sm:p-9 lg:p-12">
+      {/* Track Switcher */}
+      <div className="flex flex-col gap-3">
+        <div className="inline-grid grid-cols-2 rounded-pill border border-[#f2f5fa]/18 bg-[#14161c] p-1 w-full sm:w-fit">
+          <button
+            type="button"
+            onClick={() => switchTrack("business")}
+            className={`rounded-pill px-4 py-1.5 text-xs font-bold transition-colors duration-200 ${
+              track === "business"
+                ? "bg-[#93a9f5] text-[#0b1730]"
+                : "text-[#a7b0c2] hover:text-[#f2f5fa]"
+            }`}
+          >
+            For Your Business
+          </button>
+          <button
+            type="button"
+            onClick={() => switchTrack("self")}
+            className={`rounded-pill px-4 py-1.5 text-xs font-bold transition-colors duration-200 ${
+              track === "self"
+                ? "bg-[#93a9f5] text-[#0b1730]"
+                : "text-[#a7b0c2] hover:text-[#f2f5fa]"
+            }`}
+          >
+            For Yourself
+          </button>
+        </div>
+      </div>
+
+      {/* Center Hero Copy */}
+      <div className="my-auto flex flex-col gap-4 py-2 lg:py-6">
+        <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-[#93a9f5]">
+          <Sparkle aria-hidden="true" className="size-3.5 shrink-0" weight="fill" />
+          {track === "business" ? "Free Business Quiz" : "Free Self-Mastery Quiz"}
+        </p>
+
+        <h3 className="text-3xl sm:text-4xl lg:text-[2.35rem] font-normal leading-[1.14] tracking-[-0.02em] text-[#f2f5fa] text-balance">
+          {track === "business" ? (
+            <>
+              Find your growth match in{" "}
+              <span className="text-[#93a9f5]">3 minutes</span>
+            </>
+          ) : (
+            <>
+              Find your personal growth edge in{" "}
+              <span className="text-[#93a9f5]">3 minutes</span>
+            </>
+          )}
+        </h3>
+
+        <p className="text-sm sm:text-[15px] leading-relaxed text-[#a7b0c2] max-w-[44ch]">
+          {track === "business"
+            ? "Answer 10 quick questions — we route you to the right Business Doctor focus area: Strategy, Operations, Systems, Sales, Marketing & Culture."
+            : "Answer 10 quick questions — we route you to the right Bookwishes Club focus area: Public Speaking, Articulation, Presence, Resilience & Vision."}
+        </p>
+      </div>
+
+      {/* Bottom 4-Stage Segmented Progress Indicator */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 pt-2">
+        {stages.map((stageLabel, idx) => {
+          const isReached = done || idx <= currentStage;
+          const isCurrent = !done && idx === currentStage;
+          return (
+            <div key={stageLabel} className="flex flex-col gap-2">
+              <div
+                className={`h-1 w-full rounded-pill transition-colors duration-300 ${
+                  isReached ? "bg-[#93a9f5]" : "bg-[#f2f5fa]/20"
+                }`}
+              />
+              <span
+                className={`text-[11px] font-bold uppercase tracking-[0.06em] transition-colors duration-200 ${
+                  isCurrent || done
+                    ? "text-[#f2f5fa]"
+                    : isReached
+                      ? "text-[#f2f5fa]/90"
+                      : "text-[#a7b0c2]"
+                }`}
+              >
+                {stageLabel}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 
   if (done) {
     const weakest = byArea[0];
@@ -428,131 +892,108 @@ export function BusinessHealthChecker({
     const percent = Math.round((total / maxScore) * 100);
 
     return (
-      <div id="health-checker" className="flex flex-col gap-8">
-        {/* Track Switcher */}
-        <div className="flex flex-col gap-3 border-b border-hairline pb-5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-xs font-bold uppercase tracking-wider text-accent">
-              {track === "business" ? "Powered by Business Doctor" : "Powered by The Bookwishes Club"}
-            </span>
-            <p className="text-sm font-bold text-ink">
-              {track === "business" ? "Business Systems & Growth Path" : "Self-Development & Speaking Growth Path"}
+      <div
+        id="health-checker"
+        className="grid overflow-hidden rounded-panel border border-hairline shadow-card lg:grid-cols-[44%_56%] lg:min-h-[600px]"
+      >
+        {leftSidebar}
+
+        <div
+          style={LIGHT_PANEL_VARS}
+          className="flex flex-col justify-between gap-7 p-6 sm:p-9 lg:p-12"
+        >
+          <div className="flex flex-col gap-3">
+            <p className="eyebrow">Your result</p>
+            <p className="text-display-2 leading-display-2 text-balance text-[#0b1730]">
+              {total} out of {maxScore}
             </p>
+            <Progress value={percent} label="Diagnostic assessment score" />
           </div>
 
-          <div className="grid grid-cols-2 p-1 rounded-pill bg-surface-sunk border border-hairline w-full sm:w-auto">
-            <button
-              type="button"
-              onClick={() => switchTrack("business")}
-              className={`px-4 py-2 rounded-pill text-xs font-bold transition-all duration-200 ${
-                track === "business"
-                  ? "bg-ink text-canvas shadow-xs"
-                  : "text-ink-muted hover:text-ink"
-              }`}
-            >
-              For Your Business
-            </button>
-            <button
-              type="button"
-              onClick={() => switchTrack("self")}
-              className={`px-4 py-2 rounded-pill text-xs font-bold transition-all duration-200 ${
-                track === "self"
-                  ? "bg-accent text-accent-ink shadow-xs"
-                  : "text-ink-muted hover:text-ink"
-              }`}
-            >
-              For Yourself
-            </button>
+          <div className="flex flex-col gap-3">
+            <h3 className="text-display-3 max-w-[22ch] leading-[1.12] text-balance text-[#0b1730]">
+              {band.headline}
+            </h3>
+            <p className="measure text-base leading-relaxed text-[#5d6679]">{band.body}</p>
           </div>
-        </div>
 
-        <div className="flex flex-col gap-3">
-          <p className="eyebrow">Your result</p>
-          <p className="text-display-2 leading-display-2 text-balance">
-            {total} out of {maxScore}
-          </p>
-          <Progress value={percent} label="Diagnostic assessment score" />
-        </div>
-
-        <div className="flex flex-col gap-3">
-          <h3 className="text-display-3 max-w-[22ch] leading-[1.12] text-balance">
-            {band.headline}
-          </h3>
-          <p className="measure text-base leading-relaxed text-ink-muted">{band.body}</p>
-        </div>
-
-        {weakest && strongest ? (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="flex flex-col gap-2 rounded-card border border-accent bg-surface p-5">
-              <p className="text-xs font-bold uppercase tracking-[0.14em] text-accent">
-                Look here first
-              </p>
-              {allAreasTied ? (
-                <>
-                  <p className="font-display text-lg font-bold text-ink">No clear weak spot</p>
-                  <p className="text-sm leading-relaxed text-ink-muted">
-                    Every area scored the same, so there is nothing to single out.
-                    Usually that means the answers were uniform rather than that
-                    the business or performance is uniform.
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="font-display text-lg font-bold text-ink">{weakest.area}</p>
-                  <p className="text-sm leading-relaxed text-ink-muted">
-                    Your lowest scoring area. This is where targeted coaching or diagnosis would
-                    spend its time first.
-                  </p>
-                </>
-              )}
+          {weakest && strongest ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="flex flex-col gap-2 rounded-card border border-[#3b5fcc] bg-[#f7f9fd] p-5">
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#3b5fcc]">
+                  Look here first
+                </p>
+                {allAreasTied ? (
+                  <>
+                    <p className="font-display text-lg font-bold text-[#0b1730]">
+                      No clear weak spot
+                    </p>
+                    <p className="text-sm leading-relaxed text-[#5d6679]">
+                      Every area scored the same, so there is nothing to single out.
+                      Usually that means the answers were uniform rather than that
+                      the business or performance is uniform.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-display text-lg font-bold text-[#0b1730]">
+                      {weakest.area}
+                    </p>
+                    <p className="text-sm leading-relaxed text-[#5d6679]">
+                      Your lowest scoring area. This is where targeted coaching or diagnosis would
+                      spend its time first.
+                    </p>
+                  </>
+                )}
+              </div>
+              <div className="flex flex-col gap-2 rounded-card bg-[#eef2fa] p-5">
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#5d6679]">
+                  Strongest area
+                </p>
+                <p className="font-display text-lg font-bold text-[#0b1730]">
+                  {allAreasTied ? "Also no clear leader" : strongest.area}
+                </p>
+                <p className="text-sm leading-relaxed text-[#5d6679]">
+                  {allAreasTied
+                    ? "For the same reason, no area stands out as working better than the rest."
+                    : "Working well. Worth protecting rather than spending all your attention on."}
+                </p>
+              </div>
             </div>
-            <div className="flex flex-col gap-2 rounded-card bg-surface-sunk p-5">
-              <p className="text-xs font-bold uppercase tracking-[0.14em] text-ink-muted">
-                Strongest area
-              </p>
-              <p className="font-display text-lg font-bold text-ink">
-                {allAreasTied ? "Also no clear leader" : strongest.area}
-              </p>
-              <p className="text-sm leading-relaxed text-ink-muted">
-                {allAreasTied
-                  ? "For the same reason, no area stands out as working better than the rest."
-                  : "Working well. Worth protecting rather than spending all your attention on."}
-              </p>
-            </div>
-          </div>
-        ) : null}
+          ) : null}
 
-        <div className="flex flex-col gap-4 rounded-panel bg-surface p-4 sm:p-6">
-          <p className="text-sm leading-relaxed text-ink-muted">
-            This is a self assessment of your own answers. It is not an audit and
-            not a benchmark against any industry. A genuine transformation involves
-            examining the actual practice, not asking you to grade it.
-          </p>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Link
-              href={band.cta.href}
-              className="inline-flex h-12 min-h-[48px] w-full sm:w-auto items-center justify-center rounded-pill bg-accent px-6 text-sm font-bold text-accent-ink transition-[filter,transform] duration-200 ease-brand hover:brightness-110 active:translate-y-px"
-            >
-              {band.cta.label}
-            </Link>
-            <button
-              type="button"
-              onClick={() => switchTrack(track === "business" ? "self" : "business")}
-              className="inline-flex h-12 min-h-[48px] w-full sm:w-auto items-center justify-center rounded-pill bg-surface-sunk border border-hairline px-6 text-sm font-bold text-ink transition-colors duration-200 ease-brand hover:border-accent hover:text-accent"
-            >
-              Assess {track === "business" ? "For Yourself" : "For Your Business"} &rarr;
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setAnswers({});
-                setIndex(0);
-                setDone(false);
-              }}
-              className="inline-flex h-12 min-h-[48px] w-full sm:w-auto items-center justify-center rounded-pill border border-hairline-strong px-6 text-sm font-bold transition-colors duration-200 ease-brand hover:border-accent hover:text-accent"
-            >
-              Start again
-            </button>
+          <div className="flex flex-col gap-4 rounded-card bg-[#f7f9fd] p-4 sm:p-5 border border-[#0b1730]/10">
+            <p className="text-xs sm:text-sm leading-relaxed text-[#5d6679]">
+              This is a self assessment of your own answers. It is not an audit and
+              not a benchmark against any industry. A genuine transformation involves
+              examining the actual practice, not asking you to grade it.
+            </p>
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <Link
+                href={band.cta.href}
+                className="inline-flex h-11 min-h-[44px] w-full sm:w-auto items-center justify-center rounded-pill bg-[#3b5fcc] px-6 text-sm font-bold text-[#ffffff] transition-[filter,transform] duration-200 ease-brand hover:brightness-110 active:translate-y-px"
+              >
+                {band.cta.label}
+              </Link>
+              <button
+                type="button"
+                onClick={() => switchTrack(track === "business" ? "self" : "business")}
+                className="inline-flex h-11 min-h-[44px] w-full sm:w-auto items-center justify-center rounded-pill bg-[#eef2fa] border border-[#0b1730]/12 px-5 text-sm font-bold text-[#0b1730] transition-colors duration-200 ease-brand hover:border-[#3b5fcc] hover:text-[#3b5fcc]"
+              >
+                Assess {track === "business" ? "For Yourself" : "For Your Business"} &rarr;
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAnswers({});
+                  setIndex(0);
+                  setDone(false);
+                }}
+                className="inline-flex h-11 min-h-[44px] w-full sm:w-auto items-center justify-center rounded-pill border border-[#0b1730]/22 px-5 text-sm font-bold text-[#0b1730] transition-colors duration-200 ease-brand hover:border-[#3b5fcc] hover:text-[#3b5fcc]"
+              >
+                Start again
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -564,126 +1005,112 @@ export function BusinessHealthChecker({
   const isLast = index === questions.length - 1;
 
   return (
-    <div id="health-checker" className="flex flex-col gap-8">
-      {/* Track Switcher */}
-      <div className="flex flex-col gap-3 border-b border-hairline pb-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-col gap-0.5">
-          <span className="text-xs font-bold uppercase tracking-wider text-accent">
-            {track === "business" ? "Powered by Business Doctor" : "Powered by The Bookwishes Club"}
-          </span>
-          <p className="text-sm font-bold text-ink">
-            {track === "business" ? "Business Systems & Growth Path" : "Self-Development & Speaking Growth Path"}
+    <div
+      id="health-checker"
+      className="grid overflow-hidden rounded-panel border border-hairline shadow-card lg:grid-cols-[44%_56%] lg:min-h-[600px]"
+    >
+      {leftSidebar}
+
+      {/* Right Column: Clean White Question Panel */}
+      <div
+        style={LIGHT_PANEL_VARS}
+        className="flex flex-col justify-between gap-6 p-6 sm:p-9 lg:p-12"
+      >
+        <div className="flex flex-col gap-6">
+          {/* Question Eyebrow */}
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#3b5fcc]">
+            Question {index + 1} of {questions.length} &mdash; {question.area}
           </p>
+
+          <fieldset className="flex flex-col gap-6">
+            <legend className="flex flex-col gap-2 mb-1">
+              <span className="text-2xl sm:text-[1.75rem] font-normal leading-[1.2] tracking-[-0.02em] text-[#0b1730] text-balance">
+                {question.prompt}
+              </span>
+              <span className="text-xs sm:text-sm leading-relaxed text-[#5d6679]">
+                {question.why}
+              </span>
+            </legend>
+
+            {/* Vertical Single-Column Stack of Option Cards */}
+            <div className="flex flex-col gap-3">
+              {question.options.map((option) => {
+                const id = `hc-${question.id}-${option.score}`;
+                const isSelected = selected === option.score;
+                return (
+                  <label
+                    key={option.score}
+                    htmlFor={id}
+                    className={`group flex cursor-pointer flex-col gap-0.5 rounded-[14px] border px-5 py-3.5 sm:py-4 transition-all duration-150 ${
+                      isSelected
+                        ? "border-[#3b5fcc] bg-[#eef2fa] shadow-2xs"
+                        : "border-[#0b1730]/12 bg-[#ffffff] hover:border-[#3b5fcc]/50 hover:bg-[#f7f9fd]"
+                    }`}
+                  >
+                    <input
+                      id={id}
+                      type="radio"
+                      name={`hc-${question.id}`}
+                      checked={isSelected}
+                      onChange={() =>
+                        setAnswers((a) => ({ ...a, [question.id]: option.score }))
+                      }
+                      className="sr-only"
+                    />
+                    <span className="text-[15px] font-bold leading-snug text-[#0b1730]">
+                      {option.label}
+                    </span>
+                    <span className="text-xs sm:text-[13px] leading-relaxed text-[#5d6679]">
+                      {option.sublabel}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
         </div>
 
-        <div className="grid grid-cols-2 p-1 rounded-pill bg-surface-sunk border border-hairline w-full sm:w-auto">
-          <button
-            type="button"
-            onClick={() => switchTrack("business")}
-            className={`px-4 py-2 rounded-pill text-xs font-bold transition-all duration-200 ${
-              track === "business"
-                ? "bg-ink text-canvas shadow-xs"
-                : "text-ink-muted hover:text-ink"
-            }`}
-          >
-            For Your Business
-          </button>
-          <button
-            type="button"
-            onClick={() => switchTrack("self")}
-            className={`px-4 py-2 rounded-pill text-xs font-bold transition-all duration-200 ${
-              track === "self"
-                ? "bg-accent text-accent-ink shadow-xs"
-                : "text-ink-muted hover:text-ink"
-            }`}
-          >
-            For Yourself
-          </button>
+        {/* Footer Navigation Bar matching reference: <- BACK on left, count + Next on right */}
+        <div className="mt-4 flex items-center justify-between gap-4 pt-3 border-t border-[#0b1730]/8">
+          {index > 0 ? (
+            <button
+              type="button"
+              onClick={() => setIndex((i) => i - 1)}
+              className="inline-flex items-center gap-1.5 py-2 text-xs font-bold uppercase tracking-[0.14em] text-[#5d6679] transition-colors hover:text-[#0b1730]"
+            >
+              <ArrowLeft aria-hidden="true" className="size-3.5" weight="bold" />
+              <span className="sr-only">Previous </span>
+              Back
+            </button>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 py-2 text-xs font-bold uppercase tracking-[0.14em] text-[#5d6679] opacity-40 select-none">
+              <ArrowLeft aria-hidden="true" className="size-3.5" weight="bold" />
+              Back
+            </span>
+          )}
+
+          <div className="flex items-center gap-4">
+            <span className="text-xs font-bold tracking-wider text-[#5d6679]">
+              {index + 1} / {questions.length}
+            </span>
+
+            <button
+              type="button"
+              disabled={selected === undefined}
+              onClick={() => (isLast ? setDone(true) : setIndex((i) => i + 1))}
+              className="inline-flex h-10 min-h-[40px] items-center justify-center gap-2 rounded-pill bg-[#0b1730] px-5 text-xs font-bold uppercase tracking-[0.1em] text-[#ffffff] transition-all duration-200 hover:bg-[#3b5fcc] disabled:opacity-35 disabled:pointer-events-none"
+            >
+              {isLast ? "See the result" : "Next question"}
+              <ArrowRight aria-hidden="true" className="size-3.5" weight="bold" />
+            </button>
+          </div>
         </div>
       </div>
-
-      <div className="flex flex-col gap-3">
-        <div className="flex items-baseline justify-between gap-4">
-          <p className="eyebrow">
-            Question {index + 1} of {questions.length}
-          </p>
-          <p className="text-sm font-bold text-ink-muted">{question.area}</p>
-        </div>
-        <Progress
-          value={Math.round(((index + (selected ? 1 : 0)) / questions.length) * 100)}
-          label="Questions answered"
-        />
-      </div>
-
-      <fieldset className="flex flex-col gap-5">
-        <legend className="flex flex-col gap-3">
-          <span className="text-display-3 max-w-[26ch] leading-[1.14] text-balance">
-            {question.prompt}
-          </span>
-          <span className="measure text-sm leading-relaxed text-ink-muted">{question.why}</span>
-        </legend>
-
-        <div className="grid gap-3 sm:grid-cols-2">
-          {question.options.map((option) => {
-            const id = `hc-${question.id}-${option.score}`;
-            const isSelected = selected === option.score;
-            return (
-              <label
-                key={option.score}
-                htmlFor={id}
-                className={`flex cursor-pointer items-start gap-3 rounded-card border p-3.5 sm:p-4 min-h-[48px] transition-colors duration-200 ease-brand ${
-                  isSelected
-                    ? "border-accent bg-surface"
-                    : "border-hairline bg-surface-sunk hover:border-hairline-strong active:bg-surface"
-                }`}
-              >
-                <input
-                  id={id}
-                  type="radio"
-                  name={`hc-${question.id}`}
-                  checked={isSelected}
-                  onChange={() =>
-                    setAnswers((a) => ({ ...a, [question.id]: option.score }))
-                  }
-                  className="mt-0.5 size-4 shrink-0 accent-[var(--accent)]"
-                />
-                <span className="text-sm leading-relaxed text-ink">{option.label}</span>
-              </label>
-            );
-          })}
-        </div>
-      </fieldset>
-
-      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center">
-        {index > 0 ? (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setIndex((i) => i - 1)}
-            className="w-full sm:w-auto border-hairline-strong text-ink min-h-[44px]"
-          >
-            <ArrowLeft aria-hidden="true" className="size-4" weight="bold" />
-            Previous
-          </Button>
-        ) : null}
-
-        <Button
-          type="button"
-          disabled={selected === undefined}
-          onClick={() => (isLast ? setDone(true) : setIndex((i) => i + 1))}
-          className="w-full sm:w-auto sm:ml-auto min-h-[44px]"
-        >
-          {isLast ? "See the result" : "Next question"}
-          <ArrowRight aria-hidden="true" className="size-4" weight="bold" />
-        </Button>
-      </div>
-
-      <p className="text-xs leading-relaxed text-ink-muted">
-        {answeredCount} of {questions.length} answered. Answers stay in this
-        browser and are not transmitted anywhere.
-      </p>
     </div>
   );
 }
 
-export { BusinessHealthChecker as GrowthPathTool, BusinessHealthChecker as TransformationDiagnostic };
+export {
+  BusinessHealthChecker as GrowthPathTool,
+  BusinessHealthChecker as TransformationDiagnostic,
+};

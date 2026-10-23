@@ -48,6 +48,12 @@ const nextConfig: NextConfig = {
 
   trailingSlash: false,
 
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "50mb",
+    },
+  },
+
   images: {
     /*
       DEMO PHOTOGRAPHY, FROM UNSPLASH.

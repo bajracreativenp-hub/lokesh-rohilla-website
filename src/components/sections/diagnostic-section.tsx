@@ -17,7 +17,6 @@ export function DiagnosticSection() {
       <div id="growth-path-tool" className="sr-only" aria-hidden="true" />
       <div id="growth-path" className="sr-only" aria-hidden="true" />
       <div id="health-check" className="sr-only" aria-hidden="true" />
-      <div id="health-checker" className="sr-only" aria-hidden="true" />
       <Container className="section-y">
         <SectionHeading
           eyebrow={diagnosticSection.eyebrow}
@@ -28,9 +27,7 @@ export function DiagnosticSection() {
 
         <div className="mt-8 sm:mt-12 md:mt-16">
           <Reveal>
-            <div className="rounded-panel border border-hairline bg-canvas p-4 sm:p-6 md:p-10 shadow-card">
-              <BusinessHealthChecker />
-            </div>
+            <BusinessHealthChecker />
           </Reveal>
         </div>
       </Container>

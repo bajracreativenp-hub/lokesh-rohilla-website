@@ -8,7 +8,9 @@ const dirname = path.dirname(filename)
 export const Media: CollectionConfig = {
   slug: 'media',
   upload: {
-    staticDir: path.resolve(dirname, '../../public/media/uploads'),
+    staticDir: process.env.VERCEL
+      ? '/tmp/media/uploads'
+      : path.resolve(dirname, '../../public/media/uploads'),
     adminThumbnail: 'thumbnail',
     mimeTypes: ['image/*', 'application/pdf', 'video/*'],
     imageSizes: [
