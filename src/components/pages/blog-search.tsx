@@ -80,17 +80,26 @@ const ARTICLES: Article[] = [
 
 export function BlogSearch({
   categories,
+  articles,
 }: {
   categories: { slug: string; label: string; note: string }[];
+  articles?: Article[];
 }) {
   const instanceId = useId();
   const reduce = useReducedMotion();
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
+  const allArticles = useMemo(() => {
+    if (!articles || articles.length === 0) return ARTICLES;
+    const dynamicSlugs = new Set(articles.map((a) => a.slug));
+    const fallbacks = ARTICLES.filter((a) => !dynamicSlugs.has(a.slug));
+    return [...articles, ...fallbacks];
+  }, [articles]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return ARTICLES.filter((article) => {
+    return allArticles.filter((article) => {
       const matchesCategory = activeCategory === null || article.category === activeCategory;
       const matchesQuery =
         q.length < 2 ||
@@ -99,7 +108,7 @@ export function BlogSearch({
         article.categoryLabel.toLowerCase().includes(q);
       return matchesCategory && matchesQuery;
     });
-  }, [query, activeCategory]);
+  }, [allArticles, query, activeCategory]);
 
   const searching = query.trim().length >= 2;
 
@@ -108,7 +117,7 @@ export function BlogSearch({
       {/* Search */}
       <div className="flex flex-col gap-3">
         <label htmlFor="blog-search" className="eyebrow">
-          Search {ARTICLES.length} articles
+          Search {allArticles.length} articles
         </label>
         <div className="flex items-center gap-3 rounded-input border border-hairline-strong bg-surface px-4 py-3 transition-colors duration-200 ease-brand focus-within:border-accent">
           <MagnifyingGlass aria-hidden="true" className="size-5 shrink-0 text-ink-muted" weight="bold" />

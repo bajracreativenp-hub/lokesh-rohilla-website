@@ -9,6 +9,9 @@ import { TransformationPillars } from "@/components/sections/transformation-pill
 import { TransformPaths } from "@/components/sections/transform-paths";
 import { WorkedWith } from "@/components/sections/worked-with";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 /**
  * HOMEPAGE
  *

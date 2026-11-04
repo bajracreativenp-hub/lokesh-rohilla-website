@@ -279,7 +279,7 @@ export function BlockView({ block, dark }: { block: Block; dark: boolean }) {
     case "search":
       return (
         <div className="flex flex-col gap-6">
-          <BlogSearch categories={block.categories} />
+          <BlogSearch categories={block.categories} articles={block.articles} />
         </div>
       );
 
@@ -325,7 +325,7 @@ export function BlockView({ block, dark }: { block: Block; dark: boolean }) {
             {block.title}
           </h2>
           <div className="rounded-panel bg-surface p-7 md:p-10">
-            <LeadForm fields={preset.fields} />
+            <LeadForm fields={block.fields || preset.fields} />
           </div>
           <PendingNote>{preset.pending}</PendingNote>
         </div>

@@ -44,11 +44,17 @@ export type Block =
       items: TimelinePhase[];
     }
   | { kind: "photo"; title: string; photo: Photo }
-  | { kind: "form"; title: string; form: string }
+  | {
+      kind: "form";
+      title: string;
+      form: string;
+      fields?: import("@/components/pages/leads/generic-form").FormField[];
+    }
   | { kind: "quiz" }
   | {
       kind: "search";
       categories: { slug: string; label: string; note: string }[];
+      articles?: import("@/components/pages/blog-search").Article[];
     }
   | {
       kind: "frames";
