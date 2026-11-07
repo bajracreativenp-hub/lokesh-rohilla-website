@@ -25,6 +25,7 @@ export type LiveEvent = {
   date: string;
   locationType: "in-person" | "virtual" | "hybrid";
   venue: string;
+  timezone?: string | null;
   status: "upcoming" | "ongoing" | "completed" | "cancelled";
   featured?: boolean;
   bannerImage?: {

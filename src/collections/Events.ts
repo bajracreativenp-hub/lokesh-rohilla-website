@@ -4,7 +4,7 @@ export const Events: CollectionConfig = {
   slug: 'events',
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'date', 'locationType', 'status', 'featured'],
+    defaultColumns: ['title', 'locationType', 'date', 'venue', 'timezone', 'status'],
   },
   access: {
     read: () => true,
@@ -14,51 +14,74 @@ export const Events: CollectionConfig = {
   },
   fields: [
     {
-      name: 'title',
-      type: 'text',
+      name: 'locationType',
+      label: 'Event Type',
+      type: 'select',
       required: true,
+      defaultValue: 'virtual',
+      options: [
+        { label: 'Virtual', value: 'virtual' },
+        { label: 'In Person', value: 'in-person' },
+        { label: 'Hybrid', value: 'hybrid' },
+      ],
     },
     {
-      name: 'slug',
+      name: 'title',
+      label: 'Event Name',
       type: 'text',
       required: true,
-      unique: true,
-      index: true,
       admin: {
-        position: 'sidebar',
+        placeholder: 'e.g. Grow your business exponentially',
       },
     },
     {
+      name: 'bannerImage',
+      label: 'Event Photo',
+      type: 'upload',
+      relationTo: 'media',
+    },
+    {
+      name: 'description',
+      label: 'Details / Description',
+      type: 'richText',
+    },
+    {
       name: 'date',
+      label: 'Date & Time (for Countdown & Display)',
       type: 'date',
       required: true,
       admin: {
-        position: 'sidebar',
         date: {
           pickerAppearance: 'dayAndTime',
         },
       },
     },
     {
-      name: 'locationType',
-      type: 'select',
+      name: 'venue',
+      label: 'Place',
+      type: 'text',
       required: true,
-      defaultValue: 'in-person',
-      options: [
-        { label: 'In Person', value: 'in-person' },
-        { label: 'Virtual', value: 'virtual' },
-        { label: 'Hybrid', value: 'hybrid' },
-      ],
+      defaultValue: 'Virtual',
       admin: {
-        position: 'sidebar',
+        placeholder: 'e.g. Virtual or Hyatt Regency, New Delhi',
       },
     },
     {
-      name: 'venue',
+      name: 'timezone',
+      label: 'Timezone',
       type: 'text',
       required: true,
+      defaultValue: 'IST',
       admin: {
-        placeholder: 'e.g. Virtual via Zoom or Hyatt Regency, New Delhi',
+        placeholder: 'e.g. IST, Eastern, GMT+5:30',
+      },
+    },
+    {
+      name: 'registrationUrl',
+      label: 'Apply Now / Registration Link (Optional)',
+      type: 'text',
+      admin: {
+        placeholder: 'Defaults to /contact#contact-form if left empty',
       },
     },
     {
@@ -80,24 +103,37 @@ export const Events: CollectionConfig = {
       name: 'featured',
       type: 'checkbox',
       defaultValue: false,
-      label: 'Feature on Homepage',
+      label: 'Pin to Top of Events Page',
       admin: {
         position: 'sidebar',
       },
     },
     {
-      name: 'bannerImage',
-      type: 'upload',
-      relationTo: 'media',
-    },
-    {
-      name: 'description',
-      type: 'richText',
-    },
-    {
-      name: 'registrationUrl',
+      name: 'slug',
       type: 'text',
-      label: 'RSVP / Ticket Registration Link',
+      unique: true,
+      index: true,
+      admin: {
+        position: 'sidebar',
+        description: 'Auto-generated from Event Name if left blank.',
+      },
+      hooks: {
+        beforeValidate: [
+          ({ value, data }) => {
+            if (typeof value === 'string' && value.trim().length > 0) {
+              return value.trim()
+            }
+            const base =
+              typeof data?.title === 'string' && data.title.trim().length > 0
+                ? data.title
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-|-$/g, '')
+                : 'event'
+            return `${base}-${Date.now().toString(36)}`
+          },
+        ],
+      },
     },
   ],
 }
