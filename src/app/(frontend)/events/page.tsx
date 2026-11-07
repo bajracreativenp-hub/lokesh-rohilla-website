@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   Briefcase,
-  ChartLineUp,
   MapTrifold,
   Medal,
   MedalMilitary,
@@ -11,6 +10,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 
 import { EventCountdown } from "@/components/pages/event-countdown";
+import { GrowthTrendIcon } from "@/components/pages/growth-trend-icon";
 import { extractTextFromLexical, getLiveEvents, type LiveEvent } from "@/lib/cms";
 import { UNSPLASH } from "@/lib/content";
 
@@ -40,7 +40,7 @@ const DEFAULT_EVENT: LiveEvent = {
 
 const KEY_BENEFITS = [
   {
-    icon: ChartLineUp,
+    icon: null,
     title: "Turbocharge your growth",
     body: "Optimize key processes to realize exponential growth, faster.",
   },
@@ -253,9 +253,13 @@ export default async function EventsPage() {
           <div className="mt-14 grid gap-x-12 gap-y-12 sm:grid-cols-2 md:mt-20 lg:grid-cols-3 lg:gap-x-16 lg:gap-y-14">
             {KEY_BENEFITS.map(({ icon: Icon, title, body }) => (
               <div key={title} className="flex flex-col items-start">
-                <div className="flex size-12 items-center justify-center rounded-xl border border-hairline bg-sunk text-accent">
-                  <Icon aria-hidden="true" className="size-5" weight="regular" />
-                </div>
+                {Icon ? (
+                  <div className="flex size-12 items-center justify-center rounded-xl border border-hairline bg-sunk text-accent">
+                    <Icon aria-hidden="true" className="size-5" weight="regular" />
+                  </div>
+                ) : (
+                  <GrowthTrendIcon />
+                )}
                 <h3 className="mt-5 text-xl font-bold tracking-[-0.015em] text-ink md:text-[1.35rem]">
                   {title}
                 </h3>
