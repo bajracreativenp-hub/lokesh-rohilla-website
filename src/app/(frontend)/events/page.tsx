@@ -4,12 +4,12 @@ import Link from "next/link";
 import {
   MapTrifold,
   Medal,
-  Money,
 } from "@phosphor-icons/react/dist/ssr";
 
 import { EventCountdown } from "@/components/pages/event-countdown";
 import {
   CompetitiveMedalIcon,
+  FinancePiggyBankIcon,
   GrowthTrendIcon,
   SellingBriefcaseIcon,
 } from "@/components/pages/growth-trend-icon";
@@ -60,7 +60,8 @@ const KEY_BENEFITS = [
     body: "Create a comprehensive marketing strategy to target your ideal audience and build leads.",
   },
   {
-    icon: Money,
+    icon: null,
+    animated: "finance" as const,
     title: "Take charge of your finances",
     body: "Leverage Harvard-level insights to steer your business through any economic climate.",
   },
@@ -266,6 +267,8 @@ export default async function EventsPage() {
                     <SellingBriefcaseIcon />
                   ) : "animated" in item && item.animated === "edge" ? (
                     <CompetitiveMedalIcon />
+                  ) : "animated" in item && item.animated === "finance" ? (
+                    <FinancePiggyBankIcon />
                   ) : Icon ? (
                     <div className="flex size-12 items-center justify-center rounded-xl border border-hairline bg-sunk text-accent">
                       <Icon aria-hidden="true" className="size-5" weight="regular" />
