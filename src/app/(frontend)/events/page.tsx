@@ -11,6 +11,7 @@ import {
   GrowthTrendIcon,
   SellingBriefcaseIcon,
 } from "@/components/pages/growth-trend-icon";
+import { PastEventsCarousel, type PastEventCard } from "@/components/pages/past-events-carousel";
 import { extractTextFromLexical, getLiveEvents, type LiveEvent } from "@/lib/cms";
 import { UNSPLASH } from "@/lib/content";
 
@@ -80,11 +81,44 @@ const KEY_BENEFITS = [
 export default async function EventsPage() {
   const liveEvents = await getLiveEvents();
 
+  const activeEvents = liveEvents.filter((e) => e.status !== "completed");
+  const completedEvents = liveEvents.filter((e) => e.status === "completed");
+
   // Sort featured events first while preserving date order from CMS
   const sortedEvents =
-    liveEvents.length > 0
-      ? [...liveEvents].sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)))
+    activeEvents.length > 0
+      ? [...activeEvents].sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)))
       : [DEFAULT_EVENT];
+
+  const pastEventCards: PastEventCard[] = completedEvents.map((event) => ({
+    id: event.id,
+    category: [
+      event.locationType === "in-person"
+        ? "IN-PERSON"
+        : event.locationType === "hybrid"
+          ? "HYBRID"
+          : "VIRTUAL",
+      event.venue,
+    ]
+      .filter(Boolean)
+      .join(" • "),
+    title: event.title,
+    excerpt:
+      (typeof event.description === "string"
+        ? event.description.trim()
+        : extractTextFromLexical(event.description)) ||
+      "Keynote and workshop highlights from this completed session.",
+    image:
+      (event.bannerImage &&
+        typeof event.bannerImage === "object" &&
+        event.bannerImage.url) ||
+      `${UNSPLASH}1540575467063-178a50c2df87?auto=format&fit=crop&w=1000&q=85`,
+    alt:
+      (event.bannerImage &&
+        typeof event.bannerImage === "object" &&
+        event.bannerImage.alt) ||
+      event.title,
+  }));
 
   return (
     <div className="flex flex-col bg-canvas">
@@ -288,6 +322,9 @@ export default async function EventsPage() {
 
       {/* Section 3: Video Testimonials ("See what others are saying") */}
       <EventTestimonialsCarousel />
+
+      {/* Section 4: Past Events */}
+      <PastEventsCarousel items={pastEventCards} />
     </div>
   );
 }
