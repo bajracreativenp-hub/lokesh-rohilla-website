@@ -91,7 +91,7 @@ export default async function EventsPage() {
       : [DEFAULT_EVENT];
 
   const pastEventCards: PastEventCard[] = completedEvents.map((event) => ({
-    id: event.id,
+    id: String(event.id),
     category: [
       event.locationType === "in-person"
         ? "IN-PERSON"
