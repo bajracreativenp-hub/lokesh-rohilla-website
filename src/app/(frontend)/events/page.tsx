@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  Briefcase,
   MapTrifold,
   Medal,
   MedalMilitary,
@@ -10,7 +9,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 
 import { EventCountdown } from "@/components/pages/event-countdown";
-import { GrowthTrendIcon } from "@/components/pages/growth-trend-icon";
+import { GrowthTrendIcon, SellingBriefcaseIcon } from "@/components/pages/growth-trend-icon";
 import { extractTextFromLexical, getLiveEvents, type LiveEvent } from "@/lib/cms";
 import { UNSPLASH } from "@/lib/content";
 
@@ -41,11 +40,13 @@ const DEFAULT_EVENT: LiveEvent = {
 const KEY_BENEFITS = [
   {
     icon: null,
+    animated: "growth" as const,
     title: "Turbocharge your growth",
     body: "Optimize key processes to realize exponential growth, faster.",
   },
   {
-    icon: Briefcase,
+    icon: null,
+    animated: "selling" as const,
     title: "Master the art of selling",
     body: "Close any deal by uncovering the secret behind customer decision-making.",
   },
@@ -251,23 +252,28 @@ export default async function EventsPage() {
           </div>
 
           <div className="mt-14 grid gap-x-12 gap-y-12 sm:grid-cols-2 md:mt-20 lg:grid-cols-3 lg:gap-x-16 lg:gap-y-14">
-            {KEY_BENEFITS.map(({ icon: Icon, title, body }) => (
-              <div key={title} className="flex flex-col items-start">
-                {Icon ? (
-                  <div className="flex size-12 items-center justify-center rounded-xl border border-hairline bg-sunk text-accent">
-                    <Icon aria-hidden="true" className="size-5" weight="regular" />
-                  </div>
-                ) : (
-                  <GrowthTrendIcon />
-                )}
-                <h3 className="mt-5 text-xl font-bold tracking-[-0.015em] text-ink md:text-[1.35rem]">
-                  {title}
-                </h3>
-                <p className="mt-2.5 max-w-[34ch] text-base leading-relaxed text-ink-muted">
-                  {body}
-                </p>
-              </div>
-            ))}
+            {KEY_BENEFITS.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div key={item.title} className="flex flex-col items-start">
+                  {"animated" in item && item.animated === "growth" ? (
+                    <GrowthTrendIcon />
+                  ) : "animated" in item && item.animated === "selling" ? (
+                    <SellingBriefcaseIcon />
+                  ) : Icon ? (
+                    <div className="flex size-12 items-center justify-center rounded-xl border border-hairline bg-sunk text-accent">
+                      <Icon aria-hidden="true" className="size-5" weight="regular" />
+                    </div>
+                  ) : null}
+                  <h3 className="mt-5 text-xl font-bold tracking-[-0.015em] text-ink md:text-[1.35rem]">
+                    {item.title}
+                  </h3>
+                  <p className="mt-2.5 max-w-[34ch] text-base leading-relaxed text-ink-muted">
+                    {item.body}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
