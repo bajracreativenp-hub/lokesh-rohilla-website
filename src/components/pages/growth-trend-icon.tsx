@@ -370,3 +370,60 @@ export function CompetitionAwardIcon() {
     </div>
   );
 }
+
+export function FutureMapPinIcon() {
+  const [hovered, setHovered] = useState(false);
+  const reduce = useReducedMotion();
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="flex size-12 cursor-pointer items-center justify-center rounded-xl border border-hairline bg-sunk text-accent transition-transform duration-200 ease-brand hover:scale-105"
+    >
+      <motion.svg
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.25"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="size-6"
+        style={{ originX: "50%", originY: "90%" }}
+        initial={false}
+        animate={
+          hovered && !reduce
+            ? { y: [0, -3.5, 0.5, 0], scale: [1, 1.05, 0.97, 1] }
+            : { y: 0, scale: 1 }
+        }
+        transition={{ duration: 0.45, ease: "easeInOut" }}
+      >
+        {/* Map pin outer teardrop */}
+        <motion.path
+          d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
+          initial={false}
+          animate={
+            hovered && !reduce
+              ? { pathLength: [0.35, 1], opacity: [0.5, 1] }
+              : { pathLength: 1, opacity: 1 }
+          }
+          transition={{ duration: 0.35, ease: "easeOut" }}
+        />
+        {/* Inner location ring */}
+        <motion.circle
+          cx="12"
+          cy="10"
+          r="3"
+          initial={false}
+          animate={
+            hovered && !reduce
+              ? { scale: [0.65, 1.22, 1], opacity: [0.4, 1, 1] }
+              : { scale: 1, opacity: 1 }
+          }
+          transition={{ duration: 0.4, delay: hovered && !reduce ? 0.1 : 0, ease: "easeOut" }}
+        />
+      </motion.svg>
+    </div>
+  );
+}

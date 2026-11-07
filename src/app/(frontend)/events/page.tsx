@@ -1,15 +1,12 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  MapTrifold,
-} from "@phosphor-icons/react/dist/ssr";
-
 import { EventCountdown } from "@/components/pages/event-countdown";
 import {
   CompetitionAwardIcon,
   CompetitiveMedalIcon,
   FinancePiggyBankIcon,
+  FutureMapPinIcon,
   GrowthTrendIcon,
   SellingBriefcaseIcon,
 } from "@/components/pages/growth-trend-icon";
@@ -72,7 +69,8 @@ const KEY_BENEFITS = [
     body: "Build a brand that is differentiated and adaptable no matter the market trends.",
   },
   {
-    icon: MapTrifold,
+    icon: null,
+    animated: "future" as const,
     title: "Create a map for the future",
     body: "Create a flexible, results-driven plan to achieve your goals faster.",
   },
@@ -259,24 +257,21 @@ export default async function EventsPage() {
 
           <div className="mt-14 grid gap-x-12 gap-y-12 sm:grid-cols-2 md:mt-20 lg:grid-cols-3 lg:gap-x-16 lg:gap-y-14">
             {KEY_BENEFITS.map((item) => {
-              const Icon = item.icon;
               return (
                 <div key={item.title} className="flex flex-col items-start">
-                  {"animated" in item && item.animated === "growth" ? (
+                  {item.animated === "growth" ? (
                     <GrowthTrendIcon />
-                  ) : "animated" in item && item.animated === "selling" ? (
+                  ) : item.animated === "selling" ? (
                     <SellingBriefcaseIcon />
-                  ) : "animated" in item && item.animated === "edge" ? (
+                  ) : item.animated === "edge" ? (
                     <CompetitiveMedalIcon />
-                  ) : "animated" in item && item.animated === "finance" ? (
+                  ) : item.animated === "finance" ? (
                     <FinancePiggyBankIcon />
-                  ) : "animated" in item && item.animated === "competition" ? (
+                  ) : item.animated === "competition" ? (
                     <CompetitionAwardIcon />
-                  ) : Icon ? (
-                    <div className="flex size-12 items-center justify-center rounded-xl border border-hairline bg-sunk text-accent">
-                      <Icon aria-hidden="true" className="size-5" weight="regular" />
-                    </div>
-                  ) : null}
+                  ) : (
+                    <FutureMapPinIcon />
+                  )}
                   <h3 className="mt-5 text-xl font-bold tracking-[-0.015em] text-ink md:text-[1.35rem]">
                     {item.title}
                   </h3>
