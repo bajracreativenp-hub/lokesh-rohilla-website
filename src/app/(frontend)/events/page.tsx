@@ -149,7 +149,7 @@ export default async function EventsPage() {
                 className="-z-20 object-cover object-center"
               />
 
-              {/* Dark readability scrim + signature green stage-light glow */}
+              {/* Dark readability scrim + signature royal-blue stage-light glow */}
               <div
                 aria-hidden="true"
                 className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-black/85 via-black/45 to-black/25"
@@ -160,7 +160,7 @@ export default async function EventsPage() {
               />
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute -bottom-24 right-1/4 -z-10 h-[360px] w-[620px] rounded-full bg-emerald-500/35 blur-[110px]"
+                className="pointer-events-none absolute -bottom-24 right-1/4 -z-10 h-[360px] w-[620px] rounded-full bg-accent/45 blur-[110px]"
               />
 
               {/* Foreground content row */}
@@ -233,18 +233,18 @@ export default async function EventsPage() {
       {/* Section 2: Key Benefits */}
       <section
         aria-labelledby="key-benefits-heading"
-        className="bg-[#28df7c] px-6 py-16 text-neutral-950 md:px-12 md:py-24 lg:py-28"
+        className="hairline-y bg-surface px-6 py-16 text-ink md:px-12 md:py-24 lg:py-28"
       >
         <div className="mx-auto max-w-[1200px]">
           <div className="flex flex-col items-center text-center">
-            <div className="inline-flex items-center gap-2 text-xs font-medium tracking-[0.14em] text-neutral-950/85 uppercase">
-              <span aria-hidden="true" className="size-2 rounded-full bg-neutral-950" />
+            <div className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.14em] text-accent uppercase">
+              <span aria-hidden="true" className="size-2 rounded-full bg-accent" />
               <span>Key Benefits</span>
             </div>
 
             <h2
               id="key-benefits-heading"
-              className="mt-4 text-3xl font-bold tracking-[-0.03em] text-neutral-950 sm:text-4xl md:text-5xl lg:text-[3.5rem] lg:leading-[1.08]"
+              className="mt-4 text-3xl font-bold tracking-[-0.03em] text-ink sm:text-4xl md:text-5xl lg:text-[3.5rem] lg:leading-[1.08]"
             >
               The system for sustainable success
             </h2>
@@ -253,13 +253,13 @@ export default async function EventsPage() {
           <div className="mt-14 grid gap-x-12 gap-y-12 sm:grid-cols-2 md:mt-20 lg:grid-cols-3 lg:gap-x-16 lg:gap-y-14">
             {KEY_BENEFITS.map(({ icon: Icon, title, body }) => (
               <div key={title} className="flex flex-col items-start">
-                <div className="flex size-12 items-center justify-center rounded-xl bg-black/10 text-neutral-950">
+                <div className="flex size-12 items-center justify-center rounded-xl border border-hairline bg-sunk text-accent">
                   <Icon aria-hidden="true" className="size-5" weight="regular" />
                 </div>
-                <h3 className="mt-5 text-xl font-bold tracking-[-0.015em] text-neutral-950 md:text-[1.35rem]">
+                <h3 className="mt-5 text-xl font-bold tracking-[-0.015em] text-ink md:text-[1.35rem]">
                   {title}
                 </h3>
-                <p className="mt-2.5 max-w-[34ch] text-base leading-relaxed text-neutral-950/85">
+                <p className="mt-2.5 max-w-[34ch] text-base leading-relaxed text-ink-muted">
                   {body}
                 </p>
               </div>
