@@ -4,12 +4,15 @@ import Link from "next/link";
 import {
   MapTrifold,
   Medal,
-  MedalMilitary,
   Money,
 } from "@phosphor-icons/react/dist/ssr";
 
 import { EventCountdown } from "@/components/pages/event-countdown";
-import { GrowthTrendIcon, SellingBriefcaseIcon } from "@/components/pages/growth-trend-icon";
+import {
+  CompetitiveMedalIcon,
+  GrowthTrendIcon,
+  SellingBriefcaseIcon,
+} from "@/components/pages/growth-trend-icon";
 import { extractTextFromLexical, getLiveEvents, type LiveEvent } from "@/lib/cms";
 import { UNSPLASH } from "@/lib/content";
 
@@ -51,7 +54,8 @@ const KEY_BENEFITS = [
     body: "Close any deal by uncovering the secret behind customer decision-making.",
   },
   {
-    icon: MedalMilitary,
+    icon: null,
+    animated: "edge" as const,
     title: "Gain a competitive edge",
     body: "Create a comprehensive marketing strategy to target your ideal audience and build leads.",
   },
@@ -260,6 +264,8 @@ export default async function EventsPage() {
                     <GrowthTrendIcon />
                   ) : "animated" in item && item.animated === "selling" ? (
                     <SellingBriefcaseIcon />
+                  ) : "animated" in item && item.animated === "edge" ? (
+                    <CompetitiveMedalIcon />
                   ) : Icon ? (
                     <div className="flex size-12 items-center justify-center rounded-xl border border-hairline bg-sunk text-accent">
                       <Icon aria-hidden="true" className="size-5" weight="regular" />

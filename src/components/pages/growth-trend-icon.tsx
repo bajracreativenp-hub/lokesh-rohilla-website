@@ -110,3 +110,81 @@ export function SellingBriefcaseIcon() {
     </div>
   );
 }
+
+export function CompetitiveMedalIcon() {
+  const [hovered, setHovered] = useState(false);
+  const reduce = useReducedMotion();
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="flex size-12 cursor-pointer items-center justify-center rounded-xl border border-hairline bg-sunk text-accent transition-transform duration-200 ease-brand hover:scale-105"
+    >
+      <motion.svg
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.25"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="size-6"
+        style={{ originX: "50%", originY: "15%" }}
+        initial={false}
+        animate={
+          hovered && !reduce
+            ? { rotate: [0, -8, 8, -4, 0], y: [0, -1.5, 0] }
+            : { rotate: 0, y: 0 }
+        }
+        transition={{ duration: 0.55, ease: "easeInOut" }}
+      >
+        {/* Left & right V-ribbons */}
+        <motion.path
+          d="M6.4 11 2.6 5.2A1 1 0 0 1 3.45 3.6h4.8a1 1 0 0 1 .85.48L12 8.6"
+          initial={false}
+          animate={
+            hovered && !reduce
+              ? { pathLength: [0.3, 1], opacity: [0.5, 1] }
+              : { pathLength: 1, opacity: 1 }
+          }
+          transition={{ duration: 0.35, ease: "easeOut" }}
+        />
+        <motion.path
+          d="m17.6 11 3.8-5.8a1 1 0 0 0-.85-1.6h-4.8a1 1 0 0 0-.85.48L12 8.6"
+          initial={false}
+          animate={
+            hovered && !reduce
+              ? { pathLength: [0.3, 1], opacity: [0.5, 1] }
+              : { pathLength: 1, opacity: 1 }
+          }
+          transition={{ duration: 0.35, ease: "easeOut" }}
+        />
+        {/* Medallion circle */}
+        <motion.circle
+          cx="12"
+          cy="14.5"
+          r="6.5"
+          initial={false}
+          animate={
+            hovered && !reduce
+              ? { scale: [0.88, 1.06, 1] }
+              : { scale: 1 }
+          }
+          transition={{ duration: 0.4, ease: "easeOut" }}
+        />
+        {/* Number 1 inside medallion */}
+        <motion.path
+          d="M10.3 13.5 12.3 11.9v5.5"
+          initial={false}
+          animate={
+            hovered && !reduce
+              ? { pathLength: [0, 1], opacity: [0, 1], scale: [0.8, 1.1, 1] }
+              : { pathLength: 1, opacity: 1, scale: 1 }
+          }
+          transition={{ duration: 0.35, delay: hovered && !reduce ? 0.12 : 0, ease: "easeOut" }}
+        />
+      </motion.svg>
+    </div>
+  );
+}
