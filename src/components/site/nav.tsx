@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
@@ -230,16 +231,19 @@ export function Nav() {
         onMouseEnter={cancelClose}
       >
         <div className="mx-auto flex h-[72px] w-full max-w-[1400px] items-center justify-between gap-4 px-5 md:px-8 lg:px-12">
-          <Link href="/" className="group flex shrink-0 items-center gap-2.5">
-            <span
-              aria-hidden="true"
-              className="grid size-9 place-items-center rounded-[10px] bg-ink text-[0.8125rem] font-extrabold text-canvas transition-transform duration-200 ease-brand group-hover:scale-105"
-            >
-              LR
-            </span>
-            <span className="hidden text-[0.9375rem] font-extrabold tracking-[-0.01em] transition-colors duration-200 ease-brand group-hover:text-accent sm:block">
-              Lokesh Rohilla
-            </span>
+          <Link
+            href="/"
+            aria-label="Lokesh Rohilla"
+            className="group flex shrink-0 items-center"
+          >
+            <Image
+              src="/lokesh-logo.png"
+              alt="Lokesh Rohilla"
+              width={980}
+              height={263}
+              priority
+              className="h-8 w-auto object-contain transition-transform duration-200 ease-brand group-hover:scale-[1.03] sm:h-9 md:h-10"
+            />
           </Link>
 
           <nav
