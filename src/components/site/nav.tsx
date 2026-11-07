@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
@@ -18,6 +17,7 @@ import {
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import { useCart } from "@/components/commerce/cart-context";
+import { SignatureLogo } from "@/components/site/signature-logo";
 import { DESTINATIONS, NAV, ROUTES } from "@/lib/ia";
 
 /**
@@ -236,14 +236,7 @@ export function Nav() {
             aria-label="Lokesh Rohilla"
             className="group flex shrink-0 items-center"
           >
-            <Image
-              src="/lokesh-logo.png"
-              alt="Lokesh Rohilla"
-              width={980}
-              height={263}
-              priority
-              className="h-8 w-auto object-contain transition-transform duration-200 ease-brand group-hover:scale-[1.03] sm:h-9 md:h-10"
-            />
+            <SignatureLogo className="h-9 w-auto sm:h-10 md:h-11" />
           </Link>
 
           <nav
