@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { EventCountdown } from "@/components/pages/event-countdown";
+import { EventTestimonialsCarousel } from "@/components/pages/event-testimonials-carousel";
 import {
   CompetitionAwardIcon,
   CompetitiveMedalIcon,
@@ -284,6 +285,9 @@ export default async function EventsPage() {
           </div>
         </div>
       </section>
+
+      {/* Section 3: Video Testimonials ("See what others are saying") */}
+      <EventTestimonialsCarousel />
     </div>
   );
 }
