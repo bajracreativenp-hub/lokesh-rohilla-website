@@ -325,6 +325,48 @@ export default async function EventsPage() {
 
       {/* Section 4: Past Events */}
       <PastEventsCarousel items={pastEventCards} />
+
+      {/* Section 5: End CTA ("Own your business, don't let it own you") */}
+      <section aria-labelledby="events-final-cta-heading" className="flex flex-col">
+        {/* Top full-bleed stage & crowd banner */}
+        <div className="relative h-[300px] w-full overflow-hidden bg-[#060911] sm:h-[400px] md:h-[500px]">
+          <Image
+            src={`${UNSPLASH}1511578314322-379afb476865?auto=format&fit=crop&w=2000&q=85`}
+            alt="Energized audience at a live Business Mastery event"
+            fill
+            sizes="100vw"
+            className="object-cover object-center"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/25"
+          />
+        </div>
+
+        {/* Bottom brand-themed CTA band */}
+        <div className="hairline-t bg-surface px-6 py-16 text-center text-ink md:px-12 md:py-24 lg:py-28">
+          <div className="mx-auto flex max-w-4xl flex-col items-center">
+            <h2
+              id="events-final-cta-heading"
+              className="text-3xl font-bold tracking-[-0.03em] text-ink sm:text-4xl md:text-5xl lg:text-[3.5rem] lg:leading-[1.08]"
+            >
+              Own your business, don&rsquo;t let it own you
+            </h2>
+
+            <p className="mt-4 max-w-[54ch] text-base leading-relaxed text-ink-muted md:mt-5 md:text-lg">
+              Equip yourself with the tools and strategies to catapult your
+              business forward — without sacrificing extra time and effort.
+            </p>
+
+            <Link
+              href={sortedEvents[0]?.registrationUrl?.trim() || "/contact#contact-form"}
+              className="mt-8 inline-flex h-12 items-center justify-center rounded-pill bg-ink px-8 text-sm font-bold text-canvas transition-all duration-200 ease-brand hover:-translate-y-0.5 hover:bg-accent active:translate-y-0 active:scale-[0.98]"
+            >
+              Apply now
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
