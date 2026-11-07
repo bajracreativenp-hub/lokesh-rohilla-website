@@ -204,53 +204,87 @@ export function FinancePiggyBankIcon() {
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2.25"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
         className="size-6"
         initial={false}
         animate={
           hovered && !reduce
-            ? { y: [0, -2.5, 0], rotate: [0, -5, 4, -2, 0] }
-            : { y: 0, rotate: 0 }
+            ? { y: [0, -1.5, 0] }
+            : { y: 0 }
         }
-        transition={{ duration: 0.5, ease: "easeInOut" }}
+        transition={{ duration: 0.45, ease: "easeInOut" }}
       >
-        {/* Piggy bank body */}
+        {/* Top stacked coin (1st) */}
         <motion.path
-          d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2V5z"
+          d="M12.7 7.4H6.4a1.6 1.6 0 0 1 0-3.2h10a1.6 1.6 0 0 1 .9 2.9"
           initial={false}
           animate={
             hovered && !reduce
-              ? { scale: [1, 1.04, 1] }
+              ? { x: [-2.5, 0], opacity: [0.4, 1] }
+              : { x: 0, opacity: 1 }
+          }
+          transition={{ duration: 0.35, ease: "easeOut" }}
+        />
+        {/* 2nd stacked coin */}
+        <motion.path
+          d="M12.7 7.4H3.6a1.6 1.6 0 0 0 0 3.2h5.3"
+          initial={false}
+          animate={
+            hovered && !reduce
+              ? { x: [-3, 0], opacity: [0.4, 1] }
+              : { x: 0, opacity: 1 }
+          }
+          transition={{ duration: 0.35, delay: hovered && !reduce ? 0.05 : 0, ease: "easeOut" }}
+        />
+        {/* 3rd stacked coin */}
+        <motion.path
+          d="M8.9 10.6H6.2a1.6 1.6 0 0 0 0 3.2H8"
+          initial={false}
+          animate={
+            hovered && !reduce
+              ? { x: [-2.5, 0], opacity: [0.4, 1] }
+              : { x: 0, opacity: 1 }
+          }
+          transition={{ duration: 0.35, delay: hovered && !reduce ? 0.1 : 0, ease: "easeOut" }}
+        />
+        {/* Bottom stacked coin (4th) */}
+        <motion.path
+          d="M8 13.8H4.8a1.6 1.6 0 0 0 0 3.2h3.9"
+          initial={false}
+          animate={
+            hovered && !reduce
+              ? { x: [-2, 0], opacity: [0.4, 1] }
+              : { x: 0, opacity: 1 }
+          }
+          transition={{ duration: 0.35, delay: hovered && !reduce ? 0.15 : 0, ease: "easeOut" }}
+        />
+        {/* Front coin outer ring */}
+        <motion.circle
+          cx="15"
+          cy="14"
+          r="7"
+          initial={false}
+          animate={
+            hovered && !reduce
+              ? { scale: [0.92, 1.06, 1] }
               : { scale: 1 }
           }
           transition={{ duration: 0.4, ease: "easeOut" }}
         />
-        {/* Left curly tail */}
-        <motion.path
-          d="M2 9v1c0 1.1.9 2 2 2h1"
-          initial={false}
-          animate={
-            hovered && !reduce
-              ? { y: [0, -1.5, 1, 0], rotate: [0, -10, 8, 0] }
-              : { y: 0, rotate: 0 }
-          }
-          transition={{ duration: 0.45, ease: "easeInOut" }}
-        />
-        {/* Eye dot */}
+        {/* Front coin inner ring */}
         <motion.circle
-          cx="16"
-          cy="11"
-          r="0.5"
-          fill="currentColor"
+          cx="15"
+          cy="14"
+          r="4.5"
           initial={false}
           animate={
             hovered && !reduce
-              ? { scale: [1, 1.4, 1] }
-              : { scale: 1 }
+              ? { scale: [0.8, 1.12, 1], opacity: [0.5, 1, 1] }
+              : { scale: 1, opacity: 1 }
           }
-          transition={{ duration: 0.35, delay: hovered && !reduce ? 0.1 : 0, ease: "easeOut" }}
+          transition={{ duration: 0.4, delay: hovered && !reduce ? 0.08 : 0, ease: "easeOut" }}
         />
       </motion.svg>
     </div>
