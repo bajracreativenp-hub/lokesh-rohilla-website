@@ -256,3 +256,83 @@ export function FinancePiggyBankIcon() {
     </div>
   );
 }
+
+export function CompetitionAwardIcon() {
+  const [hovered, setHovered] = useState(false);
+  const reduce = useReducedMotion();
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="flex size-12 cursor-pointer items-center justify-center rounded-xl border border-hairline bg-sunk text-accent transition-transform duration-200 ease-brand hover:scale-105"
+    >
+      <motion.svg
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.25"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="size-6"
+        initial={false}
+        animate={
+          hovered && !reduce
+            ? { y: [0, -2, 0], rotate: [0, -6, 6, -3, 0] }
+            : { y: 0, rotate: 0 }
+        }
+        transition={{ duration: 0.5, ease: "easeInOut" }}
+      >
+        {/* Left notched ribbon tail */}
+        <motion.path
+          d="M6.8 12.2 2.8 16.2l3.4.6.6 3.4 4-5.3"
+          initial={false}
+          animate={
+            hovered && !reduce
+              ? { pathLength: [0.25, 1], opacity: [0.4, 1], y: [-1, 0.5, 0] }
+              : { pathLength: 1, opacity: 1, y: 0 }
+          }
+          transition={{ duration: 0.4, ease: "easeOut" }}
+        />
+        {/* Right notched ribbon tail */}
+        <motion.path
+          d="m17.2 12.2 4 4-3.4.6-.6 3.4-4-5.3"
+          initial={false}
+          animate={
+            hovered && !reduce
+              ? { pathLength: [0.25, 1], opacity: [0.4, 1], y: [-1, 0.5, 0] }
+              : { pathLength: 1, opacity: 1, y: 0 }
+          }
+          transition={{ duration: 0.4, ease: "easeOut" }}
+        />
+        {/* Outer rosette ring */}
+        <motion.circle
+          cx="12"
+          cy="9"
+          r="6"
+          initial={false}
+          animate={
+            hovered && !reduce
+              ? { scale: [0.9, 1.07, 1] }
+              : { scale: 1 }
+          }
+          transition={{ duration: 0.4, ease: "easeOut" }}
+        />
+        {/* Inner rosette ring */}
+        <motion.circle
+          cx="12"
+          cy="9"
+          r="2.8"
+          initial={false}
+          animate={
+            hovered && !reduce
+              ? { scale: [0.7, 1.18, 1], opacity: [0.5, 1, 1] }
+              : { scale: 1, opacity: 1 }
+          }
+          transition={{ duration: 0.4, delay: hovered && !reduce ? 0.08 : 0, ease: "easeOut" }}
+        />
+      </motion.svg>
+    </div>
+  );
+}

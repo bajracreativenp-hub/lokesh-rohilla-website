@@ -3,11 +3,11 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   MapTrifold,
-  Medal,
 } from "@phosphor-icons/react/dist/ssr";
 
 import { EventCountdown } from "@/components/pages/event-countdown";
 import {
+  CompetitionAwardIcon,
   CompetitiveMedalIcon,
   FinancePiggyBankIcon,
   GrowthTrendIcon,
@@ -66,7 +66,8 @@ const KEY_BENEFITS = [
     body: "Leverage Harvard-level insights to steer your business through any economic climate.",
   },
   {
-    icon: Medal,
+    icon: null,
+    animated: "competition" as const,
     title: "Stay ahead of the competition",
     body: "Build a brand that is differentiated and adaptable no matter the market trends.",
   },
@@ -269,6 +270,8 @@ export default async function EventsPage() {
                     <CompetitiveMedalIcon />
                   ) : "animated" in item && item.animated === "finance" ? (
                     <FinancePiggyBankIcon />
+                  ) : "animated" in item && item.animated === "competition" ? (
+                    <CompetitionAwardIcon />
                   ) : Icon ? (
                     <div className="flex size-12 items-center justify-center rounded-xl border border-hairline bg-sunk text-accent">
                       <Icon aria-hidden="true" className="size-5" weight="regular" />
