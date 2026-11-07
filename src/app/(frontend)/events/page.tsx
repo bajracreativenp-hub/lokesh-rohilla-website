@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
+import { EventCountdown } from "@/components/pages/event-countdown";
 import { extractTextFromLexical, getLiveEvents } from "@/lib/cms";
 import { UNSPLASH } from "@/lib/content";
 
@@ -35,6 +36,8 @@ export default async function EventsPage() {
         : extractTextFromLexical(featured.description)
       : "") ||
     "Get the concrete strategies and tools that have transformed thousands of businesses at every stage.";
+
+  const targetDateIso = featured?.date || "2027-01-13T09:00:00+05:30";
 
   const dateLabel = featured?.date
     ? new Date(featured.date).toLocaleDateString("en-US", {
@@ -149,18 +152,9 @@ export default async function EventsPage() {
             </div>
           </div>
 
-          {/* Right column: Brand Event Badge */}
+          {/* Right column: Live Event Countdown */}
           <div className="self-start lg:self-end">
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-black/95 px-7 py-5 text-center shadow-2xl">
-              <span className="text-[10px] font-semibold tracking-[0.22em] text-white/80 uppercase">
-                Lokesh Rohilla
-              </span>
-              <span className="mt-1 font-serif text-2xl leading-[1.02] font-bold tracking-[0.04em] text-white uppercase md:text-3xl">
-                Business
-                <br />
-                Mastery
-              </span>
-            </div>
+            <EventCountdown targetDate={targetDateIso} />
           </div>
         </div>
       </section>
