@@ -38,7 +38,7 @@ export async function sendEmail({
   const resend = getResend()
   if (resend) {
     try {
-      const from = process.env.EMAIL_FROM || 'Lokesh Rohilla Studio <onboarding@resend.dev>'
+      const from = process.env.EMAIL_FROM || 'Lokesh Rohilla Studio <login@lokeshrohilla.com>'
       const { data, error } = await resend.emails.send({
         from,
         to: [to],
