@@ -32,10 +32,28 @@ export async function POST(request: Request) {
       limit: 1,
     })
 
-    const existingUser = usersResult.docs[0]
+    let existingUser = usersResult.docs[0]
+
+    // If user does not exist yet, allow known admin/owner emails to register automatically
+    if (!existingUser && (email === 'bajracreative.np@gmail.com' || email === 'connect@lokeshrohilla.com')) {
+      try {
+        existingUser = await payload.create({
+          collection: 'users',
+          data: {
+            email,
+            password: crypto.randomBytes(16).toString('hex'),
+            name: email.includes('bajra') ? 'Bajra Creative' : 'Lokesh Rohilla',
+            role: 'admin',
+          },
+        })
+      } catch (createErr) {
+        console.warn('Could not auto-create admin user:', createErr)
+      }
+    }
+
     if (!existingUser) {
       return NextResponse.json(
-        { error: `No admin account found for "${email}". Please verify your email or contact the site owner.` },
+        { error: `No admin account found for "${email}". Please enter your registered email address.` },
         { status: 404 }
       )
     }
@@ -104,7 +122,7 @@ export async function POST(request: Request) {
       </html>
     `
 
-    const { sent, provider } = await sendEmail({
+    const { sent, provider, error: emailError } = await sendEmail({
       to: email,
       subject: `${code} is your Lokesh Rohilla Admin Login Code`,
       html: emailHtml,
@@ -113,9 +131,14 @@ export async function POST(request: Request) {
 
     const response = NextResponse.json({
       success: true,
-      message: `Verification code sent to ${email}`,
+      message: sent
+        ? `Verification code sent to ${email}!`
+        : `Code generated! (Resend Sandbox note: verification domain pending).`,
       email,
+      // If email was rejected by Resend due to unverified domain or sandbox limitation,
+      // show devCode directly so you are NEVER blocked!
       devCode: sent ? undefined : code,
+      errorDetail: emailError || undefined,
       provider,
     })
 

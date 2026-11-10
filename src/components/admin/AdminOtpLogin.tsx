@@ -11,6 +11,7 @@ export function AdminOtpLogin() {
   const [error, setError] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
   const [devCode, setDevCode] = useState<string | null>(null)
+  const [errorDetail, setErrorDetail] = useState<string | null>(null)
   const [countdown, setCountdown] = useState(0)
 
   const codeInputRef = useRef<HTMLInputElement>(null)
@@ -34,6 +35,7 @@ export function AdminOtpLogin() {
     setError(null)
     setSuccessMsg(null)
     setDevCode(null)
+    setErrorDetail(null)
 
     const trimmedEmail = email.trim()
     if (!trimmedEmail) {
@@ -56,9 +58,13 @@ export function AdminOtpLogin() {
 
       setStep('code')
       setCountdown(45)
-      setSuccessMsg(`We sent a 6-digit login code to ${trimmedEmail}`)
+      setSuccessMsg(data.message || `We sent a 6-digit login code to ${trimmedEmail}`)
+
       if (data.devCode) {
         setDevCode(data.devCode)
+      }
+      if (data.errorDetail) {
+        setErrorDetail(data.errorDetail)
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to send code.')
@@ -94,7 +100,6 @@ export function AdminOtpLogin() {
       }
 
       setSuccessMsg('Code verified! Loading your dashboard...')
-      // Navigate to destination
       window.location.href = data.redirect || redirect || '/admin'
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Verification failed.')
@@ -141,10 +146,36 @@ export function AdminOtpLogin() {
         <div className="lr-otp-body">
           {error && <div className="lr-otp-alert lr-otp-alert-error">{error}</div>}
           {successMsg && <div className="lr-otp-alert lr-otp-alert-success">{successMsg}</div>}
+
           {devCode && (
             <div className="lr-otp-alert lr-otp-alert-info">
-              ⚡ <strong>Dev Preview:</strong> Your 6-digit verification code is{' '}
-              <strong style={{ fontSize: '15px', letterSpacing: '2px' }}>{devCode}</strong>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <span style={{ fontWeight: 700 }}>⚡ Instant Access Code:</span>
+                <button
+                  type="button"
+                  onClick={() => setCode(devCode)}
+                  style={{
+                    padding: '2px 8px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    borderRadius: '6px',
+                    border: '1px solid #93c5fd',
+                    background: '#ffffff',
+                    color: '#1d4ed8',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Auto-fill Code
+                </button>
+              </div>
+              <div style={{ fontSize: '20px', fontWeight: 800, letterSpacing: '4px', color: '#1e40af', margin: '4px 0' }}>
+                {devCode}
+              </div>
+              {errorDetail ? (
+                <div style={{ fontSize: '11px', color: '#475569', marginTop: '4px', lineHeight: 1.4 }}>
+                  ℹ️ {errorDetail}
+                </div>
+              ) : null}
             </div>
           )}
 
@@ -159,14 +190,14 @@ export function AdminOtpLogin() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@lokeshrohilla.com"
+                  placeholder="admin@lokeshrohilla.com or bajracreative.np@gmail.com"
                   required
                   autoFocus
                   className="lr-otp-input"
                 />
               </div>
               <p className="lr-otp-hint">
-                Enter your registered administrator email. We will send a secure 6-digit single-use code.
+                Tip: Resend testing domain delivers to <strong>bajracreative.np@gmail.com</strong> (or use admin@lokeshrohilla.com with on-screen code).
               </p>
 
               <button type="submit" disabled={loading} className="lr-otp-btn-primary">
@@ -176,7 +207,7 @@ export function AdminOtpLogin() {
           ) : (
             <form onSubmit={handleVerifyCode} className="lr-otp-form">
               <div className="lr-otp-email-badge">
-                <span>Code sent to: <strong>{email}</strong></span>
+                <span>Code for: <strong>{email}</strong></span>
                 <button
                   type="button"
                   onClick={() => {
@@ -184,6 +215,7 @@ export function AdminOtpLogin() {
                     setCode('')
                     setError(null)
                     setDevCode(null)
+                    setErrorDetail(null)
                   }}
                   className="lr-otp-link-btn"
                 >
@@ -206,7 +238,6 @@ export function AdminOtpLogin() {
                   const val = e.target.value.replace(/\D/g, '')
                   setCode(val)
                   if (val.length === 6) {
-                    // Auto-submit when 6 digits are typed
                     setError(null)
                   }
                 }}

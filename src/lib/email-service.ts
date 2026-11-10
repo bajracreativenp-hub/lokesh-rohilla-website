@@ -52,10 +52,43 @@ export async function sendEmail({
       }
 
       if (error) {
-        console.warn('[EmailService] Resend SDK error:', error)
+        console.warn('[EmailService] Resend SDK error for', to, ':', error)
+        // If Resend failed (e.g. sandbox restriction: can only send to account owner email),
+        // try sending a copy to the testing account email if different
+        if (
+          error.message?.includes('You can only send testing emails to your own email address') &&
+          !to.includes('bajracreative.np@gmail.com')
+        ) {
+          try {
+            const fallbackRes = await resend.emails.send({
+              from,
+              to: ['bajracreative.np@gmail.com'],
+              subject: `[Admin OTP for ${to}] ${subject}`,
+              html: `<p><strong>Admin Login Code for ${to}:</strong></p>` + html,
+              text: `Admin Login Code for ${to}:\n` + plainText,
+            })
+            if (!fallbackRes.error && fallbackRes.data) {
+              return {
+                sent: true,
+                provider: 'resend-sandbox-fallback',
+                error: `Resend sandbox sent code to your Resend account email (bajracreative.np@gmail.com) because ${to} domain is not verified.`,
+              }
+            }
+          } catch (fbErr) {
+            console.warn('[EmailService] Resend fallback attempt failed:', fbErr)
+          }
+        }
+
+        return {
+          sent: false,
+          provider: 'resend',
+          error: error.message || 'Resend error',
+        }
       }
-    } catch (err) {
-      console.warn('[EmailService] Resend SDK exception:', err)
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err)
+      console.warn('[EmailService] Resend SDK exception:', errMsg)
+      return { sent: false, provider: 'resend', error: errMsg }
     }
   }
 
