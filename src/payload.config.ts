@@ -40,6 +40,7 @@ export default buildConfig({
     },
     components: {
       beforeDashboard: ['/components/admin/BlanxerDashboard#BlanxerDashboard'],
+      beforeLogin: ['/components/admin/AdminOtpLogin#AdminOtpLogin'],
     },
   },
   collections: [Users, Media, Posts, Gallery, Events, Leads, Products],

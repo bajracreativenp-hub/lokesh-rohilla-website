@@ -907,3 +907,248 @@ body {
 .bx-studio-cta:hover {
   background: #1d4ed8;
 }
+
+/* ==========================================================================
+   ADMIN OTP EMAIL CODE LOGIN COMPONENT
+   ========================================================================== */
+
+.lr-otp-card {
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto 24px auto;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 26px 28px;
+  box-shadow: 0 4px 20px rgba(11, 23, 48, 0.05);
+  font-family: var(--font-body);
+  color: #0b1730;
+}
+
+.lr-otp-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eef2fa;
+}
+
+.lr-otp-logo-square {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1e5ae6, #0b1730);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(30, 90, 230, 0.25);
+  flex-shrink: 0;
+}
+
+.lr-otp-brand-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0b1730;
+  letter-spacing: -0.02em;
+}
+
+.lr-otp-brand-sub {
+  font-size: 12px;
+  color: #5d6679;
+  font-weight: 500;
+}
+
+.lr-otp-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  background: #f7f9fd;
+  padding: 4px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border: 1px solid #eef2fa;
+}
+
+.lr-otp-tab {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #5d6679;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.lr-otp-tab:hover {
+  color: #0b1730;
+}
+
+.lr-otp-tab-active {
+  background: #ffffff;
+  color: #1e5ae6 !important;
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(11, 23, 48, 0.08);
+}
+
+.lr-otp-alert {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  margin-bottom: 16px;
+}
+
+.lr-otp-alert-error {
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+}
+
+.lr-otp-alert-success {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+}
+
+.lr-otp-alert-info {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+}
+
+.lr-otp-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lr-otp-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0b1730;
+}
+
+.lr-otp-input {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  color: #0b1730;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.lr-otp-input:focus {
+  outline: none;
+  border-color: #1e5ae6;
+  box-shadow: 0 0 0 3px rgba(30, 90, 230, 0.15);
+}
+
+.lr-otp-input-code {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 2px solid #1e5ae6;
+  background: #f7f9fd;
+  color: #0b1730;
+  font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 12px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.lr-otp-input-code:focus {
+  outline: none;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(30, 90, 230, 0.2);
+}
+
+.lr-otp-hint {
+  font-size: 11.5px;
+  color: #8c96ab;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.lr-otp-btn-primary {
+  width: 100%;
+  padding: 12px 18px;
+  border-radius: 10px;
+  background: #1e5ae6;
+  border: 1px solid #1d4ed8;
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 6px rgba(30, 90, 230, 0.25);
+  margin-top: 4px;
+}
+
+.lr-otp-btn-primary:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.lr-otp-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.lr-otp-email-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #f7f9fd;
+  border: 1px solid #e2e8f0;
+  font-size: 12px;
+  color: #5d6679;
+}
+
+.lr-otp-link-btn {
+  background: none;
+  border: none;
+  color: #1e5ae6;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.lr-otp-link-btn:hover {
+  color: #1d4ed8;
+}
+
+.lr-otp-resend-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.lr-otp-timer {
+  font-size: 12px;
+  color: #8c96ab;
+}
+
+.lr-otp-password-note {
+  font-size: 12.5px;
+  color: #5d6679;
+  line-height: 1.5;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #f7f9fd;
+  border: 1px solid #eef2fa;
+}
