@@ -146,10 +146,12 @@ export async function POST(request: Request) {
       )
     }
 
-    // Generate Payload CMS JWT with authVersion: 1
-    const secretKey = new TextEncoder().encode(secret)
+    // Generate Payload CMS JWT with matching payload.secret and authVersion: 1
+    const signingSecret = payload.secret || secret
+    const secretKey = new TextEncoder().encode(signingSecret)
     const issuedAt = Math.floor(Date.now() / 1000)
     const exp = issuedAt + 7 * 24 * 3600 // 7 days session
+    const sid = crypto.randomUUID()
 
     const payloadToken = await new SignJWT({
       id: user.id,
@@ -157,6 +159,7 @@ export async function POST(request: Request) {
       email: user.email,
       name: user.name,
       role: user.role,
+      sid,
     })
       .setProtectedHeader({
         alg: 'HS256',
@@ -184,9 +187,11 @@ export async function POST(request: Request) {
       },
     })
 
+    const cookieName = `${payload.config.cookiePrefix || 'payload'}-token`
+
     // Set Payload authentication cookie
     response.cookies.set({
-      name: 'payload-token',
+      name: cookieName,
       value: payloadToken,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -194,6 +199,18 @@ export async function POST(request: Request) {
       path: '/',
       maxAge: 7 * 24 * 3600,
     })
+
+    if (cookieName !== 'payload-token') {
+      response.cookies.set({
+        name: 'payload-token',
+        value: payloadToken,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 7 * 24 * 3600,
+      })
+    }
 
     // Clear the OTP session cookie
     response.cookies.set({

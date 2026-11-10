@@ -7,7 +7,10 @@ export const Users: CollectionConfig = {
     useAsTitle: 'email',
     defaultColumns: ['name', 'email', 'role', 'createdAt'],
   },
-  auth: true,
+  auth: {
+    useSessions: false,
+    tokenExpiration: 7 * 24 * 3600,
+  },
   fields: [
     {
       name: 'name',
