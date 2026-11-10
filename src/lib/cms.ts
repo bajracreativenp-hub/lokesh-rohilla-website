@@ -180,7 +180,7 @@ export type LiveSiteSettings = {
   tagline?: string;
   themePreset?:
     | "royal-blue"
-    | "blanxer-violet"
+    | "royal-violet"
     | "emerald"
     | "crimson"
     | "amber"
@@ -194,8 +194,111 @@ export type LiveSiteSettings = {
     | "plus-jakarta"
     | "dm-sans"
     | "space-grotesk"
-    | "outfit";
-  serifFontFamily?: "instrument-serif" | "playfair" | "fraunces";
+    | "outfit"
+    | "custom";
+  serifFontFamily?: "instrument-serif" | "playfair" | "fraunces" | "custom";
+  customFontName?: string | null;
+  customFontUrl?: string | null;
+  customHeadingFontName?: string | null;
+  customHeadingFontUrl?: string | null;
+
+  /* 1. Brand Colours */
+  brandPrimary?: string | null;
+  brandPrimaryHover?: string | null;
+  brandPrimaryActive?: string | null;
+  brandPrimaryLight?: string | null;
+  brandPrimaryDark?: string | null;
+  brandSecondary?: string | null;
+  brandAccent?: string | null;
+  brandTertiary?: string | null;
+
+  /* 2. Background Colours */
+  bgMain?: string | null;
+  bgSecondary?: string | null;
+  bgCard?: string | null;
+  bgHeader?: string | null;
+  bgFooter?: string | null;
+  bgModal?: string | null;
+  bgInput?: string | null;
+
+  /* 3. Typography Colours */
+  textHeading?: string | null;
+  textBody?: string | null;
+  textSecondary?: string | null;
+  textMuted?: string | null;
+  textLink?: string | null;
+  textLinkHover?: string | null;
+  textInverted?: string | null;
+
+  /* 4. Button Colours */
+  btnPrimaryBg?: string | null;
+  btnPrimaryText?: string | null;
+  btnPrimaryHoverBg?: string | null;
+  btnPrimaryActiveBg?: string | null;
+  btnSecondaryBg?: string | null;
+  btnSecondaryText?: string | null;
+  btnSecondaryHoverBg?: string | null;
+  btnSecondaryActiveBg?: string | null;
+  btnOutlineBorder?: string | null;
+  btnOutlineText?: string | null;
+  btnOutlineHoverBg?: string | null;
+  btnOutlineActiveBg?: string | null;
+  btnGhostText?: string | null;
+  btnGhostHoverBg?: string | null;
+  btnGhostActiveBg?: string | null;
+  btnDangerBg?: string | null;
+  btnDangerText?: string | null;
+  btnDangerHoverBg?: string | null;
+  btnDangerActiveBg?: string | null;
+  btnDisabledBg?: string | null;
+  btnDisabledText?: string | null;
+
+  /* 5. Navigation Colours */
+  navBg?: string | null;
+  navText?: string | null;
+  navLinkHover?: string | null;
+  navLinkActive?: string | null;
+  navDropdownBg?: string | null;
+  navMobileBg?: string | null;
+
+  /* 6. Borders & Effects */
+  borderPrimary?: string | null;
+  borderSecondary?: string | null;
+  borderDivider?: string | null;
+  borderCard?: string | null;
+  borderInput?: string | null;
+  effectFocusRing?: string | null;
+  effectShadow?: string | null;
+
+  /* 7. Forms & Input Colours */
+  inputBg?: string | null;
+  inputText?: string | null;
+  inputPlaceholder?: string | null;
+  inputFocusBorder?: string | null;
+  inputDisabledBg?: string | null;
+  inputCheckboxAccent?: string | null;
+  inputRadioAccent?: string | null;
+  inputErrorBorder?: string | null;
+  inputSuccessBorder?: string | null;
+
+  /* 8. Status & Notification Colours */
+  statusSuccessText?: string | null;
+  statusSuccessBg?: string | null;
+  statusSuccessBorder?: string | null;
+  statusWarningText?: string | null;
+  statusWarningBg?: string | null;
+  statusWarningBorder?: string | null;
+  statusErrorText?: string | null;
+  statusErrorBg?: string | null;
+  statusErrorBorder?: string | null;
+  statusInfoText?: string | null;
+  statusInfoBg?: string | null;
+  statusInfoBorder?: string | null;
+  statusNeutralText?: string | null;
+  statusNeutralBg?: string | null;
+  statusNeutralBorder?: string | null;
+
+  /* Landing Page Assets */
   heroPortrait?: MediaRelation;
   heroArtworkUrl?: string | null;
   heroWordmark?: string | null;

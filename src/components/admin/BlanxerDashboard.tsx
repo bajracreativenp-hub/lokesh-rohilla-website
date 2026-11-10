@@ -4,8 +4,8 @@ import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 
 const THEME_HEX_MAP: Record<string, { label: string; hex: string }> = {
-  'royal-blue': { label: 'Royal Blue', hex: '#1e5ae6' },
-  'blanxer-violet': { label: 'Blanxer Violet', hex: '#7c3aed' },
+  'royal-blue': { label: 'Royal Blue', hex: '#3b5fcc' },
+  'royal-violet': { label: 'Royal Violet', hex: '#6d28d9' },
   emerald: { label: 'Emerald Growth', hex: '#059669' },
   crimson: { label: 'Executive Crimson', hex: '#dc2626' },
   amber: { label: 'Warm Amber Gold', hex: '#d97706' },
@@ -20,6 +20,7 @@ const FONT_LABEL_MAP: Record<string, string> = {
   'dm-sans': 'DM Sans',
   'space-grotesk': 'Space Grotesk',
   outfit: 'Outfit',
+  custom: 'Custom Font',
 }
 
 export async function BlanxerDashboard() {
@@ -32,7 +33,7 @@ export async function BlanxerDashboard() {
     media: 0,
   }
   let activeThemeLabel = 'Royal Blue'
-  let activeThemeHex = '#1e5ae6'
+  let activeThemeHex = '#3b5fcc'
   let activeFontLabel = 'Instrument Sans'
 
   try {
@@ -59,17 +60,23 @@ export async function BlanxerDashboard() {
     if (settings) {
       const s = settings as Record<string, unknown>
       const preset = typeof s.themePreset === 'string' ? s.themePreset : 'royal-blue'
+      const brandPrimaryHex = typeof s.brandPrimary === 'string' ? s.brandPrimary.trim() : ''
       const customHex = typeof s.customAccentColor === 'string' ? s.customAccentColor.trim() : ''
-      if (preset === 'custom' && /^#[0-9A-Fa-f]{6}$/.test(customHex)) {
-        activeThemeLabel = `Custom (${customHex})`
-        activeThemeHex = customHex
+      const chosenHex = brandPrimaryHex || customHex
+
+      if (chosenHex && /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(chosenHex)) {
+        activeThemeLabel = `Custom HEX (${chosenHex})`
+        activeThemeHex = chosenHex
       } else if (THEME_HEX_MAP[preset]) {
         activeThemeLabel = THEME_HEX_MAP[preset].label
         activeThemeHex = THEME_HEX_MAP[preset].hex
       }
 
+      const customFontName = typeof s.customFontName === 'string' ? s.customFontName.trim() : ''
       const fontKey = typeof s.fontFamily === 'string' ? s.fontFamily : 'instrument-sans'
-      if (FONT_LABEL_MAP[fontKey]) {
+      if (customFontName) {
+        activeFontLabel = `${customFontName} (Custom)`
+      } else if (FONT_LABEL_MAP[fontKey]) {
         activeFontLabel = FONT_LABEL_MAP[fontKey]
       }
     }
@@ -89,32 +96,33 @@ export async function BlanxerDashboard() {
 
   return (
     <div className="bx-dashboard">
-      {/* Top Blanxer-style Navbar inside Dashboard */}
+      {/* Top Studio Navbar inside Dashboard */}
       <div className="bx-topbar">
         <div className="bx-brand">
           <div className="bx-brand-logo" aria-hidden="true">
-            <svg viewBox="0 0 36 36" width="30" height="30" fill="none">
+            <svg viewBox="0 0 36 36" width="32" height="32" fill="none">
               <defs>
-                <linearGradient id="bxGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#ec4899" />
-                  <stop offset="50%" stopColor="#8b5cf6" />
-                  <stop offset="100%" stopColor="#6366f1" />
+                <linearGradient id="lrBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#1e5ae6" />
+                  <stop offset="60%" stopColor="#3b5fcc" />
+                  <stop offset="100%" stopColor="#0b1730" />
                 </linearGradient>
               </defs>
-              <path
-                d="M18 3C10.5 3 6 8.2 6 14.5c0 4.2 2.4 7.7 6.2 9.4L10 32l8.5-4.3c7.2-.2 11.5-5.1 11.5-11.2C30 9.2 25.2 3 18 3Z"
-                fill="url(#bxGrad1)"
-              />
-              <path
-                d="M14 12.5h8.5a3 3 0 0 1 0 6H15a3 3 0 0 0 0 6h7.5"
-                stroke="#ffffff"
-                strokeWidth="2.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+              <rect x="2" y="2" width="32" height="32" rx="10" fill="url(#lrBlueGrad)" />
+              <text
+                x="18"
+                y="22.5"
+                textAnchor="middle"
+                fill="#ffffff"
+                fontSize="13"
+                fontWeight="800"
+                fontFamily="system-ui, sans-serif"
+              >
+                LR
+              </text>
             </svg>
           </div>
-          <span className="bx-brand-text">lokesh studio</span>
+          <span className="bx-brand-text">Lokesh Rohilla</span>
         </div>
 
         <div className="bx-topbar-actions">
@@ -123,7 +131,7 @@ export async function BlanxerDashboard() {
               <rect x="3" y="3" width="14" height="14" rx="3" />
               <path d="M7 10h6M10 7v6" strokeLinecap="round" />
             </svg>
-            <span>THEME &amp; MEDIA STUDIO</span>
+            <span>THEME, HEX COLOURS &amp; FONTS</span>
           </Link>
 
           <Link href="/" target="_blank" className="bx-pos-btn bx-pos-btn-secondary">
@@ -133,7 +141,7 @@ export async function BlanxerDashboard() {
           <div className="bx-user-cluster">
             <div className="bx-hi-mascot" title="Studio Assistant">
               <span className="bx-hi-pill">Hi</span>
-              <span className="bx-mascot-dot">✨</span>
+              <span className="bx-mascot-dot">⚡</span>
             </div>
             <div className="bx-avatar" title="Lokesh Rohilla (Owner)">
               LR
@@ -153,7 +161,7 @@ export async function BlanxerDashboard() {
 
         <div className="bx-quick-pills">
           <Link href="/admin/globals/site-settings" className="bx-pill-action bx-pill-primary">
-            🎨 Change Theme &amp; Font
+            🎨 Edit 8 Colour Groups &amp; Custom Fonts
           </Link>
           <Link href="/admin/globals/site-settings" className="bx-pill-action">
             🎬 Edit Landing Videos &amp; Photos
@@ -175,7 +183,7 @@ export async function BlanxerDashboard() {
 
       {/* Row 1: 3 KPI Cards */}
       <div className="bx-kpi-grid">
-        {/* Card 1: Revenue / Shop & Events */}
+        {/* Card 1: Shop & Events */}
         <Link href="/admin/collections/products" className="bx-card bx-kpi-card">
           <div className="bx-kpi-top">
             <span className="bx-kpi-title">Shop &amp; Events</span>
@@ -191,13 +199,13 @@ export async function BlanxerDashboard() {
             {counts.products} Shop Products • {counts.events} Events
           </div>
           <div className="bx-progress-track">
-            <div className="bx-progress-fill-purple" style={{ width: '62%' }}>
+            <div className="bx-progress-fill-blue" style={{ width: '66%' }}>
               <span className="bx-progress-dot" />
             </div>
           </div>
         </Link>
 
-        {/* Card 2: Orders / Leads & Registrations */}
+        {/* Card 2: Leads & Inquiries */}
         <Link href="/admin/collections/leads" className="bx-card bx-kpi-card">
           <div className="bx-kpi-top">
             <span className="bx-kpi-title">Leads &amp; Inquiries</span>
@@ -217,7 +225,7 @@ export async function BlanxerDashboard() {
           </div>
         </Link>
 
-        {/* Card 3: Average Order Value / Blogs & Gallery */}
+        {/* Card 3: Blogs & Gallery */}
         <Link href="/admin/collections/posts" className="bx-card bx-kpi-card">
           <div className="bx-kpi-top">
             <span className="bx-kpi-title">Blogs &amp; Gallery</span>
@@ -242,13 +250,13 @@ export async function BlanxerDashboard() {
       <div className="bx-card bx-leaderboard-card">
         <div className="bx-leaderboard-header">
           <div>
-            <h2 className="bx-section-title">Studio Channel Leaderboard</h2>
+            <h2 className="bx-section-title">Website &amp; CMS Status Overview</h2>
             <p className="bx-section-sub">
               {now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} • updates in real time
             </p>
           </div>
           <Link href="/admin/globals/site-settings" className="bx-view-all-link">
-            Open Theme &amp; Media Studio ↗
+            Open HEX Colour &amp; Font Studio ↗
           </Link>
         </div>
 
@@ -268,10 +276,10 @@ export async function BlanxerDashboard() {
               </div>
             </div>
             <p className="bx-champion-Status">
-              You&apos;re <strong>#1 on Studio Sync</strong> — Events, Blogs, Gallery, Shop &amp; Landing Page Media are 100% live!
+              <strong>100% Connected</strong> — Events, Blogs, Gallery, Shop, 8 HEX Colour Groups &amp; Custom Fonts are synced!
             </p>
             <p className="bx-champion-code">
-              Active Theme Color: <strong>{activeThemeHex}</strong> • Active Font: <strong>{activeFontLabel}</strong>
+              Active Brand Colour: <strong>{activeThemeHex}</strong> • Active Font: <strong>{activeFontLabel}</strong>
             </p>
           </div>
 
@@ -282,7 +290,7 @@ export async function BlanxerDashboard() {
               <Link href="/admin/globals/site-settings" className="bx-top3-item bx-top3-item-active">
                 <div className="bx-top3-left">
                   <span className="bx-medal bx-medal-gold">1</span>
-                  <span className="bx-top3-code">APPEARANCE &amp; LANDING MEDIA</span>
+                  <span className="bx-top3-code">HEX COLOURS, FONTS &amp; MEDIA</span>
                   <span className="bx-you-tag">Live</span>
                 </div>
                 <span className="bx-top3-val">
@@ -329,20 +337,20 @@ export async function BlanxerDashboard() {
             <svg viewBox="0 0 500 170" className="bx-line-svg" preserveAspectRatio="none">
               <defs>
                 <linearGradient id="bxLineFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.22" />
-                  <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.0" />
+                  <stop offset="0%" stopColor="#1e5ae6" stopOpacity="0.22" />
+                  <stop offset="100%" stopColor="#1e5ae6" stopOpacity="0.0" />
                 </linearGradient>
               </defs>
               {/* Grid lines */}
-              <line x1="36" y1="25" x2="485" y2="25" stroke="#f1f5f9" strokeWidth="1" />
-              <line x1="36" y1="68" x2="485" y2="68" stroke="#f1f5f9" strokeWidth="1" />
-              <line x1="36" y1="111" x2="485" y2="111" stroke="#f1f5f9" strokeWidth="1" />
-              <line x1="36" y1="150" x2="485" y2="150" stroke="#f1f5f9" strokeWidth="1" />
+              <line x1="36" y1="25" x2="485" y2="25" stroke="#eef2fa" strokeWidth="1" />
+              <line x1="36" y1="68" x2="485" y2="68" stroke="#eef2fa" strokeWidth="1" />
+              <line x1="36" y1="111" x2="485" y2="111" stroke="#eef2fa" strokeWidth="1" />
+              <line x1="36" y1="150" x2="485" y2="150" stroke="#eef2fa" strokeWidth="1" />
               {/* Y labels */}
-              <text x="8" y="29" fill="#94a3b8" fontSize="11" fontWeight="600">80</text>
-              <text x="8" y="72" fill="#94a3b8" fontSize="11" fontWeight="600">60</text>
-              <text x="8" y="115" fill="#94a3b8" fontSize="11" fontWeight="600">40</text>
-              <text x="8" y="154" fill="#94a3b8" fontSize="11" fontWeight="600">20</text>
+              <text x="8" y="29" fill="#8c96ab" fontSize="11" fontWeight="600">80</text>
+              <text x="8" y="72" fill="#8c96ab" fontSize="11" fontWeight="600">60</text>
+              <text x="8" y="115" fill="#8c96ab" fontSize="11" fontWeight="600">40</text>
+              <text x="8" y="154" fill="#8c96ab" fontSize="11" fontWeight="600">20</text>
               {/* Smooth curve */}
               <path
                 d="M 40 145 C 95 140, 130 110, 175 115 C 220 120, 250 38, 290 35 C 330 32, 365 95, 410 75 C 445 60, 465 45, 485 40 L 485 150 L 40 150 Z"
@@ -351,12 +359,12 @@ export async function BlanxerDashboard() {
               <path
                 d="M 40 145 C 95 140, 130 110, 175 115 C 220 120, 250 38, 290 35 C 330 32, 365 95, 410 75 C 445 60, 465 45, 485 40"
                 fill="none"
-                stroke="#7c3aed"
+                stroke="#1e5ae6"
                 strokeWidth="2.5"
                 strokeLinecap="round"
               />
-              <circle cx="290" cy="35" r="4.5" fill="#ffffff" stroke="#7c3aed" strokeWidth="2.5" />
-              <circle cx="485" cy="40" r="4" fill="#7c3aed" />
+              <circle cx="290" cy="35" r="4.5" fill="#ffffff" stroke="#1e5ae6" strokeWidth="2.5" />
+              <circle cx="485" cy="40" r="4" fill="#1e5ae6" />
             </svg>
           </div>
 
@@ -380,7 +388,7 @@ export async function BlanxerDashboard() {
           </div>
         </div>
 
-        {/* Bottom Right: Weekly Sales / Theme & Landing Page Customizer */}
+        {/* Bottom Right: Weekly Reach & Theme Studio */}
         <div className="bx-card bx-chart-card">
           <div className="bx-weekly-header">
             <div>
@@ -389,10 +397,10 @@ export async function BlanxerDashboard() {
             </div>
             <div className="bx-legend">
               <span className="bx-legend-item">
-                <i className="bx-dot-purple" /> This week
+                <i className="bx-dot-blue" /> This week
               </span>
               <span className="bx-legend-item">
-                <i className="bx-dot-lavender" /> Last week
+                <i className="bx-dot-light-blue" /> Last week
               </span>
             </div>
           </div>
@@ -404,7 +412,7 @@ export async function BlanxerDashboard() {
             <span className="bx-vs-text">vs 31,41,500 last week</span>
           </div>
 
-          {/* Bar Chart matching screenshot */}
+          {/* Bar Chart */}
           <div className="bx-bar-chart">
             <div className="bx-bar-y-axis">
               <span>7.8L</span>
@@ -458,7 +466,7 @@ export async function BlanxerDashboard() {
                   Theme: {activeThemeLabel} • Font: {activeFontLabel}
                 </div>
                 <div className="bx-studio-swatch-sub">
-                  Hero, Hunger, Coaching &amp; Testimonial Videos/Photos connected
+                  8 HEX Colour Categories, Custom Fonts &amp; Landing Media connected
                 </div>
               </div>
             </div>

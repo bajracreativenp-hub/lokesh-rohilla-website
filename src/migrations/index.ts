@@ -1,6 +1,7 @@
 import * as migration0 from './20261019_000000_init'
 import * as migration1 from './20261107_000001_add_events_timezone'
 import * as migration2 from './20261110_000002_site_settings_theme_and_assets'
+import * as migration3 from './20261110_000003_site_settings_full_theme_tokens'
 
 export const migrations = [
   {
@@ -17,5 +18,10 @@ export const migrations = [
     name: '20261110_000002_site_settings_theme_and_assets',
     up: migration2.up,
     down: migration2.down,
+  },
+  {
+    name: '20261110_000003_site_settings_full_theme_tokens',
+    up: migration3.up,
+    down: migration3.down,
   },
 ]
