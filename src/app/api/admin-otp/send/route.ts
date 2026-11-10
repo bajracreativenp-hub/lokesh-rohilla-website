@@ -140,14 +140,27 @@ export async function POST(request: Request) {
       text: `Your admin verification code is: ${code}. Valid for 10 minutes.`,
     })
 
+    if (!sent) {
+      const isMissingKey = provider === 'console-log'
+      const errorMsg = isMissingKey
+        ? 'Email service key missing: Please add RESEND_API_KEY to your Vercel Project Environment Variables and redeploy.'
+        : (emailError || 'Failed to deliver login code email via Resend.')
+
+      return NextResponse.json(
+        {
+          error: errorMsg,
+          sent: false,
+          provider,
+        },
+        { status: 502 }
+      )
+    }
+
     const response = NextResponse.json({
       success: true,
-      message: sent
-        ? `Verification code sent to ${email}!`
-        : `Verification code generated for ${email}.`,
+      message: `Verification code sent to ${email}!`,
       email,
-      sent,
-      errorDetail: emailError || undefined,
+      sent: true,
       provider,
     })
 

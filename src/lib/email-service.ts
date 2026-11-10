@@ -15,9 +15,22 @@ export type SendEmailResult = {
 
 let resendInstance: Resend | null = null
 
+function getResendKey(): string | undefined {
+  const rawKey =
+    process.env.RESEND_API_KEY ||
+    process.env.RESEND_KEY ||
+    process.env.RESEND_APIKEY ||
+    process.env.RESEND_TOKEN ||
+    process.env.NEXT_PUBLIC_RESEND_API_KEY
+
+  if (!rawKey) return undefined
+  return rawKey.trim().replace(/^["']|["']$/g, '')
+}
+
 function getResend(): Resend | null {
-  if (!resendInstance && process.env.RESEND_API_KEY) {
-    resendInstance = new Resend(process.env.RESEND_API_KEY)
+  const key = getResendKey()
+  if (!resendInstance && key) {
+    resendInstance = new Resend(key)
   }
   return resendInstance
 }
