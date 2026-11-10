@@ -1,5 +1,6 @@
 import configPromise from '@payload-config'
 import '@payloadcms/next/css'
+import './admin-theme.css'
 import { RootLayout, handleServerFunctions } from '@payloadcms/next/layouts'
 import type { ServerFunctionClient } from 'payload'
 import React from 'react'

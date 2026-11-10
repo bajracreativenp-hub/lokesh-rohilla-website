@@ -165,6 +165,104 @@ export async function getLivePosts(): Promise<LivePost[]> {
   }
 }
 
+export type MediaRelation =
+  | {
+      url?: string;
+      alt?: string;
+    }
+  | number
+  | string
+  | null
+  | undefined;
+
+export type LiveSiteSettings = {
+  siteTitle?: string;
+  tagline?: string;
+  themePreset?:
+    | "royal-blue"
+    | "blanxer-violet"
+    | "emerald"
+    | "crimson"
+    | "amber"
+    | "teal"
+    | "indigo"
+    | "custom";
+  customAccentColor?: string | null;
+  fontFamily?:
+    | "instrument-sans"
+    | "inter"
+    | "plus-jakarta"
+    | "dm-sans"
+    | "space-grotesk"
+    | "outfit";
+  serifFontFamily?: "instrument-serif" | "playfair" | "fraunces";
+  heroPortrait?: MediaRelation;
+  heroArtworkUrl?: string | null;
+  heroWordmark?: string | null;
+  heroLede?: string | null;
+  hungerPortrait?: MediaRelation;
+  hungerPortraitUrl?: string | null;
+  hungerVideoThumb?: MediaRelation;
+  hungerVideoUrl?: string | null;
+  coachingVideoThumb?: MediaRelation;
+  coachingVideoUrl?: string | null;
+  pathOneImage?: MediaRelation;
+  pathTwoImage?: MediaRelation;
+  pathThreeImage?: MediaRelation;
+  testimonialOneThumb?: MediaRelation;
+  testimonialOneTitle?: string | null;
+  testimonialOneUrl?: string | null;
+  testimonialTwoThumb?: MediaRelation;
+  testimonialTwoTitle?: string | null;
+  testimonialTwoUrl?: string | null;
+  testimonialThreeThumb?: MediaRelation;
+  testimonialThreeTitle?: string | null;
+  testimonialThreeUrl?: string | null;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+  socialLinks?: {
+    linkedin?: string | null;
+    twitter?: string | null;
+    instagram?: string | null;
+    youtube?: string | null;
+  };
+  diagnosticQuizActive?: boolean;
+};
+
+/**
+ * Resolves a Payload Media upload object or optional URL string, falling back to defaultSrc.
+ */
+export function resolveMediaUrl(
+  upload: MediaRelation,
+  urlFallback: string | null | undefined,
+  defaultSrc: string,
+): string {
+  if (upload && typeof upload === "object" && typeof upload.url === "string" && upload.url.trim()) {
+    return upload.url.trim();
+  }
+  if (typeof urlFallback === "string" && urlFallback.trim()) {
+    return urlFallback.trim();
+  }
+  return defaultSrc;
+}
+
+/**
+ * Get global SiteSettings (theme color, fonts, landing page photos & videos).
+ */
+export async function getSiteSettings(): Promise<LiveSiteSettings> {
+  try {
+    const payload = await getPayload({ config: configPromise });
+    const settings = await payload.findGlobal({
+      slug: "site-settings",
+      depth: 1,
+    });
+    return (settings as unknown as LiveSiteSettings) ?? {};
+  } catch (error) {
+    console.warn("Could not query site-settings from Payload CMS:", error);
+    return {};
+  }
+}
+
 /**
  * Get gallery items from Payload CMS.
  */

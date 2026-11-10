@@ -19,6 +19,8 @@ export type Article = {
   categoryLabel: string;
   standfirst: string;
   readTime: string;
+  body?: string;
+  image?: string;
 };
 
 const ARTICLES: Article[] = [
@@ -89,6 +91,7 @@ export function BlogSearch({
   const reduce = useReducedMotion();
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [expandedSlug, setExpandedSlug] = useState<string | null>(null);
 
   const allArticles = useMemo(() => {
     if (!articles || articles.length === 0) return ARTICLES;
@@ -132,8 +135,8 @@ export function BlogSearch({
         </div>
         <p aria-live="polite" className="text-sm text-ink-muted">
           {searching || activeCategory !== null
-            ? `Showing ${filtered.length} of ${ARTICLES.length} articles.`
-            : `Showing all ${ARTICLES.length} published essays.`}
+            ? `Showing ${filtered.length} of ${allArticles.length} articles.`
+            : `Showing all ${allArticles.length} published essays.`}
         </p>
       </div>
 
@@ -206,23 +209,47 @@ export function BlogSearch({
         >
           {filtered.length > 0 ? (
             <ul className="grid gap-5 md:grid-cols-2">
-              {filtered.map((article) => (
-                <li
-                  key={article.slug}
-                  className="flex flex-col justify-between gap-4 rounded-card border border-hairline bg-surface p-6 transition-all duration-300 ease-brand hover:-translate-y-1 hover:border-hairline-strong hover:shadow-card"
-                >
-                  <div className="flex flex-col gap-2.5">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="eyebrow">{article.categoryLabel}</p>
-                      <span className="text-xs font-semibold text-ink-muted">{article.readTime}</span>
+              {filtered.map((article) => {
+                const isExpanded = expandedSlug === article.slug;
+                return (
+                  <li
+                    key={article.slug}
+                    onClick={() => setExpandedSlug(isExpanded ? null : article.slug)}
+                    className="flex cursor-pointer flex-col justify-between gap-4 rounded-card border border-hairline bg-surface p-6 transition-all duration-300 ease-brand hover:-translate-y-1 hover:border-hairline-strong hover:shadow-card"
+                  >
+                    <div className="flex flex-col gap-2.5">
+                      {article.image ? (
+                        <div className="mb-2 aspect-[16/9] w-full overflow-hidden rounded-lg bg-surface-sunk">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={article.image}
+                            alt={article.title}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                      ) : null}
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="eyebrow">{article.categoryLabel}</p>
+                        <span className="text-xs font-semibold text-ink-muted">{article.readTime}</span>
+                      </div>
+                      <h3 className="font-display text-lg font-bold leading-snug text-ink">
+                        {article.title}
+                      </h3>
+                      <p className="text-sm leading-relaxed text-ink-muted">{article.standfirst}</p>
+                      {isExpanded && article.body && article.body !== article.standfirst ? (
+                        <div className="mt-3 border-t border-hairline pt-3 text-sm leading-relaxed text-ink whitespace-pre-line">
+                          {article.body}
+                        </div>
+                      ) : null}
+                      {article.body && article.body !== article.standfirst ? (
+                        <span className="mt-1 text-xs font-bold text-accent">
+                          {isExpanded ? "Show less ↑" : "Read full article →"}
+                        </span>
+                      ) : null}
                     </div>
-                    <h3 className="font-display text-lg font-bold leading-snug text-ink">
-                      {article.title}
-                    </h3>
-                    <p className="text-sm leading-relaxed text-ink-muted">{article.standfirst}</p>
-                  </div>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           ) : (
             <div className="rounded-panel bg-sunk p-6">

@@ -1,9 +1,21 @@
 import type { Metadata, Viewport } from "next";
-import { Instrument_Sans, Instrument_Serif, JetBrains_Mono } from "next/font/google";
+import {
+  DM_Sans,
+  Fraunces,
+  Instrument_Sans,
+  Instrument_Serif,
+  Inter,
+  JetBrains_Mono,
+  Outfit,
+  Playfair_Display,
+  Plus_Jakarta_Sans,
+  Space_Grotesk,
+} from "next/font/google";
 
 import { CartProvider } from "@/components/commerce/cart-context";
 import { Footer } from "@/components/site/footer";
 import { Nav } from "@/components/site/nav";
+import { getSiteSettings } from "@/lib/cms";
 import { SITE_DESCRIPTION } from "@/lib/content";
 import { SITE_ORIGIN } from "@/lib/site";
 
@@ -75,6 +87,82 @@ const figure = JetBrains_Mono({
   display: "swap",
 });
 
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-plus-jakarta",
+  display: "swap",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-dm-sans",
+  display: "swap",
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-space-grotesk",
+  display: "swap",
+});
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-outfit",
+  display: "swap",
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["400"],
+  style: ["normal", "italic"],
+  variable: "--font-playfair",
+  display: "swap",
+});
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  weight: ["400"],
+  style: ["normal", "italic"],
+  variable: "--font-fraunces",
+  display: "swap",
+});
+
+const THEME_PALETTES: Record<string, { light: string; dark: string }> = {
+  "royal-blue": { light: "#3b5fcc", dark: "#93a9f5" },
+  "blanxer-violet": { light: "#6d28d9", dark: "#c4b5fd" },
+  emerald: { light: "#047857", dark: "#6ee7b7" },
+  crimson: { light: "#b91c1c", dark: "#fca5a5" },
+  amber: { light: "#b45309", dark: "#fcd34d" },
+  teal: { light: "#0f766e", dark: "#5eead4" },
+  indigo: { light: "#4338ca", dark: "#a5b4fc" },
+};
+
+const SANS_FONT_VARS: Record<string, string> = {
+  "instrument-sans": "--font-instrument-sans",
+  inter: "--font-inter",
+  "plus-jakarta": "--font-plus-jakarta",
+  "dm-sans": "--font-dm-sans",
+  "space-grotesk": "--font-space-grotesk",
+  outfit: "--font-outfit",
+};
+
+const SERIF_FONT_VARS: Record<string, string> = {
+  "instrument-serif": "--font-instrument-serif",
+  playfair: "--font-playfair",
+  fraunces: "--font-fraunces",
+};
+
 export const metadata: Metadata = {
   /*
     metadataBase: makes every Open Graph URL and canonical absolute rather than
@@ -123,9 +211,37 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const settings = await getSiteSettings();
+
+  const customHex = settings.customAccentColor?.trim();
+  const isValidHex = Boolean(customHex && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(customHex));
+  const preset = THEME_PALETTES[settings.themePreset || "royal-blue"] ?? THEME_PALETTES["royal-blue"];
+  const accentLight = isValidHex && customHex ? customHex : preset.light;
+  const accentDark = isValidHex && customHex ? customHex : preset.dark;
+
+  const activeSansVar =
+    SANS_FONT_VARS[settings.fontFamily || "instrument-sans"] ?? "--font-instrument-sans";
+  const activeSerifVar =
+    SERIF_FONT_VARS[settings.serifFontFamily || "instrument-serif"] ?? "--font-instrument-serif";
+
+  const fontClasses = [
+    sans.variable,
+    serif.variable,
+    figure.variable,
+    inter.variable,
+    plusJakarta.variable,
+    dmSans.variable,
+    spaceGrotesk.variable,
+    outfit.variable,
+    playfair.variable,
+    fraunces.variable,
+  ].join(" ");
+
+  const dynamicThemeCss = `:root{--accent:${accentLight};--font-instrument-sans:var(${activeSansVar});--font-instrument-serif:var(${activeSerifVar});}.band-dark,.on-ink{--accent:${accentDark};}body{font-family:var(${activeSansVar}),ui-sans-serif,system-ui,sans-serif;}`;
+
   return (
     // data-scroll-behavior restores smooth anchor scrolling under Next 16 SPA
     // navigation, which no longer patches scroll-behavior automatically.
@@ -133,9 +249,10 @@ export default function RootLayout({
       lang="en"
       suppressHydrationWarning
       data-scroll-behavior="smooth"
-      className={`${sans.variable} ${serif.variable} ${figure.variable}`}
+      className={fontClasses}
     >
       <head>
+        <style dangerouslySetInnerHTML={{ __html: dynamicThemeCss }} />
         {/*
           Motion writes opacity:0 into the server rendered HTML for every
           reveal wrapper. If JavaScript is unavailable, blocked or still
@@ -149,7 +266,7 @@ export default function RootLayout({
       <body suppressHydrationWarning className="min-h-[100dvh] bg-canvas text-ink antialiased">
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[var(--z-skip)] focus:h-auto focus:w-auto focus:bg-ink focus:px-5 focus:py-3 focus:text-sm focus:font-semibold focus:text-canvas"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[var(--z-skip)] focus:h-auto focus:w-auto focus:bg-ink focus:px-5 focus:py-3 focus:text-sm font-semibold focus:text-canvas"
         >
           Skip to content
         </a>

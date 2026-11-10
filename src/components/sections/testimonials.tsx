@@ -1,9 +1,13 @@
+"use client";
+
+import { useState } from "react";
 import { ArrowUpRight, Star } from "@phosphor-icons/react/dist/ssr";
 
 import { Container, SectionHeading } from "@/components/ui/layout";
 import { VideoSlot } from "@/components/ui/portrait-slot";
 import { Reveal } from "@/components/ui/reveal";
 import { SerifText } from "@/components/ui/serif-text";
+import { VideoModal } from "@/components/ui/video-modal";
 import { testimonials } from "@/lib/content";
 
 function GoogleIcon({ className }: { className?: string }) {
@@ -29,12 +33,23 @@ function GoogleIcon({ className }: { className?: string }) {
   );
 }
 
+export type TestimonialVideoOverride = {
+  label?: string;
+  src?: string;
+  videoUrl?: string;
+};
+
 /**
  * SECTION 7 - TESTIMONIALS & GOOGLE REVIEWS
  * Real Google business reviews and video testimonials.
  */
-export function Testimonials() {
+export function Testimonials({
+  videoOverrides,
+}: {
+  videoOverrides?: TestimonialVideoOverride[];
+} = {}) {
   const { googleReviews } = testimonials;
+  const [activeVideo, setActiveVideo] = useState<{ label: string; videoUrl?: string } | null>(null);
 
   return (
     <section>
@@ -47,22 +62,34 @@ export function Testimonials() {
         />
 
         <div className="mt-12 grid gap-5 sm:grid-cols-2 md:mt-16 lg:grid-cols-12">
-          {testimonials.videoSlots.map((slot, index) => (
-            <Reveal
-              key={`${slot.label}-${index}`}
-              delay={index * 0.08}
-              distance={20}
-              className="lg:col-span-4"
-            >
-              <VideoSlot
-                spec={slot.spec}
-                label={slot.label}
-                index={index + 1}
-                src={slot.src}
-                alt={slot.alt}
-              />
-            </Reveal>
-          ))}
+          {testimonials.videoSlots.map((slot, index) => {
+            const override = videoOverrides?.[index];
+            const finalLabel = override?.label?.trim() || slot.label;
+            const finalSrc = override?.src?.trim() || slot.src;
+            const finalVideoUrl = override?.videoUrl?.trim();
+
+            return (
+              <Reveal
+                key={`${finalLabel}-${index}`}
+                delay={index * 0.08}
+                distance={20}
+                className="lg:col-span-4"
+              >
+                <div
+                  onClick={() => setActiveVideo({ label: finalLabel, videoUrl: finalVideoUrl })}
+                  className="cursor-pointer"
+                >
+                  <VideoSlot
+                    spec={slot.spec}
+                    label={finalLabel}
+                    index={index + 1}
+                    src={finalSrc}
+                    alt={slot.alt}
+                  />
+                </div>
+              </Reveal>
+            );
+          })}
         </div>
 
         {/* Google Reviews Rating Banner */}
@@ -153,6 +180,13 @@ export function Testimonials() {
           </div>
         </div>
       </Container>
+
+      <VideoModal
+        isOpen={Boolean(activeVideo)}
+        onClose={() => setActiveVideo(null)}
+        title={activeVideo?.label || "Featured Session"}
+        videoSrc={activeVideo?.videoUrl}
+      />
     </section>
   );
 }

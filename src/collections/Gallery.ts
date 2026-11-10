@@ -3,6 +3,7 @@ import type { CollectionConfig } from 'payload'
 export const Gallery: CollectionConfig = {
   slug: 'gallery',
   admin: {
+    group: 'Main Links',
     useAsTitle: 'title',
     defaultColumns: ['title', 'category', 'featured', 'order', 'createdAt'],
   },

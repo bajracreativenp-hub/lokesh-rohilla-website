@@ -3,6 +3,7 @@ import type { CollectionConfig } from 'payload'
 export const Events: CollectionConfig = {
   slug: 'events',
   admin: {
+    group: 'Main Links',
     useAsTitle: 'title',
     defaultColumns: ['title', 'locationType', 'date', 'venue', 'timezone', 'status'],
   },

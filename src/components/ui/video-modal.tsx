@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Play, X } from "@phosphor-icons/react/dist/ssr";
 import { AnimatePresence, motion } from "motion/react";
 
@@ -9,6 +9,41 @@ interface VideoModalProps {
   onClose: () => void;
   title: string;
   videoSrc?: string;
+}
+
+function resolveVideoEmbed(raw?: string): { kind: "iframe" | "video" | "empty"; url: string } {
+  if (!raw || !raw.trim()) return { kind: "empty", url: "" };
+  const src = raw.trim();
+
+  if (/\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(src) || src.startsWith("/media/")) {
+    return { kind: "video", url: src };
+  }
+
+  try {
+    const parsed = new URL(src, "https://lokeshrohilla.com");
+    if (parsed.hostname.includes("youtube.com")) {
+      const v = parsed.searchParams.get("v");
+      if (v) return { kind: "iframe", url: `https://www.youtube.com/embed/${v}?autoplay=1` };
+      const shortsMatch = parsed.pathname.match(/\/shorts\/([^/?]+)/);
+      if (shortsMatch?.[1]) {
+        return { kind: "iframe", url: `https://www.youtube.com/embed/${shortsMatch[1]}?autoplay=1` };
+      }
+    }
+    if (parsed.hostname === "youtu.be") {
+      const id = parsed.pathname.replace(/^\//, "");
+      if (id) return { kind: "iframe", url: `https://www.youtube.com/embed/${id}?autoplay=1` };
+    }
+    if (parsed.hostname.includes("vimeo.com") && !parsed.hostname.includes("player.vimeo.com")) {
+      const id = parsed.pathname.replace(/^\//, "").split("/")[0];
+      if (id && /^\d+$/.test(id)) {
+        return { kind: "iframe", url: `https://player.vimeo.com/video/${id}?autoplay=1` };
+      }
+    }
+  } catch {
+    // Keep original URL if parsing fails
+  }
+
+  return { kind: "iframe", url: src };
 }
 
 export function VideoModal({ isOpen, onClose, title, videoSrc }: VideoModalProps) {
@@ -27,6 +62,8 @@ export function VideoModal({ isOpen, onClose, title, videoSrc }: VideoModalProps
       document.body.style.overflow = "";
     };
   }, [isOpen, onClose]);
+
+  const resolved = resolveVideoEmbed(videoSrc);
 
   return (
     <AnimatePresence>
@@ -64,9 +101,17 @@ export function VideoModal({ isOpen, onClose, title, videoSrc }: VideoModalProps
 
             {/* Video Frame */}
             <div className="relative aspect-video w-full bg-black">
-              {videoSrc ? (
+              {resolved.kind === "video" ? (
+                <video
+                  src={resolved.url}
+                  controls
+                  autoPlay
+                  playsInline
+                  className="h-full w-full object-contain"
+                />
+              ) : resolved.kind === "iframe" ? (
                 <iframe
-                  src={videoSrc}
+                  src={resolved.url}
                   title={title}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
@@ -79,7 +124,7 @@ export function VideoModal({ isOpen, onClose, title, videoSrc }: VideoModalProps
                   </div>
                   <p className="text-base font-semibold text-white">{title}</p>
                   <p className="max-w-md text-xs text-neutral-400">
-                    Live keynote and strategy session archive. Preview recording available on consultation request.
+                    Live keynote and strategy session archive. Add a YouTube, Vimeo, or MP4 video URL in Admin → Appearance &amp; Landing Page to stream directly.
                   </p>
                 </div>
               )}

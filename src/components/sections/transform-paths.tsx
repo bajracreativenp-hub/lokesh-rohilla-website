@@ -16,7 +16,23 @@ import { transformPaths } from "@/lib/content";
  * The Bookwishes Club are reached through these three paths, through the
  * initiative rail in section 2, and through the footer.
  */
-export function TransformPaths() {
+export function TransformPaths({
+  pathImages,
+}: {
+  pathImages?: [string | undefined, string | undefined, string | undefined];
+} = {}) {
+  const customPaths = transformPaths.paths.map((path, index) => {
+    const customSrc = pathImages?.[index];
+    if (!customSrc) return path;
+    return {
+      ...path,
+      image: {
+        ...path.image,
+        src: customSrc,
+      },
+    };
+  });
+
   return (
     <section>
       <Container className="section-y">
@@ -27,7 +43,7 @@ export function TransformPaths() {
           size="lg"
         />
 
-        <PathSelector paths={transformPaths.paths} />
+        <PathSelector paths={customPaths} />
       </Container>
     </section>
   );

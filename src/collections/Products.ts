@@ -3,6 +3,7 @@ import type { CollectionConfig } from 'payload'
 export const Products: CollectionConfig = {
   slug: 'products',
   admin: {
+    group: 'Main Links',
     useAsTitle: 'title',
     defaultColumns: ['title', 'type', 'price', 'currency', 'active'],
   },
@@ -21,11 +22,28 @@ export const Products: CollectionConfig = {
     {
       name: 'slug',
       type: 'text',
-      required: true,
       unique: true,
       index: true,
       admin: {
         position: 'sidebar',
+        description: 'Auto-generated from Title if left blank.',
+      },
+      hooks: {
+        beforeValidate: [
+          ({ value, data }) => {
+            if (typeof value === 'string' && value.trim().length > 0) {
+              return value.trim()
+            }
+            const base =
+              typeof data?.title === 'string' && data.title.trim().length > 0
+                ? data.title
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-|-$/g, '')
+                : 'product'
+            return `${base}-${Date.now().toString(36)}`
+          },
+        ],
       },
     },
     {

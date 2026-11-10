@@ -8,6 +8,8 @@ import { Testimonials } from "@/components/sections/testimonials";
 import { TransformationPillars } from "@/components/sections/transformation-pillars";
 import { TransformPaths } from "@/components/sections/transform-paths";
 import { WorkedWith } from "@/components/sections/worked-with";
+import { getSiteSettings, resolveMediaUrl } from "@/lib/cms";
+import { hero as defaultHero } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -26,21 +28,82 @@ export const revalidate = 0;
  *   6. Transformation pillars 01 Business Systems • 02 Leadership • 03 Public Speaking
  *   7. Transform paths        Interactive path explorer with photo reveals
  *   8. Growth Path Tool       Interactive dual-track diagnostic assessment
- *   9. Testimonials          Verified Google Reviews & video frames
+ *   9. Testimonials           Verified Google Reviews & video frames
  *   10. Final CTA             Direct call to action to start with a conversation
  */
-export default function HomePage() {
+export default async function HomePage() {
+  const settings = await getSiteSettings();
+
+  const heroArtworkSrc = resolveMediaUrl(
+    settings.heroPortrait,
+    settings.heroArtworkUrl,
+    defaultHero.artwork.src || "/hero-artwork.jpg",
+  );
+
+  const hungerPortraitSrc = resolveMediaUrl(
+    settings.hungerPortrait,
+    settings.hungerPortraitUrl,
+    "/lokesh-hunger.png",
+  );
+
+  const hungerVideoThumbSrc = resolveMediaUrl(
+    settings.hungerVideoThumb,
+    undefined,
+    "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1600&q=80",
+  );
+
+  const coachingVideoThumbSrc = resolveMediaUrl(
+    settings.coachingVideoThumb,
+    undefined,
+    "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1600&q=80",
+  );
+
+  const pathImages: [string | undefined, string | undefined, string | undefined] = [
+    resolveMediaUrl(settings.pathOneImage, undefined, "") || undefined,
+    resolveMediaUrl(settings.pathTwoImage, undefined, "") || undefined,
+    resolveMediaUrl(settings.pathThreeImage, undefined, "") || undefined,
+  ];
+
+  const videoOverrides = [
+    {
+      label: settings.testimonialOneTitle || undefined,
+      src: resolveMediaUrl(settings.testimonialOneThumb, undefined, "") || undefined,
+      videoUrl: settings.testimonialOneUrl || undefined,
+    },
+    {
+      label: settings.testimonialTwoTitle || undefined,
+      src: resolveMediaUrl(settings.testimonialTwoThumb, undefined, "") || undefined,
+      videoUrl: settings.testimonialTwoUrl || undefined,
+    },
+    {
+      label: settings.testimonialThreeTitle || undefined,
+      src: resolveMediaUrl(settings.testimonialThreeThumb, undefined, "") || undefined,
+      videoUrl: settings.testimonialThreeUrl || undefined,
+    },
+  ];
+
   return (
     <>
-      <Hero />
+      <Hero
+        artworkSrc={heroArtworkSrc}
+        wordmark={settings.heroWordmark || undefined}
+        lede={settings.heroLede || undefined}
+      />
       <WorkedWith />
-      <HungerSection />
-      <CoachingSection />
+      <HungerSection
+        portraitSrc={hungerPortraitSrc}
+        videoThumbSrc={hungerVideoThumbSrc}
+        videoUrl={settings.hungerVideoUrl || undefined}
+      />
+      <CoachingSection
+        videoThumbSrc={coachingVideoThumbSrc}
+        videoUrl={settings.coachingVideoUrl || undefined}
+      />
       <BrandStatement />
       <TransformationPillars />
-      <TransformPaths />
-      <DiagnosticSection />
-      <Testimonials />
+      <TransformPaths pathImages={pathImages} />
+      {settings.diagnosticQuizActive !== false ? <DiagnosticSection /> : null}
+      <Testimonials videoOverrides={videoOverrides} />
       <FinalCta />
     </>
   );

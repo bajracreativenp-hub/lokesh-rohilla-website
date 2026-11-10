@@ -50,7 +50,18 @@ import { hero } from "@/lib/content";
  * exact failure the previous hero documented. The light inks are named directly
  * instead, so the tokens are never repointed and the artwork stays visible.
  */
-export function Hero() {
+export function Hero({
+  artworkSrc,
+  wordmark,
+  lede,
+}: {
+  artworkSrc?: string;
+  wordmark?: string;
+  lede?: string;
+} = {}) {
+  const finalSrc = artworkSrc || hero.artwork.src || undefined;
+  const finalWordmark = wordmark || hero.wordmark;
+  const finalLede = lede || hero.lede;
   return (
     <section
       className="relative isolate overflow-hidden"
@@ -89,7 +100,7 @@ export function Hero() {
           label="Hero artwork"
           spec={hero.artwork.spec}
           direction={hero.artwork.direction}
-          src={hero.artwork.src ?? undefined}
+          src={finalSrc}
           /*
             Empty alt. The artwork is atmosphere standing behind a wordmark and a
             sentence that already say what this page is, so describing it again for
@@ -191,7 +202,7 @@ export function Hero() {
             */
             className="text-display-hero font-bold leading-none tracking-[-0.035em] text-canvas"
           >
-            {hero.wordmark}
+            {finalWordmark}
             {/*
               THE ASTERISK.
 
@@ -217,7 +228,7 @@ export function Hero() {
               measures about 8.8:1 against the veil's worst case.
             */}
             <p className="max-w-[44ch] text-base leading-relaxed text-canvas/85 md:text-lg">
-              {hero.lede}
+              {finalLede}
             </p>
 
             <div className="flex items-center gap-3">

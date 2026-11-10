@@ -2,7 +2,12 @@ import type { CollectionConfig } from 'payload'
 
 export const Posts: CollectionConfig = {
   slug: 'posts',
+  labels: {
+    singular: 'Blog Post',
+    plural: 'Blog Posts',
+  },
   admin: {
+    group: 'Main Links',
     useAsTitle: 'title',
     defaultColumns: ['title', 'category', 'status', 'publishedAt'],
   },
@@ -28,22 +33,40 @@ export const Posts: CollectionConfig = {
     {
       name: 'slug',
       type: 'text',
-      required: true,
       unique: true,
       index: true,
       admin: {
         position: 'sidebar',
+        description: 'Auto-generated from Title if left blank.',
+      },
+      hooks: {
+        beforeValidate: [
+          ({ value, data }) => {
+            if (typeof value === 'string' && value.trim().length > 0) {
+              return value.trim()
+            }
+            const base =
+              typeof data?.title === 'string' && data.title.trim().length > 0
+                ? data.title
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-|-$/g, '')
+                : 'post'
+            return `${base}-${Date.now().toString(36)}`
+          },
+        ],
       },
     },
     {
       name: 'category',
       type: 'select',
       required: true,
+      defaultValue: 'business-strategy',
       options: [
-        { label: 'Business Strategy', value: 'business-strategy' },
+        { label: 'Business Growth & Strategy', value: 'business-strategy' },
         { label: 'Leadership & Culture', value: 'leadership' },
         { label: 'Mindset & Personal Growth', value: 'mindset' },
-        { label: 'Case Studies', value: 'case-studies' },
+        { label: 'Case Studies & Public Speaking', value: 'case-studies' },
         { label: 'Press & Insights', value: 'press' },
       ],
       admin: {
@@ -54,7 +77,7 @@ export const Posts: CollectionConfig = {
       name: 'status',
       type: 'select',
       required: true,
-      defaultValue: 'draft',
+      defaultValue: 'published',
       options: [
         { label: 'Draft', value: 'draft' },
         { label: 'Published', value: 'published' },
@@ -85,7 +108,6 @@ export const Posts: CollectionConfig = {
       name: 'featuredImage',
       type: 'upload',
       relationTo: 'media',
-      required: true,
     },
     {
       name: 'excerpt',

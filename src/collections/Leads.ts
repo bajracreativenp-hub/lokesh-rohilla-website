@@ -3,6 +3,7 @@ import type { CollectionConfig } from 'payload'
 export const Leads: CollectionConfig = {
   slug: 'leads',
   admin: {
+    group: 'Main Links',
     useAsTitle: 'name',
     defaultColumns: ['name', 'email', 'type', 'track', 'status', 'createdAt'],
   },

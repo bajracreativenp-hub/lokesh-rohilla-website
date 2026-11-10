@@ -9,7 +9,13 @@ import { Container } from "@/components/ui/layout";
 import { Reveal } from "@/components/ui/reveal";
 import { VideoModal } from "@/components/ui/video-modal";
 
-export function CoachingSection() {
+export function CoachingSection({
+  videoThumbSrc,
+  videoUrl,
+}: {
+  videoThumbSrc?: string;
+  videoUrl?: string;
+} = {}) {
   const [videoOpen, setVideoOpen] = useState(false);
 
   return (
@@ -69,7 +75,10 @@ export function CoachingSection() {
                   className="group relative aspect-[16/10] sm:aspect-[16/9] w-full translate-x-0 cursor-pointer overflow-hidden rounded-2xl bg-neutral-900 shadow-none border-0"
                 >
                   <Image
-                    src="https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1600&q=80"
+                    src={
+                      videoThumbSrc ||
+                      "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1600&q=80"
+                    }
                     alt="Personal breakthrough and mentorship session with Lokesh"
                     fill
                     sizes="(min-width: 1024px) 58vw, 100vw"
@@ -165,6 +174,7 @@ export function CoachingSection() {
         isOpen={videoOpen}
         onClose={() => setVideoOpen(false)}
         title="Expert Coaching & Mentorship with Lokesh Rohilla"
+        videoSrc={videoUrl}
       />
     </section>
   );

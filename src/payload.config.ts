@@ -34,8 +34,12 @@ import { migrations } from './migrations'
 export default buildConfig({
   admin: {
     user: Users.slug,
+    theme: 'light',
     importMap: {
       baseDir: path.resolve(dirname),
+    },
+    components: {
+      beforeDashboard: ['/components/admin/BlanxerDashboard#BlanxerDashboard'],
     },
   },
   collections: [Users, Media, Posts, Gallery, Events, Leads, Products],

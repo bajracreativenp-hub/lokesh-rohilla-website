@@ -30,7 +30,15 @@ const SLIDES = [
   },
 ];
 
-export function HungerSection() {
+export function HungerSection({
+  portraitSrc,
+  videoThumbSrc,
+  videoUrl,
+}: {
+  portraitSrc?: string;
+  videoThumbSrc?: string;
+  videoUrl?: string;
+} = {}) {
   const [slideIndex, setSlideIndex] = useState(0);
   const [videoOpen, setVideoOpen] = useState(false);
   const reduce = useReducedMotion();
@@ -72,7 +80,7 @@ export function HungerSection() {
                 {/* Photo Card */}
                 <div className="group relative z-10 flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl md:aspect-video bg-[#1e5ae6] shadow-none border-0">
                   <Image
-                    src="/lokesh-hunger.png"
+                    src={portraitSrc || "/lokesh-hunger.png"}
                     alt="Lokesh Rohilla"
                     fill
                     sizes="(min-width: 768px) 66vw, 100vw"
@@ -124,7 +132,10 @@ export function HungerSection() {
                   className="group relative flex aspect-video w-full translate-x-0 cursor-pointer items-center justify-center overflow-hidden rounded-2xl bg-neutral-900 shadow-none border-0 px-6 py-10"
                 >
                   <Image
-                    src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1600&q=80"
+                    src={
+                      videoThumbSrc ||
+                      "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1600&q=80"
+                    }
                     alt="Keynote speech and live session with Lokesh"
                     fill
                     sizes="(min-width: 768px) 34vw, 100vw"
@@ -311,6 +322,7 @@ export function HungerSection() {
         isOpen={videoOpen}
         onClose={() => setVideoOpen(false)}
         title="Lokesh Rohilla Live Keynote & Executive Masterclass"
+        videoSrc={videoUrl}
       />
     </section>
   );
