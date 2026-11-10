@@ -34,15 +34,26 @@ export async function POST(request: Request) {
 
     let existingUser = usersResult.docs[0]
 
-    // If user does not exist yet, allow known admin/owner emails to register automatically
-    if (!existingUser && (email === 'bajracreative.np@gmail.com' || email === 'connect@lokeshrohilla.com')) {
+    // Auto-provision authorized admin emails if not yet registered
+    const isAuthorizedAdmin =
+      email === 'bipunmanandhar98@gmail.com' ||
+      email === 'bajracreative.np@gmail.com' ||
+      email === 'admin@lokeshrohilla.com' ||
+      email === 'connect@lokeshrohilla.com' ||
+      email.endsWith('@lokeshrohilla.com')
+
+    if (!existingUser && isAuthorizedAdmin) {
       try {
         existingUser = await payload.create({
           collection: 'users',
           data: {
             email,
             password: crypto.randomBytes(16).toString('hex'),
-            name: email.includes('bajra') ? 'Bajra Creative' : 'Lokesh Rohilla',
+            name: email.startsWith('bipun')
+              ? 'Bipun Manandhar'
+              : email.includes('bajra')
+              ? 'Bajra Creative'
+              : 'Lokesh Rohilla',
             role: 'admin',
           },
         })
@@ -108,7 +119,7 @@ export async function POST(request: Request) {
           <div class="logo">Lokesh Rohilla • Admin Access</div>
           <h1>Your Login Verification Code</h1>
           <p>Hello ${(existingUser as { name?: string }).name || 'there'},</p>
-          <p>Enter the 6-digit verification code below to securely log in to your Lokesh Rohilla Studio dashboard:</p>
+          <p>Enter the 6-digit verification code below to securely log in to your dashboard:</p>
           <div class="code-box">
             <div class="code">${code}</div>
             <div class="expiry">Valid for 10 minutes (single-use)</div>
@@ -124,20 +135,18 @@ export async function POST(request: Request) {
 
     const { sent, provider, error: emailError } = await sendEmail({
       to: email,
-      subject: `${code} is your Lokesh Rohilla Admin Login Code`,
+      subject: `${code} is your Admin Login Code`,
       html: emailHtml,
-      text: `Your Lokesh Rohilla admin verification code is: ${code}. Valid for 10 minutes.`,
+      text: `Your admin verification code is: ${code}. Valid for 10 minutes.`,
     })
 
     const response = NextResponse.json({
       success: true,
       message: sent
         ? `Verification code sent to ${email}!`
-        : `Code generated! (Resend Sandbox note: verification domain pending).`,
+        : `Verification code generated for ${email}.`,
       email,
-      // If email was rejected by Resend due to unverified domain or sandbox limitation,
-      // show devCode directly so you are NEVER blocked!
-      devCode: sent ? undefined : code,
+      sent,
       errorDetail: emailError || undefined,
       provider,
     })

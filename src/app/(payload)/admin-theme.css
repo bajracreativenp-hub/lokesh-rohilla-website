@@ -1152,3 +1152,18 @@ body {
   background: #f7f9fd;
   border: 1px solid #eef2fa;
 }
+
+/* Hide duplicate Payload login form elements and style cleanly */
+.login__wrap {
+  max-width: 440px !important;
+  margin: 0 auto !important;
+}
+
+.login__form {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 18px !important;
+  padding: 24px 28px !important;
+  box-shadow: 0 4px 20px rgba(11, 23, 48, 0.05) !important;
+  margin-top: -12px !important;
+}

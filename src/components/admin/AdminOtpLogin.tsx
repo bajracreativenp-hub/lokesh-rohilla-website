@@ -10,8 +10,6 @@ export function AdminOtpLogin() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
-  const [devCode, setDevCode] = useState<string | null>(null)
-  const [errorDetail, setErrorDetail] = useState<string | null>(null)
   const [countdown, setCountdown] = useState(0)
 
   const codeInputRef = useRef<HTMLInputElement>(null)
@@ -34,8 +32,6 @@ export function AdminOtpLogin() {
     e.preventDefault()
     setError(null)
     setSuccessMsg(null)
-    setDevCode(null)
-    setErrorDetail(null)
 
     const trimmedEmail = email.trim()
     if (!trimmedEmail) {
@@ -58,14 +54,7 @@ export function AdminOtpLogin() {
 
       setStep('code')
       setCountdown(45)
-      setSuccessMsg(data.message || `We sent a 6-digit login code to ${trimmedEmail}`)
-
-      if (data.devCode) {
-        setDevCode(data.devCode)
-      }
-      if (data.errorDetail) {
-        setErrorDetail(data.errorDetail)
-      }
+      setSuccessMsg(`We sent a 6-digit login code to ${trimmedEmail}`)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to send code.')
     } finally {
@@ -108,173 +97,147 @@ export function AdminOtpLogin() {
   }
 
   return (
-    <div className="lr-otp-card">
-      {/* Brand Badge */}
-      <div className="lr-otp-badge-row">
-        <div className="lr-otp-logo-square">LR</div>
-        <div>
-          <div className="lr-otp-brand-title">Lokesh Rohilla Studio</div>
-          <div className="lr-otp-brand-sub">Secure Administrative Access</div>
+    <>
+      {/* Hide the default bottom password form while in Email Code mode */}
+      {mode === 'code' && (
+        <style>{`
+          .login__form { display: none !important; }
+        `}</style>
+      )}
+
+      <div className="lr-otp-card" data-otp-mode={mode}>
+        {/* Brand Badge */}
+        <div className="lr-otp-badge-row">
+          <div className="lr-otp-logo-square">LR</div>
+          <div>
+            <div className="lr-otp-brand-title">Lokesh Rohilla Studio</div>
+            <div className="lr-otp-brand-sub">Secure Administrative Access</div>
+          </div>
         </div>
-      </div>
 
-      {/* Tabs */}
-      <div className="lr-otp-tabs">
-        <button
-          type="button"
-          onClick={() => {
-            setMode('code')
-            setError(null)
-          }}
-          className={`lr-otp-tab ${mode === 'code' ? 'lr-otp-tab-active' : ''}`}
-        >
-          ✉️ Email Code (OTP)
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setMode('password')
-            setError(null)
-          }}
-          className={`lr-otp-tab ${mode === 'password' ? 'lr-otp-tab-active' : ''}`}
-        >
-          🔑 Password Login
-        </button>
-      </div>
+        {/* Tabs */}
+        <div className="lr-otp-tabs">
+          <button
+            type="button"
+            onClick={() => {
+              setMode('code')
+              setError(null)
+            }}
+            className={`lr-otp-tab ${mode === 'code' ? 'lr-otp-tab-active' : ''}`}
+          >
+            ✉️ Email Code (OTP)
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMode('password')
+              setError(null)
+            }}
+            className={`lr-otp-tab ${mode === 'password' ? 'lr-otp-tab-active' : ''}`}
+          >
+            🔑 Password Login
+          </button>
+        </div>
 
-      {mode === 'code' ? (
-        <div className="lr-otp-body">
-          {error && <div className="lr-otp-alert lr-otp-alert-error">{error}</div>}
-          {successMsg && <div className="lr-otp-alert lr-otp-alert-success">{successMsg}</div>}
+        {mode === 'code' ? (
+          <div className="lr-otp-body">
+            {error && <div className="lr-otp-alert lr-otp-alert-error">{error}</div>}
+            {successMsg && <div className="lr-otp-alert lr-otp-alert-success">{successMsg}</div>}
 
-          {devCode && (
-            <div className="lr-otp-alert lr-otp-alert-info">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <span style={{ fontWeight: 700 }}>⚡ Instant Access Code:</span>
-                <button
-                  type="button"
-                  onClick={() => setCode(devCode)}
-                  style={{
-                    padding: '2px 8px',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    borderRadius: '6px',
-                    border: '1px solid #93c5fd',
-                    background: '#ffffff',
-                    color: '#1d4ed8',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Auto-fill Code
-                </button>
-              </div>
-              <div style={{ fontSize: '20px', fontWeight: 800, letterSpacing: '4px', color: '#1e40af', margin: '4px 0' }}>
-                {devCode}
-              </div>
-              {errorDetail ? (
-                <div style={{ fontSize: '11px', color: '#475569', marginTop: '4px', lineHeight: 1.4 }}>
-                  ℹ️ {errorDetail}
+            {step === 'email' ? (
+              <form onSubmit={handleSendCode} className="lr-otp-form">
+                <label htmlFor="otp-email" className="lr-otp-label">
+                  Admin Email Address
+                </label>
+                <div className="lr-otp-input-wrap">
+                  <input
+                    id="otp-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="name@example.com"
+                    required
+                    autoFocus
+                    autoComplete="email"
+                    className="lr-otp-input"
+                  />
                 </div>
-              ) : null}
-            </div>
-          )}
 
-          {step === 'email' ? (
-            <form onSubmit={handleSendCode} className="lr-otp-form">
-              <label htmlFor="otp-email" className="lr-otp-label">
-                Admin Email Address
-              </label>
-              <div className="lr-otp-input-wrap">
-                <input
-                  id="otp-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@lokeshrohilla.com or bajracreative.np@gmail.com"
-                  required
-                  autoFocus
-                  className="lr-otp-input"
-                />
-              </div>
-              <p className="lr-otp-hint">
-                Tip: Resend testing domain delivers to <strong>bajracreative.np@gmail.com</strong> (or use admin@lokeshrohilla.com with on-screen code).
-              </p>
-
-              <button type="submit" disabled={loading} className="lr-otp-btn-primary">
-                {loading ? 'Sending Code...' : 'Send Login Code →'}
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleVerifyCode} className="lr-otp-form">
-              <div className="lr-otp-email-badge">
-                <span>Code for: <strong>{email}</strong></span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStep('email')
-                    setCode('')
-                    setError(null)
-                    setDevCode(null)
-                    setErrorDetail(null)
-                  }}
-                  className="lr-otp-link-btn"
-                >
-                  Change
+                <button type="submit" disabled={loading} className="lr-otp-btn-primary">
+                  {loading ? 'Sending Code...' : 'Send Login Code →'}
                 </button>
-              </div>
-
-              <label htmlFor="otp-code" className="lr-otp-label">
-                Enter 6-Digit Verification Code
-              </label>
-              <input
-                ref={codeInputRef}
-                id="otp-code"
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                maxLength={6}
-                value={code}
-                onChange={(e) => {
-                  const val = e.target.value.replace(/\D/g, '')
-                  setCode(val)
-                  if (val.length === 6) {
-                    setError(null)
-                  }
-                }}
-                placeholder="••••••"
-                required
-                className="lr-otp-input-code"
-              />
-
-              <button type="submit" disabled={loading || code.length !== 6} className="lr-otp-btn-primary">
-                {loading ? 'Verifying...' : 'Verify & Log In →'}
-              </button>
-
-              <div className="lr-otp-resend-row">
-                {countdown > 0 ? (
-                  <span className="lr-otp-timer">Resend available in {countdown}s</span>
-                ) : (
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyCode} className="lr-otp-form">
+                <div className="lr-otp-email-badge">
+                  <span>Code sent to: <strong>{email}</strong></span>
                   <button
                     type="button"
-                    onClick={handleSendCode}
-                    disabled={loading}
+                    onClick={() => {
+                      setStep('email')
+                      setCode('')
+                      setError(null)
+                    }}
                     className="lr-otp-link-btn"
                   >
-                    Didn&apos;t receive it? Resend code
+                    Change
                   </button>
-                )}
-              </div>
-            </form>
-          )}
-        </div>
-      ) : (
-        <div className="lr-otp-password-note">
-          <p>
-            Please use the standard email and password form below to log in directly.
-          </p>
-        </div>
-      )}
-    </div>
+                </div>
+
+                <label htmlFor="otp-code" className="lr-otp-label">
+                  Enter 6-Digit Verification Code
+                </label>
+                <input
+                  ref={codeInputRef}
+                  id="otp-code"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  value={code}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '')
+                    setCode(val)
+                    if (val.length === 6) {
+                      setError(null)
+                    }
+                  }}
+                  placeholder="••••••"
+                  required
+                  autoComplete="one-time-code"
+                  className="lr-otp-input-code"
+                />
+
+                <button type="submit" disabled={loading || code.length !== 6} className="lr-otp-btn-primary">
+                  {loading ? 'Verifying...' : 'Verify & Log In →'}
+                </button>
+
+                <div className="lr-otp-resend-row">
+                  {countdown > 0 ? (
+                    <span className="lr-otp-timer">Resend available in {countdown}s</span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleSendCode}
+                      disabled={loading}
+                      className="lr-otp-link-btn"
+                    >
+                      Didn&apos;t receive it? Resend code
+                    </button>
+                  )}
+                </div>
+              </form>
+            )}
+          </div>
+        ) : (
+          <div className="lr-otp-password-note">
+            <p style={{ margin: 0 }}>
+              Use your registered email and password below to sign in directly.
+            </p>
+          </div>
+        )}
+      </div>
+    </>
   )
 }
 
