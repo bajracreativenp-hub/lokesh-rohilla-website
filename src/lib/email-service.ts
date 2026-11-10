@@ -1,3 +1,5 @@
+import { Resend } from 'resend'
+
 export type SendEmailOptions = {
   to: string
   subject: string
@@ -11,9 +13,18 @@ export type SendEmailResult = {
   error?: string
 }
 
+let resendInstance: Resend | null = null
+
+function getResend(): Resend | null {
+  if (!resendInstance && process.env.RESEND_API_KEY) {
+    resendInstance = new Resend(process.env.RESEND_API_KEY)
+  }
+  return resendInstance
+}
+
 /**
  * Universal Email Sender
- * Automatically uses Resend, Brevo, or falls back to server console logging in dev/local mode.
+ * Uses official Resend SDK, Brevo fallback, or server console fallback in dev mode.
  */
 export async function sendEmail({
   to,
@@ -23,37 +34,32 @@ export async function sendEmail({
 }: SendEmailOptions): Promise<SendEmailResult> {
   const plainText = text || html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
 
-  // 1. Resend API (Zero dependencies, native fetch)
-  if (process.env.RESEND_API_KEY) {
+  // 1. Official Resend SDK
+  const resend = getResend()
+  if (resend) {
     try {
       const from = process.env.EMAIL_FROM || 'Lokesh Rohilla Studio <onboarding@resend.dev>'
-      const res = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from,
-          to: [to],
-          subject,
-          html,
-          text: plainText,
-        }),
+      const { data, error } = await resend.emails.send({
+        from,
+        to: [to],
+        subject,
+        html,
+        text: plainText,
       })
 
-      if (res.ok) {
+      if (!error && data) {
         return { sent: true, provider: 'resend' }
-      } else {
-        const errorText = await res.text()
-        console.warn('[EmailService] Resend API error:', errorText)
+      }
+
+      if (error) {
+        console.warn('[EmailService] Resend SDK error:', error)
       }
     } catch (err) {
-      console.warn('[EmailService] Resend request failed:', err)
+      console.warn('[EmailService] Resend SDK exception:', err)
     }
   }
 
-  // 2. Brevo (Sendinblue) API
+  // 2. Brevo (Sendinblue) API fallback
   if (process.env.BREVO_API_KEY) {
     try {
       const fromEmail = process.env.EMAIL_FROM || 'connect@lokeshrohilla.com'
